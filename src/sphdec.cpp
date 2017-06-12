@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <regex>
 
 using namespace std;
 using namespace arma;
@@ -32,7 +33,7 @@ void create_config(string filepath){
             << "output_file=output.txt      // Text file used for simulation output" << endl \
             << "code_size=4                 // Size of the code" << endl \
             << "code_length=8               // Length of the code" << endl \
-            << "no_of_matrices=4            // Number of matrices" << endl \
+            << "no_of_matrices=4            // Number of basis matrices" << endl \
             << "no_of_broadcast_antennas=5  // Number of broadcast antennas" << endl \
             << "no_of_receiver_antennas=5   // Number of receiver antennas"  << endl \
             << "snr_min=6                   // Minimum value for signal-to-noise ratio" << endl \
@@ -75,6 +76,25 @@ map<string, string> get_options(string filepath){
     return output;
 }
 
+vector<cx_mat> read_matrices(string filepath){
+    //regex elem_regex("(\\{|,)\\s*(\\+|\\-)?(\\d*).(\\d+)(\\+|\\-)?\\s*(\\d*).(\\d+)\\s[Ii]\\s*(,|\\})\\s*");
+    regex elem_regex("(\\d+).\\d+");
+    ifstream matrix_file(filepath);
+    vector<cx_mat> output;
+    string line;
+    smatch m;
+    while (getline(matrix_file, line))
+    {
+        // cout << line << endl;
+        if (regex_search(line, m, elem_regex)) {
+            for(auto const &match : m)
+                cout << match.str() << endl;
+        }
+    }
+    output.push_back(cx_mat(5,5,arma::fill::randu));
+    return output;
+}
+
 int main(int argc, char** argv)
 {
     string inputfile = "options.ini";
@@ -82,8 +102,13 @@ int main(int argc, char** argv)
         inputfile = argv[1];
     }
     auto output = get_options(inputfile);
-    for (auto const &item : output){
-        cout << item.first << " = " << item.second << endl;
-    }
+    // for (auto const &item : output){
+    //     cout << item.first << " = " << item.second << endl;
+    // }
+
+    auto bases = read_matrices(output["basis_file"]);
+    // for (auto const &base : bases){
+    //     cout << base << endl;
+    // }
     return 0;
 }
