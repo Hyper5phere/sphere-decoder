@@ -1,4 +1,4 @@
-Sphere Decoder for Space time block codes
+Sphere decoder for space time block codes
 =========================================
 
 Key Features
