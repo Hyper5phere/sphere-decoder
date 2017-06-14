@@ -16,10 +16,15 @@
 #include <regex>
 #include <locale>
 
+#define NUM_OPTIONS 11
+
 using namespace std;
 using namespace arma;
 
-string default_filename = "options.ini";
+string options_filename = "options.ini";
+string basis_filename = "bases.txt";
+string output_filename = "output.txt";
+
 
 void clean_input(string &input){
     // clean out comments
@@ -28,14 +33,13 @@ void clean_input(string &input){
         input = input.substr(0, start);
     // clean out white spaces
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end());
-    // input.erase(remove(input.begin(), input.end(), '+'), input.end());
 }
 
-void create_config(string filepath){
+void create_config(const string filepath){
 /* Creates a default configuration file in case one does not exist */
     ofstream defconf(filepath);
-    defconf << "basis_file=bases.txt        // Text file containing the basis matrices" << endl \
-            << "word_file=words.txt         // Text file containing the words" << endl \
+    defconf << "// configuration settings and simulation parameters for the sphere decoder program //" << endl << endl \
+            << "basis_file=bases.txt        // Text file containing the basis matrices" << endl \
             << "output_file=output.txt      // Text file used for simulation output" << endl \
             << "code_size=4                 // Size of the code" << endl \
             << "code_length=2               // Length of the code" << endl \
@@ -44,24 +48,31 @@ void create_config(string filepath){
             << "no_of_receiver_antennas=2   // Number of receiver antennas"  << endl \
             << "snr_min=6                   // Minimum value for signal-to-noise ratio" << endl \
             << "snr_max=12                  // Maximum value for signal-to-noise ratio" << endl \
-            << "initial_radius=-1           // Initial search radius for the sphere decoder" << endl \
-            << "symbolset=-3,-1,1,3         // List of admissable values for the signal vectors" << endl \
+            << "symbolset=3                 // List of admissable values for the signal vectors" << endl \
             << "required_errors=500         // Demand at minimum this many errors before the end of the simulation" << endl;
     defconf.close();
 }
 
-map<string, string> get_options(string filepath){
+map<string, int> get_options(const string filepath){
 /* Read simulation options from a configuration file */
-    map<string, string> output;
+    map<string, int> output;
     ifstream config_file(filepath);
 
-    if (!config_file.good()){
-        cout << "Warning: no config file found, creating a default one..." << endl;
-        create_config(default_filename);
-        config_file = ifstream(default_filename);
-    }
+    if (!config_file.good() && filepath.compare(options_filename) != 0){
+        cout << "[Warning] No options file '" << filepath << "' found, using the default one..." << endl;
+        config_file = ifstream(options_filename);
+    } 
 
+    if (!config_file.good()){
+        cout << "[Info] No default options file found, creating a new one with default settings..." << endl;
+        create_config(options_filename);
+        cout << "[Info] Make your changes to the options file and rerun this program." << endl;
+        cout << "[Info] Exiting..." << endl;
+        exit(0);
+    }
+    
     string line;
+    uint lines = 0;
     while (getline(config_file, line))
     {
         istringstream iss(line);
@@ -69,34 +80,62 @@ map<string, string> get_options(string filepath){
 
         if(getline(iss, key, '=') )
         {
+            if (key.find("//", 0) != string::npos)
+                continue;
             string value;
-            if(getline(iss, value)) {
+            getline(iss, value); 
+            if (!value.empty()) {
                 clean_input(value);
-                if (!value.empty())
-                    output[key] = value;
+                if (key.compare("basis_file") == 0)
+                    basis_filename = value;
+                else if (key.compare("output_file") == 0)
+                    output_filename = value;
+                else {
+                    if ((output[key] = strtol(value.c_str(), NULL, 10)) <= 0) {
+                        cout << "[Error] Value for option '" << key << "' must be an positive integer!" << endl;
+                        exit(1);
+                    }
+                }
             } else {
-                cout << "Warning: value for option '" << key << "' not spesified!" << endl;
+                cout << "[Error] Value for option '" << key << "' not spesified!" << endl;
+                exit(1);
             }
         }
+        lines++;
     }
+    if (lines < NUM_OPTIONS) {
+        cout << "[Error] too few options spesified in the '" << filepath << "!" << endl;
+        cout << "[Info] Consider deleting the default options file which will reset the program settings." << endl;
+        exit(1);
+    }
+
     return output;
 }
 
-vector<cx_mat> read_matrices(map<string, string> &options){
+vector<cx_mat> read_matrices(const map<string, int> &options){
+/* reads k nxm matrices from the spesified input text files */
 
+    /* regular expression pattern used to search 
+     * matrix elements in Wolfram Mathematica format
+     */
     regex elem_regex(
         "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*[Ii]?)|"
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "\\s*"
+        "\\s*" // white space
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "[Ii]{1})\\s*([,}]{1})"  
+        "[Ii]{1})\\s*([,}]{1})" // element ends in 'I' and comma or bracket
     );
 
-    uint m = atoi(options.at("no_of_receiver_antennas").c_str());
-    uint n = atoi(options.at("code_length").c_str());
-    uint k = atoi(options.at("no_of_matrices").c_str());
+    // uint m = atoi(options.at("no_of_receiver_antennas").c_str());
+    // uint n = atoi(options.at("code_length").c_str());
+    // uint k = atoi(options.at("no_of_matrices").c_str());
+    size_t m = options.at("no_of_receiver_antennas");
+    size_t n = options.at("code_length");
+    size_t k = options.at("no_of_matrices");
+    size_t idx = 0;
 
-    ifstream matrix_file(options.at("basis_file"));
+    // ifstream matrix_file(options.at("basis_file"));
+    ifstream matrix_file(basis_filename);
     vector<cx_mat> output;
     smatch match;
     vector< complex<double> > numbers;
@@ -104,7 +143,6 @@ vector<cx_mat> read_matrices(map<string, string> &options){
     string content((istreambuf_iterator<char>(matrix_file)), 
         istreambuf_iterator<char>());
     
-    uint idx = 0;
     while(regex_search(content, match, elem_regex)){
         // cout << content << endl;
         if (!match.empty()) {
@@ -136,7 +174,7 @@ vector<cx_mat> read_matrices(map<string, string> &options){
     }
 
     if (m*n*k != numbers.size()){
-        cout << "Failed to read configured " <<  m*n*k << " matrix elements!" << endl;
+        cout << "[Error] Failed to read configured " <<  m*n*k << " matrix elements!" << endl;
         exit(1);
     }
 
@@ -159,16 +197,19 @@ vector<cx_mat> read_matrices(map<string, string> &options){
 
 int main(int argc, char** argv)
 {
-    string inputfile = default_filename;
-    if (argc > 1){
+    string inputfile = options_filename;
+    if (argc == 2){
         inputfile = argv[1];
+    } else if (argc > 2) {
+        cout << "Usage: " << argv[0] << " [options_file*]" << endl;
+        exit(0);
     }
-    auto output = get_options(inputfile);
+    auto opts = get_options(inputfile);
     // for (auto const &item : output){
     //     cout << item.first << " = " << item.second << endl;
     // }
 
-    auto bases = read_matrices(output);
+    auto bases = read_matrices(opts);
     for (auto const &base : bases){
         cout << base << endl;
     }
