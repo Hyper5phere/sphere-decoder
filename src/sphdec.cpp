@@ -227,15 +227,71 @@ int* create_symbolset(int q = params["x-PAM"]){
     return symbset; // must be free()'d after use
 }
 
+/* recursively calculate all possible combinations of given symbolset
+and return a list of lists of them */
+// vector<vector<int> > combinations(int* symbolset, vector<int> comb, int dim){
+    
+//     if (dim == 0) {
+//         vector<vector<int> > curr(1, vector<int>(params["x-PAM"]));
+//         curr[0] = comb;
+//         return curr;
+//     }
+//     else {
+//         vector<vector<int> > curr(params["x-PAM"], vector<int>(params["x-PAM"]));
+//         for (int i = 0; i < params["x-PAM"]; i++){
+//             comb[dim] = symbolset[i];
+//             curr[0] = comb;
+//             auto tmp = combinations(symbolset, comb, dim-1);
+//             for (int j = 0; j < params["x-PAM"]; j++)
+//                 curr[j] = 
+//             rest.insert(rest.end(), curr.begin(), curr.end());
+//         }
+//         return curr;
+//     }
+// }
+
+/* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
+vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
+    // int q = params["x-PAM"];
+    int m = params["no_of_receiver_antennas"];
+    int n = params["code_length"];
+    int k = params["no_of_matrices"];
+
+    /* all possible combinations of code words */
+    // TODO: Make this work somehow
+    // auto combs = combinations(symbolset, vector<int>(symbolset[0]), n);
+
+    /* lattice generator matrix G */
+    cx_mat G(m*n,k);
+    for(int i = 0; i < k; i++){
+        G.col(i) = vectorise(bases[i]);
+    }
+
+    vector<cx_mat> codebook(k);
+    // for (int j = 0; j < k; j++){
+    //     cx_mat X(m,n);
+
+    //     for (uint i = 0; i < combs.size(); i++){
+    //         X = G*vec(combs[i]);
+    //         // X = X + symbolset[i]*bases[i];
+    //     }
+    //     codebook[j] = X;
+    // }
+    return codebook;
+}
+
+/* Computes the average and maximum energy of given codebook X */
 pair<double,double> code_energy(const vector<cx_mat> &X){
     double sum = 0, max = 0, tmp = 0, average = 0;
-    for (int i = 0; i < params["code_length"]; i++){
+
+    for (uint i = 0; i < X.size(); i++){
         tmp += norm(X[i], "fro");
         sum += tmp;
         if (tmp > max)
             max = tmp;
     }
-    average = sum / params["code_length"];
+
+    average = sum / X.size();
     return make_pair(average, max);
 }
 
@@ -264,15 +320,16 @@ int main(int argc, char** argv)
             cout << ", ";
     }
     cout << "}" << endl << endl;
-    free(symbset);
-  
-    auto e = code_energy(bases);
+    
+    auto codebook = create_codebook(bases, symbset);
+
+    auto e = code_energy(codebook);
     cout << "Code Energy" << \
     endl << "-----------" << \
     endl << "Average: " << e.first << \
     endl << "Max: " << e.second << endl;
 
 
-
+    free(symbset);
     return 0;
 }
