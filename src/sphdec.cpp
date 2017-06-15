@@ -24,7 +24,7 @@
 #include <regex>
 #include <locale>
 
-#define NUM_OPTIONS 11 
+#define NUM_OPTIONS 11
 
 using namespace std;
 using namespace arma;
@@ -39,34 +39,38 @@ map<string, int> params;
 
 
 void clean_input(string &input){
-    // clean out comments
+    // remove comments
     string::size_type start = input.find("//", 0);
     if (start != string::npos)
         input = input.substr(0, start);
-    // clean out white spaces
+    // remove white spaces
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end());
 }
 
-void create_config(const string filepath){
 /* Creates a default configuration file in case one does not exist */
+void create_config(const string filepath){
+
     ofstream defconf(filepath);
     defconf << "// configuration settings and simulation parameters for the sphere decoder program //" << endl << endl \
-            << "basis_file=bases.txt        // Text file containing the basis matrices" << endl \
-            << "output_file=output.txt      // Text file used for simulation output" << endl \
-            << "code_size=4                 // Size of the code" << endl \
-            << "code_length=2               // Length of the code" << endl \
-            << "no_of_matrices=2            // Number of basis matrices" << endl \
-            << "no_of_broadcast_antennas=2  // Number of broadcast antennas" << endl \
-            << "no_of_receiver_antennas=2   // Number of receiver antennas"  << endl \
-            << "snr_min=6                   // Minimum value for signal-to-noise ratio" << endl \
-            << "snr_max=12                  // Maximum value for signal-to-noise ratio" << endl \
-            << "symbolset=3                 // List of admissable values for the signal vectors" << endl \
-            << "required_errors=500         // Demand at minimum this many errors before the end of the simulation" << endl;
+            << "basis_file=bases.txt          // Text file containing the basis matrices" << endl \
+            << "output_file=output.txt        // Text file used for simulation output" << endl \
+            << "x-PAM=4                       // The size of the PAM signaling set" << endl \
+            << "code_length=2                 // Dimension of the code words" << endl \
+            << "energy_estimation_samples=-1  // Number of samples to make the code energy estimation (-1 = sample all)" << endl \
+            << "no_of_matrices=2              // Number of basis matrices" << endl \
+            << "no_of_broadcast_antennas=2    // Number of broadcast antennas" << endl \
+            << "no_of_receiver_antennas=2     // Number of receiver antennas"  << endl \
+            << "snr_min=6                     // Minimum value for signal-to-noise ratio" << endl \
+            << "snr_max=12                    // Maximum value for signal-to-noise ratio" << endl \
+            << "required_errors=500           // Demand at minimum this many errors before the simulation ends" << endl;
     defconf.close();
+            // This is probably unnecessary
+            // << "code_size=4                   // Size of the set containing all possible data vectors" << endl           
 }
 
+/* Read simulation parameters from a settings file */
 void configure(const string filepath) {
-/* Read simulation options from a configuration file */
+
     map<string, int> output;
     ifstream config_file(filepath);
 
@@ -103,8 +107,8 @@ void configure(const string filepath) {
                 else if (key.compare("output_file") == 0)
                     output_filename = value;
                 else {
-                    if ((params[key] = strtol(value.c_str(), NULL, 10)) <= 0) {
-                        cout << "[Error] Value for option '" << key << "' must be an positive integer!" << endl;
+                    if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
+                        cout << "[Error] Invalid value for option '" << key << "'" << endl;
                         exit(1);
                     }
                 }
@@ -115,17 +119,22 @@ void configure(const string filepath) {
         }
         lines++;
     }
-    if (lines < NUM_OPTIONS) {
-        cout << "[Error] too few options spesified in the '" << filepath << "!" << endl;
-        cout << "[Info] Consider deleting the default options file which will reset the program settings." << endl;
+    if (lines < NUM_OPTIONS){
+        cout << "[Error] Too few options spesified in the '" << filepath << "!" << endl;
+        cout << "[Info] Consider deleting the default settings file which will reset the program settings." << endl;
+        exit(1);
+    } 
+    if ((params["x-PAM"] <= 0) || (params["x-PAM"] % 2 == 1)){
+        cout << "[Error] Invalid x-PAM signal set spesified!" << endl;
+        cout << "[Info] x-PAM option accepts positive even integers." << endl;
         exit(1);
     }
 
     return;
 }
 
-vector<cx_mat> read_matrices(){
 /* reads k (m x n) matrices from the spesified basis_file */
+vector<cx_mat> read_matrices(){
 
     /* - regular expression pattern used to search 
      *   matrix elements in Wolfram Mathematica format
@@ -209,6 +218,15 @@ vector<cx_mat> read_matrices(){
     return output;
 }
 
+/* Creates a C-style integer array representation of an x-PAM symbolset */
+int* create_symbolset(int q = params["x-PAM"]){
+    int *symbset = (int*) malloc(q * sizeof(int));
+    for (int u = 0; u < q; u++) {
+        symbset[u] = 2*u - q + 1;
+    }
+    return symbset; // must be free()'d after use
+}
+
 pair<double,double> code_energy(const vector<cx_mat> &X){
     double sum = 0, max = 0, tmp = 0, average = 0;
     for (int i = 0; i < params["code_length"]; i++){
@@ -217,7 +235,7 @@ pair<double,double> code_energy(const vector<cx_mat> &X){
         if (tmp > max)
             max = tmp;
     }
-    average = sum / params["code_size"];
+    average = sum / params["code_length"];
     return make_pair(average, max);
 }
 
@@ -238,11 +256,23 @@ int main(int argc, char** argv)
         cout << base << endl;
     }
 
+    int *symbset = create_symbolset();
+    cout << "Using symbolset: {";
+    for (int i = 0; i < params["x-PAM"]; ++i) {
+        cout << symbset[i];
+        if (i < params["x-PAM"] - 1)
+            cout << ", ";
+    }
+    cout << "}" << endl << endl;
+    free(symbset);
+  
     auto e = code_energy(bases);
     cout << "Code Energy" << \
     endl << "-----------" << \
     endl << "Average: " << e.first << \
     endl << "Max: " << e.second << endl;
+
+
 
     return 0;
 }
