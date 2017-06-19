@@ -4,7 +4,7 @@
  Author      : Pasi Pyrrö
  Version     : 1.0
  Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis
- Date        : 14.6.2017
+ Date        : 19.6.2017
  Description : Sphere Decoder in C++14
  Compilation : g++ sphdec.cpp -o sphdec -O2 -larmadillo -llapack -lblas -std=c++14
  ===================================================================================================
@@ -24,8 +24,9 @@
 #include <algorithm>
 #include <regex>
 #include <locale>
+#include <random>
 
-#define NUM_OPTIONS 12
+#define NUM_OPTIONS 11
 
 using namespace std;
 using namespace arma;
@@ -38,6 +39,8 @@ string output_filename = "output.txt";
 /* simulation parameters */
 map<string, int> params;
 
+/* random number generator */
+default_random_engine generator;
 
 void clean_input(string &input){
     // remove comments
@@ -55,23 +58,20 @@ void create_config(const string filepath){
     defconf << "// configuration settings and simulation parameters for the sphere decoder program //" << endl << endl \
             << "basis_file=bases.txt          // Text file containing the basis matrices" << endl \
             << "output_file=output.txt        // Text file used for simulation output" << endl \
-            << "x-PAM=4                       // The size of the PAM signaling set" << endl \
+            << "x-PAM=4                       // The size of the PAM signaling set (even positive integer)" << endl \
             << "energy_estimation_samples=-1  // Number of samples to make the code energy estimation (-1 = sample all)" << endl \
             << "no_of_matrices=2              // Number of basis matrices (dimension of the data vectors)" << endl \
             << "time_slots=2                  // Number of time slots used in the code" << endl \
-            << "no_of_transmit_antennas=2     // Number of broadcast antennas" << endl \
+            << "no_of_transmit_antennas=2     // Number of transmit antennas" << endl \
             << "no_of_receiver_antennas=2     // Number of receiver antennas"  << endl \
             << "snr_min=6                     // Minimum value for signal-to-noise ratio" << endl \
             << "snr_max=12                    // Maximum value for signal-to-noise ratio" << endl \
             << "required_errors=500           // Demand at minimum this many errors before the simulation ends" << endl;
-    defconf.close();
-            // This is probably unnecessary
-            // << "code_size=4                   // Size of the set containing all possible data vectors" << endl           
+    defconf.close();     
 }
 
 /* Read simulation parameters from a settings file */
 void configure(const string filepath) {
-
     map<string, int> output;
     ifstream config_file(filepath);
 
@@ -131,10 +131,8 @@ void configure(const string filepath) {
         exit(1);
     }
 
-    // helper variable calculated from the input parameters
+    // helper variable (size of the code matrix set) calculated from the input parameters
     params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
-
-    return;
 }
 
 /* reads k (m x n) matrices from the spesified basis_file */
@@ -261,10 +259,11 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
+    int q = params["x-PAM"];
     // int cs = params["codebook_size"];
+    int samples = params["energy_estimation_samples"];
 
-    /* all possible combinations of code words */
-    auto c = comb_wrapper(symbolset, k);
+    
 
     /* lattice generator matrix G (alternative approach) */
     // cx_mat G(m*n,k);
@@ -273,22 +272,50 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     // }
 
     vector<cx_mat> codebook;
-    cx_mat X(m, t, fill::zeros);
+    cx_mat X(m, t);
+    
+    if(samples > 0){
+        int random_index = 0;
+        uniform_int_distribution<int> dist(0,q-1);
+        cout << "Random sampled data vector combinations:" << endl;
+        for (int j = 0; j < samples; j++){
+            cout << "{";
+            for (int i = 0; i < k; i++) {
+                random_index = dist(generator);
+                cout << symbolset[random_index] << " ";
+                X = X + symbolset[random_index]*bases[i];
+            }
+            cout << "}" << endl;
+            codebook.push_back(X);
+            X.zeros();
+            // cout << endl << X << endl;
 
-    cout << "Possible code vector combinations:" << endl;
-    for (const auto &symbols : c){
-        for (int i = 0; i < k; i++)
-            X = X + symbols[i]*bases[i];
-        
-        codebook.push_back(X);
-        X.zeros();
+            // cout << "{";
+            // for (int s = 0; s < k - 1; s++)
+            //     cout << symbolset[s] << ", ";
+            // cout << symbolset[k-1] << "}" << endl;
+        }
+        cout << endl;
+    } else {
 
-        cout << "{";
-        for (int s = 0; s < k - 1; s++)
-            cout << symbols[s] << ", ";
-        cout << symbols[k-1] << "}" << endl;
+        /* all possible combinations of code words */
+        auto c = comb_wrapper(symbolset, k);
+
+        cout << "All possible data vector combinations:" << endl;
+        for (const auto &symbols : c){
+            for (int i = 0; i < k; i++)
+                X = X + symbols[i]*bases[i];
+            
+            codebook.push_back(X);
+            X.zeros();
+
+            cout << "{";
+            for (int s = 0; s < k - 1; s++)
+                cout << symbols[s] << ", ";
+            cout << symbols[k-1] << "}" << endl;
+        }
+        cout << endl;
     }
-    cout << endl;
     return codebook;
 }
 
@@ -296,7 +323,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
 /* Computes the average and maximum energy of given codebook X */
 pair<double,double> code_energy(const vector<cx_mat> X){
     double sum = 0, max = 0, tmp = 0, average = 0;
-    int cs = params["codebook_size"];
+    int cs = (int) X.size();
 
     for (int i = 0; i < cs; i++){
         tmp = pow(norm(X[i], "fro"), 2);
