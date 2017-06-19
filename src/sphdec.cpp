@@ -25,7 +25,7 @@
 #include <regex>
 #include <locale>
 
-#define NUM_OPTIONS 11
+#define NUM_OPTIONS 12
 
 using namespace std;
 using namespace arma;
@@ -56,10 +56,10 @@ void create_config(const string filepath){
             << "basis_file=bases.txt          // Text file containing the basis matrices" << endl \
             << "output_file=output.txt        // Text file used for simulation output" << endl \
             << "x-PAM=4                       // The size of the PAM signaling set" << endl \
-            << "code_length=2                 // Dimension of the code words" << endl \
             << "energy_estimation_samples=-1  // Number of samples to make the code energy estimation (-1 = sample all)" << endl \
-            << "no_of_matrices=2              // Number of basis matrices" << endl \
-            << "no_of_broadcast_antennas=2    // Number of broadcast antennas" << endl \
+            << "no_of_matrices=2              // Number of basis matrices (dimension of the data vectors)" << endl \
+            << "time_slots=2                  // Number of time slots used in the code" << endl \
+            << "no_of_transmit_antennas=2     // Number of broadcast antennas" << endl \
             << "no_of_receiver_antennas=2     // Number of receiver antennas"  << endl \
             << "snr_min=6                     // Minimum value for signal-to-noise ratio" << endl \
             << "snr_max=12                    // Maximum value for signal-to-noise ratio" << endl \
@@ -131,6 +131,9 @@ void configure(const string filepath) {
         exit(1);
     }
 
+    // helper variable calculated from the input parameters
+    params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
+
     return;
 }
 
@@ -148,7 +151,7 @@ vector<cx_mat> read_matrices(){
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
         "\\s*" // white space
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "\\*?[Ii]{1})\\s*([,}]{1})" // element ends in 'I' and comma or bracket
+        "\\*?[Ii]{1})\\s*([,}\\]]{1})" // element ends in 'I' and comma or bracket
     );
 
     /* Some supported formats for the matrix elements:
@@ -158,8 +161,8 @@ vector<cx_mat> read_matrices(){
      * 4) "im *I," 
      */
 
-    size_t m = params["no_of_receiver_antennas"];
-    size_t n = params["code_length"];
+    size_t m = params["no_of_transmit_antennas"];
+    size_t t = params["time_slots"];
     size_t k = params["no_of_matrices"];
     size_t idx = 0;
 
@@ -199,23 +202,23 @@ vector<cx_mat> read_matrices(){
         idx++;
     }
 
-    if (m*n*k != numbers.size()){
-        cout << "[Error] Failed to read configured " <<  m*n*k << " matrix elements!" << endl;
+    if (m*t*k != numbers.size()){
+        cout << "[Error] Failed to read configured " <<  m*t*k << " matrix elements!" << endl;
         exit(1);
     }
 
     // store the read matrix elements in a complex matrix datatype from Armadillo library
     idx = 0;
-    cx_mat X(m,n);
+    cx_mat X(m, t);
     for (auto i = 0u; i < k; i++){    
         for (auto j = 0u; j < m; j++){
-            for (auto s = 0u; s < n; s++){
+            for (auto s = 0u; s < t; s++){
                 X(j,s) = numbers[idx];
                 idx++;
             }
         }
         output.push_back(X);
-        X = cx_mat(m, n);
+        X.zeros();
     }
     
     return output;
@@ -243,24 +246,25 @@ void combinations(set< vector<int> > &comblist, vector<int> symbset, vector<int>
 }
 
 /* Helper function for above combinations algorithm */
-set< vector<int> > comb_wrapper(int* symbset, int code_len){
+set< vector<int> > comb_wrapper(int* symbset, int vector_len){
     set< vector<int> > comblist;
-    vector<int> init(code_len);
+    vector<int> init(vector_len);
     vector<int> symbset_v(symbset, symbset + params["x-PAM"]);
-    for (int i = 0; i < code_len; i++)
+    for (int i = 0; i < vector_len; i++)
         init[i] = symbset[0];
-    combinations(comblist, symbset_v, init, code_len-1);
+    combinations(comblist, symbset_v, init, vector_len-1);
     return comblist;
 }
 
 /* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
 vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
-    int m = params["no_of_receiver_antennas"];
-    int n = params["code_length"];
+    int m = params["no_of_transmit_antennas"];
+    int t = params["time_slots"];
     int k = params["no_of_matrices"];
+    // int cs = params["codebook_size"];
 
     /* all possible combinations of code words */
-    auto c = comb_wrapper(symbolset, n);
+    auto c = comb_wrapper(symbolset, k);
 
     /* lattice generator matrix G (alternative approach) */
     // cx_mat G(m*n,k);
@@ -268,22 +272,21 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     //     G.col(i) = vectorise(bases[i]);
     // }
 
-    vector<cx_mat> codebook(k);
-    cx_mat X(m,n, fill::zeros);
+    vector<cx_mat> codebook;
+    cx_mat X(m, t, fill::zeros);
 
     cout << "Possible code vector combinations:" << endl;
     for (const auto &symbols : c){
-        for (int i = 0; i < n; i++){
-
+        for (int i = 0; i < k; i++)
             X = X + symbols[i]*bases[i];
-        }
+        
         codebook.push_back(X);
         X.zeros();
 
         cout << "{";
-        for (int s = 0; s < n - 1; s++)
+        for (int s = 0; s < k - 1; s++)
             cout << symbols[s] << ", ";
-        cout << symbols[n-1] << "}" << endl;
+        cout << symbols[k-1] << "}" << endl;
     }
     cout << endl;
     return codebook;
@@ -291,17 +294,22 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
 
 
 /* Computes the average and maximum energy of given codebook X */
-pair<double,double> code_energy(const vector<cx_mat> &X){
+pair<double,double> code_energy(const vector<cx_mat> X){
     double sum = 0, max = 0, tmp = 0, average = 0;
+    int cs = params["codebook_size"];
 
-    for (uint i = 0; i < X.size(); i++){
+    for (int i = 0; i < cs; i++){
         tmp = pow(norm(X[i], "fro"), 2);
         sum += tmp;
+        // cout << X[i] << endl;
+        // cout << tmp << endl;
+        // cout << sum << endl;
         if (tmp > max)
             max = tmp;
     }
+    // cout << n << endl;
 
-    average = sum / X.size();
+    average = sum / cs;
     return make_pair(average, max);
 }
 
@@ -318,6 +326,7 @@ int main(int argc, char** argv)
     configure(inputfile);
 
     auto bases = read_matrices();
+    cout << "Read basis matrices:" << endl;
     for (auto const &base : bases){
         cout << base << endl;
     }

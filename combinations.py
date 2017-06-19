@@ -17,7 +17,7 @@ def combinations(comblist, symbols, combination, dim):
             combinations(comblist, symbols, tmp, dim-1)
 
 symbset = [-3, -1, 1, 3]
-code_length = 2
+code_length = 20
 
 comblist = comb_wrapper(symbset, code_length)
 print("All possible combinations for code vector:")
