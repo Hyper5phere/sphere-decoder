@@ -20,6 +20,7 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <regex>
 #include <locale>
@@ -177,6 +178,7 @@ vector<cx_mat> read_matrices(){
         //     cout << i << ": " << match[i].str() << endl;
 
         string z = match[1].str();
+        // cout << z << endl;
         if (count(z.begin(), z.end(), '.') > 1){
             string a = match[3].str(), b = match[4].str();
             clean_input(a); clean_input(b);
@@ -184,7 +186,8 @@ vector<cx_mat> read_matrices(){
             numbers.push_back(complex<double>(stod(a),stod(b)));
         } else {
             clean_input(z);
-            if (isdigit(z[z.length()-1])) {
+            // if (isdigit(z[z.length()-1]) || (z[z.length()-1] == '.')) {
+            if (isdigit(z[z.length()-1]) || (z[z.length()-1] == '.')) {
                 // cout << stod(z) << endl;
                 numbers.push_back(complex<double>(stod(z), 0.0)); 
             } else {
@@ -227,65 +230,72 @@ int* create_symbolset(int q = params["x-PAM"]){
     return symbset; // must be free()'d after use
 }
 
-/* recursively calculate all possible combinations of given symbolset
-and return a list of lists of them */
-// vector<vector<int> > combinations(int* symbolset, vector<int> comb, int dim){
-    
-//     if (dim == 0) {
-//         vector<vector<int> > curr(1, vector<int>(params["x-PAM"]));
-//         curr[0] = comb;
-//         return curr;
-//     }
-//     else {
-//         vector<vector<int> > curr(params["x-PAM"], vector<int>(params["x-PAM"]));
-//         for (int i = 0; i < params["x-PAM"]; i++){
-//             comb[dim] = symbolset[i];
-//             curr[0] = comb;
-//             auto tmp = combinations(symbolset, comb, dim-1);
-//             for (int j = 0; j < params["x-PAM"]; j++)
-//                 curr[j] = 
-//             rest.insert(rest.end(), curr.begin(), curr.end());
-//         }
-//         return curr;
-//     }
-// }
+/* Calculates all combinations of elements for code vector _a_
+   given the set of feasible symbols (element values) */
+void combinations(set< vector<int> > &comblist, vector<int> symbset, vector<int> comb, int dim){
+    comblist.insert(comb);
+    if (dim >= 0){
+        for (const int symbol : symbset){
+            comb[dim] = symbol;
+            combinations(comblist, symbset, comb, dim-1);
+        }
+    }
+}
+
+/* Helper function for above combinations algorithm */
+set< vector<int> > comb_wrapper(int* symbset, int code_len){
+    set< vector<int> > comblist;
+    vector<int> init(code_len);
+    vector<int> symbset_v(symbset, symbset + params["x-PAM"]);
+    for (int i = 0; i < code_len; i++)
+        init[i] = symbset[0];
+    combinations(comblist, symbset_v, init, code_len-1);
+    return comblist;
+}
 
 /* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
 vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
-    // int q = params["x-PAM"];
     int m = params["no_of_receiver_antennas"];
     int n = params["code_length"];
     int k = params["no_of_matrices"];
 
     /* all possible combinations of code words */
-    // TODO: Make this work somehow
-    // auto combs = combinations(symbolset, vector<int>(symbolset[0]), n);
+    auto c = comb_wrapper(symbolset, n);
 
-    /* lattice generator matrix G */
-    cx_mat G(m*n,k);
-    for(int i = 0; i < k; i++){
-        G.col(i) = vectorise(bases[i]);
-    }
+    /* lattice generator matrix G (alternative approach) */
+    // cx_mat G(m*n,k);
+    // for(int i = 0; i < k; i++){
+    //     G.col(i) = vectorise(bases[i]);
+    // }
 
     vector<cx_mat> codebook(k);
-    // for (int j = 0; j < k; j++){
-    //     cx_mat X(m,n);
+    cx_mat X(m,n, fill::zeros);
 
-    //     for (uint i = 0; i < combs.size(); i++){
-    //         X = G*vec(combs[i]);
-    //         // X = X + symbolset[i]*bases[i];
-    //     }
-    //     codebook[j] = X;
-    // }
+    cout << "Possible code vector combinations:" << endl;
+    for (const auto &symbols : c){
+        for (int i = 0; i < n; i++){
+
+            X = X + symbols[i]*bases[i];
+        }
+        codebook.push_back(X);
+        X.zeros();
+
+        cout << "{";
+        for (int s = 0; s < n - 1; s++)
+            cout << symbols[s] << ", ";
+        cout << symbols[n-1] << "}" << endl;
+    }
+    cout << endl;
     return codebook;
 }
+
 
 /* Computes the average and maximum energy of given codebook X */
 pair<double,double> code_energy(const vector<cx_mat> &X){
     double sum = 0, max = 0, tmp = 0, average = 0;
 
     for (uint i = 0; i < X.size(); i++){
-        tmp += norm(X[i], "fro");
+        tmp = pow(norm(X[i], "fro"), 2);
         sum += tmp;
         if (tmp > max)
             max = tmp;
