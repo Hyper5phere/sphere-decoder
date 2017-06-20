@@ -26,8 +26,10 @@
 #include <locale>
 #include <random>
 #include <chrono>
+#include <mutex>
+#include <ctime>
 
-#define NUM_OPTIONS 11
+#define NUM_OPTIONS 12
 
 using namespace std;
 using namespace arma;
@@ -36,6 +38,7 @@ using namespace arma;
 string options_filename = "settings.ini";
 string basis_filename = "bases.txt";
 string output_filename = "output.txt";
+string log_filename = "log.txt";
 
 /* storage for simulation parameters */
 map<string, int> params;
@@ -47,6 +50,39 @@ mt19937_64 mersenne_twister{
     )
 };
 
+/* object for parallel computing synchronazation */
+mutex log_mutex;
+
+/* function used for logging, should be thread safe */
+template <typename T>
+void log_msg(T msg){
+    struct tm *timeinfo;
+    time_t t = time(nullptr);
+    timeinfo = localtime(&t);
+    char timestamp[50]; 
+    strftime(timestamp, 50, "%d-%m-%Y %T | ", timeinfo);
+    cout << timestamp << msg << endl;
+    lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
+    ofstream logfile(log_filename, ios_base::app);
+    logfile << timestamp << msg << endl;
+    logfile.close();
+}
+
+/* signum function */
+int sign(double x){
+    return (x < 0) ? -1 : 1;
+}
+
+/* Takes the squared Frobenius norm from a complex matrix A */
+double frob_norm_squared(cx_mat A){
+    double sum = 0;
+    for (auto i = 0u; i < A.n_rows; i++)
+        for (auto j = 0u; j < A.n_cols; j++)
+            sum += norm(A(i,j)); 
+    return sum;
+}
+
+/* Makes the user input somewhat more readable */
 void clean_input(string &input){
     // remove comments
     string::size_type start = input.find("//", 0);
@@ -71,6 +107,7 @@ void create_config(const string filepath){
             << "no_of_receiver_antennas=2       // Number of receiver antennas"  << endl \
             << "snr_min=6                       // Minimum value for signal-to-noise ratio" << endl \
             << "snr_max=12                      // Maximum value for signal-to-noise ratio" << endl \
+            << "snr_step=2                      // Increase SNR by this value per each iteration" << endl \
             << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
     defconf.close();     
 }
@@ -282,8 +319,6 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     // int cs = params["codebook_size"];
     int samples = params["energy_estimation_samples"];
 
-    
-
     /* lattice generator matrix G (alternative approach) */
     // cx_mat G(m*n,k);
     // for(int i = 0; i < k; i++){
@@ -338,14 +373,14 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     return codebook;
 }
 
-
 /* Computes the average and maximum energy of given codebook X */
 pair<double,double> code_energy(const vector<cx_mat> X){
     double sum = 0, max = 0, tmp = 0, average = 0;
     int cs = (int) X.size();
 
     for (int i = 0; i < cs; i++){
-        tmp = pow(norm(X[i], "fro"), 2);
+        //tmp = pow(norm(X[i], "fro"), 2);
+        tmp = frob_norm_squared(X[i]);
         sum += tmp;
         // cout << X[i] << endl;
         // cout << tmp << endl;
@@ -353,28 +388,30 @@ pair<double,double> code_energy(const vector<cx_mat> X){
         if (tmp > max)
             max = tmp;
     }
-    // cout << n << endl;
-
     average = sum / cs;
     return make_pair(average, max);
 }
 
+/* The program starts here */
 int main(int argc, char** argv)
 {
     string inputfile = options_filename;
-    if (argc == 2){
-        inputfile = argv[1];
-    } else if (argc > 2) {
+    if (argc == 2){ // a parameter was given
+        inputfile = argv[1]; // use alternative settings file
+    } else if (argc > 2) { // too many parameters were given
         cout << "Usage: " << argv[0] << " [settings_file*]" << endl;
         exit(0);
     }
 
     configure(inputfile);
 
+    log_msg("[Info] Program started.");
+
     auto bases = read_matrices();
     cout << "Read basis matrices:" << endl;
     for (auto const &base : bases){
         cout << base << endl;
+        // log_msg(base);
     }
 
     int *symbset = create_symbolset();
@@ -394,7 +431,43 @@ int main(int argc, char** argv)
     endl << "Average: " << e.first << \
     endl << "Max: " << e.second << endl;
 
-    cout << endl << "Random complex matrix test: " << endl << create_random_matrix(3,3,0,1) << endl;
+    // cout << endl << "Random complex matrix test: " << endl << create_random_matrix(3,3,0,1) << endl;
+    // cout << endl << "sign() test: " << endl << sign(-100.0) << sign(19) << sign(0) << endl;
+
+    cx_mat H, X, N, Y;
+
+    double Hvar = 1, Nvar = 1;  
+
+    int min = params["snr_min"];
+    int max = params["snr_max"];
+    int step = params["snr_step"];
+
+    int m = params["no_of_transmit_antennas"];
+    int n = params["no_of_receiver_antennas"];
+    int t = params["time_slots"];
+    // int k = params["no_of_matrices"];
+    // int q = params["x-PAM"];
+
+    int errs = 0, errors = params["required_errors"];
+
+    uniform_int_distribution<int> random_code(0, codebook.size()-1);
+
+    cout << endl << endl << "Simulating received code matrices..." << endl << endl;
+
+    /* simulation main loop */
+    for (int snr = min; snr < max; snr += step) {
+        Nvar = e.first/pow(10, snr/10); // calculate noise variance from SNR
+        while (errs < errors){
+            X = codebook[random_code(mersenne_twister)]; // Code block we want to send
+            H = create_random_matrix(n, m, 0, Hvar);     // Channel matrix
+            N = create_random_matrix(n, t, 0, Nvar);     // Noise matrix 
+
+            Y = H*X + N; // Simulated received code block
+            cout << Y << endl << endl;
+            errs += 1000;
+        }
+        errs = 0;
+    }
 
     free(symbset);
     return 0;
