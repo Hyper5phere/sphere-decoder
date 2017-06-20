@@ -16,7 +16,8 @@ How to run the program on Linux
 3. Run the program with: **./sphdec**
 4. The program should exit and have genererated *settings.ini* file in the same folder
 5. Open the settings.ini to setup the program, it should look something like this:
-```
+
+```ini
 // configuration settings and simulation parameters for the sphere decoder program //
 
 basis_file=bases.txt          // Text file containing the basis matrices
@@ -31,6 +32,7 @@ snr_min=6                     // Minimum value for signal-to-noise ratio
 snr_max=12                    // Maximum value for signal-to-noise ratio
 required_errors=500           // Demand at minimum this many errors before the simulation ends
 ```
+
 6. Create file called *bases.txt* and put your code basis matrices there (e.g. in Mathematica format)
 7. If you configured the program correctly it should now run the simulation with: **./sphdec**
 8. You can have multiple settings files and use them in the simulation by giving their name as an command line argument for the program like: **./sphdec alamouti_settings.ini**
