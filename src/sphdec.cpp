@@ -25,6 +25,7 @@
 #include <regex>
 #include <locale>
 #include <random>
+#include <chrono>
 
 #define NUM_OPTIONS 11
 
@@ -36,11 +37,15 @@ string options_filename = "settings.ini";
 string basis_filename = "bases.txt";
 string output_filename = "output.txt";
 
-/* simulation parameters */
+/* storage for simulation parameters */
 map<string, int> params;
 
 /* random number generator */
-default_random_engine generator;
+default_random_engine generator{
+    static_cast<long unsigned int>(
+        chrono::high_resolution_clock::now().time_since_epoch().count()
+    )
+};
 
 void clean_input(string &input){
     // remove comments
@@ -53,20 +58,20 @@ void clean_input(string &input){
 
 /* Creates a default configuration file in case one does not exist */
 void create_config(const string filepath){
-
+    // the file can contain comments similar to this line here
     ofstream defconf(filepath);
     defconf << "// configuration settings and simulation parameters for the sphere decoder program //" << endl << endl \
-            << "basis_file=bases.txt          // Text file containing the basis matrices" << endl \
-            << "output_file=output.txt        // Text file used for simulation output" << endl \
-            << "x-PAM=4                       // The size of the PAM signaling set (even positive integer)" << endl \
-            << "energy_estimation_samples=-1  // Number of samples to make the code energy estimation (-1 = sample all)" << endl \
-            << "no_of_matrices=2              // Number of basis matrices (dimension of the data vectors)" << endl \
-            << "time_slots=2                  // Number of time slots used in the code" << endl \
-            << "no_of_transmit_antennas=2     // Number of transmit antennas" << endl \
-            << "no_of_receiver_antennas=2     // Number of receiver antennas"  << endl \
-            << "snr_min=6                     // Minimum value for signal-to-noise ratio" << endl \
-            << "snr_max=12                    // Maximum value for signal-to-noise ratio" << endl \
-            << "required_errors=500           // Demand at minimum this many errors before the simulation ends" << endl;
+            << "basis_file=bases.txt            // Text file containing the basis matrices" << endl \
+            << "output_file=output.txt          // Text file used for simulation output" << endl \
+            << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl \
+            << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl \
+            << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl \
+            << "time_slots=2                    // Number of time slots used in the code" << endl \
+            << "no_of_transmit_antennas=2       // Number of transmit antennas" << endl \
+            << "no_of_receiver_antennas=2       // Number of receiver antennas"  << endl \
+            << "snr_min=6                       // Minimum value for signal-to-noise ratio" << endl \
+            << "snr_max=12                      // Maximum value for signal-to-noise ratio" << endl \
+            << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
     defconf.close();     
 }
 
@@ -135,21 +140,20 @@ void configure(const string filepath) {
     params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
 }
 
-/* reads k (m x n) matrices from the spesified basis_file */
+/* reads k (m x t) matrices from the spesified basis_file */
 vector<cx_mat> read_matrices(){
 
     /* - regular expression pattern used to search 
-     *   matrix elements in Wolfram Mathematica format
+     *   matrix elements in almost any known format (eg. Mathematica, Matlab)
      * - ignores most white spaces and supports asterisk in front of 'I'
      * - pattern is also case insensitive
-     * - requires the use of decimal marks even with integer coefficients
      */
     regex elem_regex(
         "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?)|"
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
         "\\s*" // white space
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "\\*?[Ii]{1})\\s*([,}\\]]{1})" // element ends in 'I' and comma or bracket
+        "\\*?[Ii]{1})\\s*([,)};\\] \n]{1})" // element ends in comma, semicolon, newline, white space or closing bracket
     );
 
     /* Some supported formats for the matrix elements:
@@ -159,6 +163,9 @@ vector<cx_mat> read_matrices(){
      * 4) "im *I," 
      */
 
+    // Used to determine whether the element has both real and complex part
+    regex complex_split("\\d+\\.?\\s*[+-]{1}");
+
     size_t m = params["no_of_transmit_antennas"];
     size_t t = params["time_slots"];
     size_t k = params["no_of_matrices"];
@@ -166,7 +173,7 @@ vector<cx_mat> read_matrices(){
 
     ifstream matrix_file(basis_filename);
     vector<cx_mat> output;
-    smatch match;
+    smatch match, dummy;
     vector< complex<double> > numbers;
     
     string content((istreambuf_iterator<char>(matrix_file)), 
@@ -180,7 +187,10 @@ vector<cx_mat> read_matrices(){
 
         string z = match[1].str();
         // cout << z << endl;
-        if (count(z.begin(), z.end(), '.') > 1){
+        //if (count(z.begin(), z.end(), '.') > 1){
+
+        // do the split between "whole" complex numbers and partial ones
+        if (regex_search(z, dummy, complex_split)) {
             string a = match[3].str(), b = match[4].str();
             clean_input(a); clean_input(b);
             // cout << stod(a) << "+" << stod(b) << "i" << endl;
@@ -201,7 +211,7 @@ vector<cx_mat> read_matrices(){
     }
 
     if (m*t*k != numbers.size()){
-        cout << "[Error] Failed to read configured " <<  m*t*k << " matrix elements!" << endl;
+        cout << "[Error] Failed to read the " <<  m*t*k << " matrix elements configured in '" << basis_filename << "'!" << endl;
         exit(1);
     }
 
