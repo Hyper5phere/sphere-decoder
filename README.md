@@ -10,12 +10,12 @@ Key features to implement
 
 How to run the program on Linux
 -------------------------------
-1. Download the *sphdec.cpp* file in some folder and open terminal there
-2. Install all the required packages (e.g. with apt-get) and the [Armadillo C++ linear algebra library](http://arma.sourceforge.net/download.html)
-2. Compile the program in terminal by typing: **g++ sphdec.cpp -o sphdec -O2 -larmadillo -llapack -lblas -std=c++14**
-3. Run the program with: **./sphdec**
-4. The program should exit and have genererated *settings.ini* file in the same folder
-5. Open the settings.ini to setup the program, it should look something like this:
+- Download the *sphdec.cpp* file in some folder and open terminal there
+- Install all the required packages (e.g. with apt-get) and the [Armadillo C++ linear algebra library](http://arma.sourceforge.net/download.html)
+- Compile the program in terminal by typing: **g++ sphdec.cpp -o sphdec -O2 -larmadillo -llapack -lblas -std=c++14**
+- Run the program with: **./sphdec**
+- The program should exit and have genererated *settings.ini* file in the same folder
+- Open the settings.ini to setup the program, it should look something like this:
 
 ```ini
 // configuration settings and simulation parameters for the sphere decoder program //
@@ -33,9 +33,9 @@ snr_max=12                    // Maximum value for signal-to-noise ratio
 required_errors=500           // Demand at minimum this many errors before the simulation ends
 ```
 
-6. Create file called *bases.txt* and put your code basis matrices there (e.g. in Mathematica format)
-7. If you configured the program correctly it should now run the simulation with: **./sphdec**
-8. You can have multiple settings files and use them in the simulation by giving their name as an command line argument for the program like: **./sphdec alamouti_settings.ini**
-9. program output should be found at *output.txt* file
+- Create file called *bases.txt* and put your code basis matrices there (e.g. in Mathematica format)
+- If you configured the program correctly it should now run the simulation with: **./sphdec**
+- You can have multiple settings files and use them in the simulation by giving their name as an command line argument for the program like: **./sphdec alamouti_settings.ini**
+- program output should be found at *output.txt* file
 
-(Naturally you need a C++ compiler (g++) that supports C++14 standard installed on your system, should be no problem on Aalto computers)
+(Naturally in order for this to work you need a C++ compiler (g++) that supports C++14 standard installed on your system, should be no problem on Aalto computers)
