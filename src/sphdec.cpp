@@ -41,7 +41,7 @@ string output_filename = "output.txt";
 map<string, int> params;
 
 /* random number generator */
-default_random_engine generator{
+mt19937_64 mersenne_twister{
     static_cast<long unsigned int>(
         chrono::high_resolution_clock::now().time_since_epoch().count()
     )
@@ -232,6 +232,15 @@ vector<cx_mat> read_matrices(){
     return output;
 }
 
+/* generates a random n x m complex matrix from uniform distribution */
+cx_mat create_random_matrix(int n, int m, double mean, double variance){
+    uniform_real_distribution<double> distr(mean, variance);
+    cx_mat A(n,m);
+    return A.imbue([&]() {
+        return complex<double>(distr(mersenne_twister), distr(mersenne_twister));
+    });
+}
+
 /* Creates a C-style integer array representation of an x-PAM symbolset */
 int* create_symbolset(int q = params["x-PAM"]){
     int *symbset = (int*) malloc(q * sizeof(int));
@@ -291,7 +300,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
         for (int j = 0; j < samples; j++){
             cout << "{";
             for (int i = 0; i < k; i++) {
-                random_index = dist(generator);
+                random_index = dist(mersenne_twister);
                 cout << symbolset[random_index] << " ";
                 X = X + symbolset[random_index]*bases[i];
             }
@@ -385,6 +394,7 @@ int main(int argc, char** argv)
     endl << "Average: " << e.first << \
     endl << "Max: " << e.second << endl;
 
+    cout << endl << "Random complex matrix test: " << endl << create_random_matrix(3,3,0,1) << endl;
 
     free(symbset);
     return 0;
