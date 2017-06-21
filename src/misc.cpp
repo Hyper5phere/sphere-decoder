@@ -14,17 +14,23 @@ using namespace std;
 mutex log_mutex;
 
 /* function used for logging, should be thread safe */
-//template <typename T>
-void log_msg(const string &msg){
+// void log_msg(const string msg = "-exit-", const string lvl = "Info"){
+void log_msg(const string msg, const string lvl){
     struct tm *timeinfo;
     time_t t = time(nullptr);
     timeinfo = localtime(&t);
     char timestamp[50]; 
     strftime(timestamp, 50, "%d-%m-%Y %T | ", timeinfo);
-    cout << timestamp << msg << endl;
+    string prefix(timestamp);
+    prefix += "[" + lvl + "]\t";
     lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
     ofstream logfile(log_filename, ios_base::app);
-    logfile << timestamp << msg << endl;
+    if (msg.compare("-exit-") == 0)
+        logfile << endl;
+    else {
+        logfile << prefix << msg << endl;
+        cout << prefix << msg << endl;
+    }
     logfile.close();
 }
 

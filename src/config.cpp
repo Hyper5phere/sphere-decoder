@@ -1,5 +1,3 @@
-// #define ARMA_NO_DEBUG // for speed
-
 #include <iostream>
 #include <armadillo> // linear algebra library
 #include <complex>
@@ -44,15 +42,15 @@ void configure(const string filepath) {
     ifstream config_file(filepath);
 
     if (!config_file.good() && filepath.compare(options_filename) != 0) {
-        cout << "[Warning] No options file '" << filepath << "' found, using the default one..." << endl;
+        log_msg("[Warning] No options file '" + filepath + "' found, using the default one...");
         config_file = ifstream(options_filename);
     } 
 
     if (!config_file.good()) {
-        cout << "[Info] No default settings file found, creating a new one with default settings..." << endl;
+        log_msg("[Info] No default settings file found, creating a new one with default settings...");
         create_config(options_filename);
-        cout << "[Info] Make your changes to the options file and rerun this program." << endl;
-        cout << "[Info] Exiting..." << endl;
+        log_msg("[Info] Make your changes to the options file and rerun this program.");
+        log_msg("[Info] Exiting...");
         exit(0);
     }
     
@@ -77,25 +75,26 @@ void configure(const string filepath) {
                     output_filename = "../output/" + value;
                 else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
-                        cout << "[Error] Invalid value for option '" << key << "'" << endl;
+                        log_msg("Invalid value for option '" + key + "'", "Error");
+                        log_msg();
                         exit(1);
                     }
                 }
             } else {
-                cout << "[Error] Value for option '" << key << "' not spesified!" << endl;
+                log_msg("[Error] Value for option '" + key + "' not spesified!");
                 exit(1);
             }
         }
         lines++;
     }
     if (lines < NUM_OPTIONS){
-        cout << "[Error] Too few options spesified in the '" << filepath << "!" << endl;
-        cout << "[Info] Consider deleting the default settings file which will reset the program settings." << endl;
+        log_msg("[Error] Too few options spesified in the '" + filepath + "'!");
+        log_msg("[Info] Consider deleting the default settings file which will reset the program settings.");
         exit(1);
     } 
     if ((params["x-PAM"] <= 0) || (params["x-PAM"] % 2 == 1)){
-        cout << "[Error] Invalid x-PAM signal set spesified!" << endl;
-        cout << "[Info] x-PAM option accepts positive even integers." << endl;
+        log_msg("[Error] Invalid x-PAM signal set spesified!");
+        log_msg("[Info] x-PAM option accepts positive even integers.");
         exit(1);
     }
 
@@ -129,10 +128,10 @@ vector<cx_mat> read_matrices(){
     // Used to determine whether the element has both real and complex part
     regex complex_split("\\d+\\.?\\s*[+-]{1}");
 
-    size_t m = params["no_of_transmit_antennas"];
-    size_t t = params["time_slots"];
-    size_t k = params["no_of_matrices"];
-    size_t idx = 0;
+    int m = params["no_of_transmit_antennas"];
+    int t = params["time_slots"];
+    int k = params["no_of_matrices"];
+    int idx = 0;
 
     ifstream matrix_file(basis_filename);
     vector<cx_mat> output;
@@ -173,17 +172,17 @@ vector<cx_mat> read_matrices(){
         idx++;
     }
 
-    if (m*t*k != numbers.size()){
-        cout << "[Error] Failed to read the " <<  m*t*k << " matrix elements configured in '" << basis_filename << "'!" << endl;
+    if (m*t*k != (int)numbers.size()){
+        log_msg("[Error] Failed to read the " + to_string(m*t*k) + " matrix elements configured in '" + basis_filename + "'!");
         exit(1);
     }
 
     // store the read matrix elements in a complex matrix datatype from Armadillo library
     idx = 0;
     cx_mat X(m, t);
-    for (auto i = 0u; i < k; i++){    
-        for (auto j = 0u; j < m; j++){
-            for (auto s = 0u; s < t; s++){
+    for (int i = 0; i < k; i++){    
+        for (int j = 0; j < m; j++){
+            for (int s = 0; s < t; s++){
                 X(j,s) = numbers[idx];
                 idx++;
             }

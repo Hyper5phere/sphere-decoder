@@ -1,0 +1,4 @@
+/logs/*
+/output/*
+/src
+*.o
