@@ -15,7 +15,7 @@ How to run the program on Linux
 - Compile the program in terminal by typing: **make**
 - Run the program with: **./sphdec**
 - The program should exit and have genererated *settings.ini* file in *../settings/* folder
-- Open the settings.ini to setup the program, it should look something like this:
+- Open the *settings.ini* to setup the program, it should look something like this:
 
 ```ini
 // configuration settings and simulation parameters for the sphere decoder program //
