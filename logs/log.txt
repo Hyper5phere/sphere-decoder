@@ -1,0 +1,7 @@
+20-06-2017 17:20:59 | [Info] Program started.
+21-06-2017 10:13:59 | [Info] Program started.
+21-06-2017 10:48:53 | [Info] Program started.
+21-06-2017 11:05:27 | [Info] Program started.
+21-06-2017 11:07:21 | [Info] Program started.
+21-06-2017 11:30:11 | [Info] Program started.
+21-06-2017 11:33:08 | [Info] Program started.
