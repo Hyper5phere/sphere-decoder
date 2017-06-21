@@ -88,7 +88,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     if(samples > 0){
         int random_index = 0;
         uniform_int_distribution<int> dist(0,q-1);
-        cout << "Random sampled data vector combinations:" << endl;
+        log_msg("Random sampled data vector combinations:");
         for (int j = 0; j < samples; j++){
             cout << "{";
             for (int i = 0; i < k; i++) {
@@ -112,7 +112,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
         /* all possible combinations of code words */
         auto c = comb_wrapper(symbolset, k);
 
-        cout << "All possible data vector combinations:" << endl;
+        log_msg("All possible data vector combinations:");
         for (const auto &symbols : c){
             for (int i = 0; i < k; i++)
                 X = X + symbols[i]*bases[i];

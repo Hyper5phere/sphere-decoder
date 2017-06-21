@@ -51,6 +51,7 @@ void configure(const string filepath) {
         create_config(options_filename);
         log_msg("[Info] Make your changes to the options file and rerun this program.");
         log_msg("[Info] Exiting...");
+        log_msg();
         exit(0);
     }
     
@@ -82,6 +83,7 @@ void configure(const string filepath) {
                 }
             } else {
                 log_msg("[Error] Value for option '" + key + "' not spesified!");
+                log_msg();
                 exit(1);
             }
         }
@@ -90,11 +92,13 @@ void configure(const string filepath) {
     if (lines < NUM_OPTIONS){
         log_msg("[Error] Too few options spesified in the '" + filepath + "'!");
         log_msg("[Info] Consider deleting the default settings file which will reset the program settings.");
+        log_msg();
         exit(1);
     } 
     if ((params["x-PAM"] <= 0) || (params["x-PAM"] % 2 == 1)){
         log_msg("[Error] Invalid x-PAM signal set spesified!");
         log_msg("[Info] x-PAM option accepts positive even integers.");
+        log_msg();
         exit(1);
     }
 
@@ -174,6 +178,7 @@ vector<cx_mat> read_matrices(){
 
     if (m*t*k != (int)numbers.size()){
         log_msg("[Error] Failed to read the " + to_string(m*t*k) + " matrix elements configured in '" + basis_filename + "'!");
+        log_msg();
         exit(1);
     }
 
