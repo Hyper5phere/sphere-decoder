@@ -14,6 +14,9 @@ misc.o: misc.cpp
 algorithms.o: algorithms.cpp
 	g++ -c -O2 -g -o algorithms.o algorithms.cpp $(FLAGS)
 
+sphdec.o: sphdec.cpp
+	g++ -c -O2 -g -o sphdec.o sphdec.cpp $(FLAGS) -fopenmp
+
 main.o: main.cpp
 	g++ -c -O2 -g -o main.o main.cpp $(FLAGS)
 

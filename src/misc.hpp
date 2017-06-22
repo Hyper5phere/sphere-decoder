@@ -13,10 +13,12 @@ extern std::string log_filename;
 /* storage for simulation parameters */
 extern std::map<std::string, int> params;
 
+/* function prototypes */
 std::string time_str(void);
 void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
 void clean_input(std::string &input);
 
+/* Makes a string representation out of any basic vector type */
 template <typename T>
 inline std::string vec2str(T vec, size_t size){
 	std::string str = "{";
