@@ -17,4 +17,12 @@ std::string time_str(void);
 void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
 void clean_input(std::string &input);
 
+template <typename T>
+inline std::string vec2str(T vec, size_t size){
+	std::string str = "{";
+	for (size_t i = 0; i < (size-1); i++)
+		str += std::to_string(vec[i]) + ", ";
+	return str + std::to_string(vec[size-1]) + "}";
+}
+
 #endif /* MISC_HPP */

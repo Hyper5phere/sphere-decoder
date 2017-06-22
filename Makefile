@@ -4,3 +4,6 @@ subsystem:
 .PHONY: clean
 clean:
 	cd src && $(MAKE) clean
+
+run:
+	./sphdec

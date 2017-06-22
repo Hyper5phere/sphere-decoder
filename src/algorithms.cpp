@@ -83,6 +83,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     // }
 
     vector<cx_mat> codebook;
+    vector<int> tmp;
     cx_mat X(m, t);
     
     if(samples > 0){
@@ -90,21 +91,15 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
         uniform_int_distribution<int> dist(0,q-1);
         log_msg("Random sampled data vector combinations:");
         for (int j = 0; j < samples; j++){
-            cout << "{";
             for (int i = 0; i < k; i++) {
                 random_index = dist(mersenne_twister);
-                cout << symbolset[random_index] << " ";
+                tmp.push_back(symbolset[random_index]);
                 X = X + symbolset[random_index]*bases[i];
             }
-            cout << "}" << endl;
+            log_msg(vec2str(tmp, tmp.size()));
+            tmp.clear();
             codebook.push_back(X);
             X.zeros();
-            // cout << endl << X << endl;
-
-            // cout << "{";
-            // for (int s = 0; s < k - 1; s++)
-            //     cout << symbolset[s] << ", ";
-            // cout << symbolset[k-1] << "}" << endl;
         }
         cout << endl;
     } else {
@@ -120,10 +115,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
             codebook.push_back(X);
             X.zeros();
 
-            cout << "{";
-            for (int s = 0; s < k - 1; s++)
-                cout << symbols[s] << ", ";
-            cout << symbols[k-1] << "}" << endl;
+            log_msg(vec2str(symbols, k));
         }
         cout << endl;
     }

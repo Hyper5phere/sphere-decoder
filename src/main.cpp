@@ -70,13 +70,15 @@ int main(int argc, char** argv)
     }
 
     int *symbset = create_symbolset(params["x-PAM"]);
-    cout << "Using symbolset: {";
-    for (int i = 0; i < params["x-PAM"]; ++i) {
-        cout << symbset[i];
-        if (i < params["x-PAM"] - 1)
-            cout << ", ";
-    }
-    cout << "}" << endl << endl;
+    // cout << "Using symbolset: {";
+    // for (int i = 0; i < params["x-PAM"]; ++i) {
+    //     cout << symbset[i];
+    //     if (i < params["x-PAM"] - 1)
+    //         cout << ", ";
+    // }
+    // cout << "}" << endl << endl;
+
+    log_msg("Using symbolset: " + vec2str(symbset, params["x-PAM"]));
     
     auto codebook = create_codebook(bases, symbset);
 
