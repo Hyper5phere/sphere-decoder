@@ -1,20 +1,21 @@
-PROGRAM=sphdec
+PROGRAM=../sphdec
 OBJS=main.o misc.o config.o algorithms.o
+FLAGS=-std=c++14 -larmadillo -llapack -lblas -Wall -D_GLIBCXX_USE_CXX11_ABI=0
 
 $(PROGRAM): $(OBJS)
-	g++ -o $(PROGRAM) $(OBJS) -std=c++14 -larmadillo -llapack -lblas -Wall -D_GLIBCXX_USE_CXX11_ABI=0
+	g++ -o $(PROGRAM) $(OBJS) $(FLAGS)
 
 config.o: config.cpp
-	g++ -c -O2 -g -o config.o -std=c++14 -larmadillo -llapack -lblas -Wall config.cpp -D_GLIBCXX_USE_CXX11_ABI=0
+	g++ -c -O2 -g -o config.o config.cpp $(FLAGS)
 
 misc.o: misc.cpp
 	g++ -c -O2 -g -o misc.o -std=c++14 -Wall misc.cpp -D_GLIBCXX_USE_CXX11_ABI=0
 
 algorithms.o: algorithms.cpp
-	g++ -c -O2 -g -o algorithms.o -std=c++14 -larmadillo -llapack -lblas -Wall algorithms.cpp -D_GLIBCXX_USE_CXX11_ABI=0
+	g++ -c -O2 -g -o algorithms.o algorithms.cpp $(FLAGS)
 
 main.o: main.cpp
-	g++ -c -O2 -g -o main.o -std=c++14 -larmadillo -llapack -lblas -Wall main.cpp -D_GLIBCXX_USE_CXX11_ABI=0
+	g++ -c -O2 -g -o main.o main.cpp $(FLAGS)
 
 .PHONY: clean
 clean:

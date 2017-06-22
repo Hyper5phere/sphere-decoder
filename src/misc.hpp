@@ -13,7 +13,7 @@ extern std::string log_filename;
 /* storage for simulation parameters */
 extern std::map<std::string, int> params;
 
-// void log_msg(const std::string, const std::string);
+std::string time_str(void);
 void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
 void clean_input(std::string &input);
 

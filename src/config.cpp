@@ -71,9 +71,9 @@ void configure(const string filepath) {
             if (!value.empty()) {
                 clean_input(value);
                 if (key.compare("basis_file") == 0)
-                    basis_filename = "../bases/" + value;
+                    basis_filename = "bases/" + value;
                 else if (key.compare("output_file") == 0)
-                    output_filename = "../output/" + value;
+                    output_filename = "output/" + value;
                 else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");

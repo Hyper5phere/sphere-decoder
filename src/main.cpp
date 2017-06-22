@@ -30,10 +30,10 @@
 using namespace std;
 using namespace arma;
 
-string options_filename = "../settings/settings.ini";
-string basis_filename   = "../bases/bases.txt";
-string output_filename  = "../output/output.txt";
-string log_filename     = "../logs/log.txt";
+string options_filename = "settings/settings.ini";
+string basis_filename   = "bases/bases.txt";
+string output_filename  = "output/output.txt";
+string log_filename     = "logs/log.txt";
 
 map<string, int> params;
 
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
     string inputfile = options_filename;
     if (argc == 2){ // a parameter was given
-        inputfile = "../settings/" + string(argv[1]); // use alternative settings file
+        inputfile = "settings/" + string(argv[1]); // use alternative settings file
     } else if (argc > 2) { // too many parameters were given
         cout << "Usage: " << argv[0] << " [settings_file*]" << endl;
         exit(0);
@@ -103,7 +103,9 @@ int main(int argc, char** argv)
     // int q = params["x-PAM"];
 
 
-    int errs = 0, errors = params["required_errors"];
+    int runs = 0;
+    int errors = 0; 
+    int max_err = params["required_errors"];
 
     uniform_int_distribution<int> random_code(0, codebook.size()-1);
 
@@ -112,16 +114,16 @@ int main(int argc, char** argv)
     /* simulation main loop */
     for (int snr = min; snr < max; snr += step) {
         Nvar = e.first/pow(10, snr/10); // calculate noise variance from SNR
-        while (errs < errors){
+        while (errors < max_err){
             X = codebook[random_code(mersenne_twister)]; // Code block we want to send
             H = create_random_matrix(n, m, 0, Hvar);     // Channel matrix
             N = create_random_matrix(n, t, 0, Nvar);     // Noise matrix 
 
             Y = H*X + N; // Simulated received code block
             cout << Y << endl << endl;
-            errs += 1000;
+            errors += 1000;
         }
-        errs = 0;
+        errors = 0;
     }
 
     free(symbset);
