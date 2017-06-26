@@ -28,7 +28,7 @@ double frob_norm_squared(cx_mat A){
 
 /* generates a random n x m complex matrix from uniform distribution */
 cx_mat create_random_matrix(int n, int m, double mean, double variance){
-    normal_distribution<double> distr(mean, variance);
+    normal_distribution<double> distr(mean, sqrt(variance));
     cx_mat A(n,m);
     return A.imbue([&]() {
         return complex<double>(distr(mersenne_twister), distr(mersenne_twister));

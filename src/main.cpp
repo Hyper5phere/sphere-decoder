@@ -113,27 +113,37 @@ int main(int argc, char** argv)
     // log_msg("Simulating received code matrices...");
 
     /* simulation main loop */
-    for (int snr = min; snr < max; snr += step) {
-        Nvar = e.first/pow(10, snr/10); // calculate noise variance from SNR
+    for (int snr = min; snr <= max; snr += step) {
+        // Hvar = e.first/pow(10, snr/10)*t; 
+        Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
+        // cout << Hvar << endl; 
         while (/*errors < max_err && */ runs < max_runs){
             X = codebook[random_code(mersenne_twister)]; // Code block we want to send
             H = create_random_matrix(n, m, 0, Hvar);     // Channel matrix
             N = create_random_matrix(n, t, 0, Nvar);     // Noise matrix 
 
+            // cout << X << endl << endl;
+            // cout << H << endl << endl;
+            // cout << N << endl << endl;
+            // cout << "-------------" << endl;
+
             // C = frob_norm_squared(N) + 1e-3; // calculate initial radius
-
-            sigpow += frob_norm_squared(H*X);
+            
+            auto HX = H*X;
+            sigpow += frob_norm_squared(HX);
             noisepow += frob_norm_squared(N);
-
-            Y = H*X + N; // Simulated code block that we would receive from MIMO-channel
-            cout << Y << endl << endl;
+            // log_msg("Signal power: " + to_string(sigpow) + ", Noise power: " + to_string(noisepow));
+            Y = HX + N; // Simulated code block that we would receive from MIMO-channel
+            // cout << Y << endl << endl;
             // errors += 1000;
             runs++;
         }
+        runs = 0;
         // errors = 0;
         SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
         noisepow = 0;
         sigpow = 0;
+        
         log_msg("Simulated SNR: " + to_string(snr) + ", Real SNR: " + to_string(SNRreal));
     }
 
