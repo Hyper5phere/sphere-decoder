@@ -1,5 +1,5 @@
-// #ifndef SPHDEC_HPP
-// #define SPHDEC_HPP
+#ifndef SPHDEC_HPP
+#define SPHDEC_HPP
 
 #include <armadillo>
 #include <vector>
@@ -7,4 +7,4 @@
 
 arma::vec sphdec(double radius, arma::Col<double> y, arma::mat R, std::vector<arma::cx_mat> bases);
 
-// #endif /* SPHDEC_HPP */
+#endif /* SPHDEC_HPP */
