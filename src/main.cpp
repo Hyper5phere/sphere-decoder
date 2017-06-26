@@ -25,8 +25,8 @@
 
 #include "misc.hpp"
 #include "config.hpp"
-#include "sphdec.hpp"
 #include "algorithms.hpp"
+#include "sphdec.hpp"
 
 using namespace std;
 using namespace arma;
@@ -62,13 +62,20 @@ int main(int argc, char** argv)
     configure(inputfile);
 
     log_msg("Starting program...");
-    // log_msg("random error", "Error");
-    // log_msg("random warning", "Warning");
+
+    int m = params["no_of_transmit_antennas"];
+    int n = params["no_of_receiver_antennas"];
+    int t = params["time_slots"];
+    int k = params["no_of_matrices"];
+    int q = params["x-PAM"];
 
     auto bases = read_matrices();
+    cx_mat basis_sum(n, m);
+
     log_msg("Read basis matrices:");
-    for (auto const &base : bases){
-        cout << base << endl;
+    for (auto const &basis : bases){
+        cout << basis << endl;
+        basis_sum += basis;
     }
 
     int *symbset = create_symbolset(params["x-PAM"]);
@@ -83,7 +90,7 @@ int main(int argc, char** argv)
     log_msg("Average: " + to_string(e.first));
     log_msg("Max: " + to_string(e.second));
 
-    cx_mat H, X, N, Y;
+    
 
     double Hvar = 1, Nvar = 1;  
 
@@ -91,24 +98,28 @@ int main(int argc, char** argv)
     int max = params["snr_max"];
     int step = params["snr_step"];
 
-    int m = params["no_of_transmit_antennas"];
-    int n = params["no_of_receiver_antennas"];
-    int t = params["time_slots"];
-    // int k = params["no_of_matrices"];
-    // int q = params["x-PAM"];
+    
 
+    /* initialize a bunch of complex matrices used in the simulation */
+    cx_mat H, HX, X, N, Y, Ynorm;
+
+    mat B(2*t*n, k), Q, R;
+
+    vec y;
 
     int runs = 0;
     int max_runs = 1e5;
     // int errors = 0; 
     // int max_err = params["required_errors"];
 
-    double sigpow = 0, noisepow = 0;
+    double sigpow = 0;
+    double noisepow = 0;
     double SNRreal = 0;
-
-    // double C = 0.0; // initial squared radius for the sphere decoder
+    double C = 0.0; // initial squared radius for the sphere decoder
 
     uniform_int_distribution<int> random_code(0, codebook.size()-1);
+
+    
 
     // log_msg("Simulating received code matrices...");
 
@@ -128,13 +139,28 @@ int main(int argc, char** argv)
             // cout << "-------------" << endl;
 
             // C = frob_norm_squared(N) + 1e-3; // calculate initial radius
-            
-            auto HX = H*X;
+
+            HX = H*X;
             sigpow += frob_norm_squared(HX);
             noisepow += frob_norm_squared(N);
+            C = noisepow + 1e-3;
             // log_msg("Signal power: " + to_string(sigpow) + ", Noise power: " + to_string(noisepow));
             Y = HX + N; // Simulated code block that we would receive from MIMO-channel
-            // cout << Y << endl << endl;
+            Ynorm = (Y + H*basis_sum*(q-1))*0.5; // normalize received matrix for the sphere decoder
+            y = to_real_vector(Ynorm); // convert Y to real vector
+
+            // B = (HX1 HX2 ... HXk)
+            for(int i = 0; i < k; i++){
+                B.col(i) = to_real_vector(H*bases[i]);
+            }
+
+            qr_econ(Q, R, B); // QR-decomposition of B
+            y = Q.st()*y;
+
+            auto ans = sphdec(C, y, R, bases); // sphere decoder algorithm
+
+            // cout << B << endl << Q << endl << R << endl << endl;
+            // cout << y << endl;
             // errors += 1000;
             runs++;
         }

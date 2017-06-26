@@ -26,6 +26,22 @@ double frob_norm_squared(cx_mat A){
     return sum;
 }
 
+/* Vectorizes a complex matrix A to real vector (each row is concatenated) */
+vec to_real_vector(cx_mat A){
+    vec a(2*A.n_elem); 
+    // as the imaginary parts are now independent real elements in the vector,
+    // we need to double the number of elements in the returned vector
+    int index = 0;
+    for (auto i = 0u; i < A.n_rows; i++){
+        for (auto j = 0u; j < A.n_cols; j++){
+            auto z = A(i,j);
+            a[index++] = z.real();
+            a[index++] = z.imag();
+        }
+    }
+    return a;
+}
+
 /* generates a random n x m complex matrix from uniform distribution */
 cx_mat create_random_matrix(int n, int m, double mean, double variance){
     normal_distribution<double> distr(mean, sqrt(variance));
