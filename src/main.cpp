@@ -105,10 +105,11 @@ int main(int argc, char** argv)
 
     mat B(2*t*n, k), Q, R;
 
-    vec y;
+    vec y, x(k);
 
     int runs = 0;
-    int max_runs = 1e5;
+    int max_runs = 10;
+    int a = 0;
     // int errors = 0; 
     // int max_err = params["required_errors"];
 
@@ -129,7 +130,8 @@ int main(int argc, char** argv)
         Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
         // cout << Hvar << endl; 
         while (/*errors < max_err && */ runs < max_runs){
-            X = codebook[random_code(mersenne_twister)]; // Code block we want to send
+            a = random_code(mersenne_twister);
+            X = codebook[a]; // Code block we want to send
             H = create_random_matrix(n, m, 0, Hvar);     // Channel matrix
             N = create_random_matrix(n, t, 0, Nvar);     // Noise matrix 
 
@@ -138,12 +140,11 @@ int main(int argc, char** argv)
             // cout << N << endl << endl;
             // cout << "-------------" << endl;
 
-            // C = frob_norm_squared(N) + 1e-3; // calculate initial radius
 
             HX = H*X;
             sigpow += frob_norm_squared(HX);
             noisepow += frob_norm_squared(N);
-            C = noisepow + 1e-3;
+            C = noisepow + 1e-3; // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
             // log_msg("Signal power: " + to_string(sigpow) + ", Noise power: " + to_string(noisepow));
             Y = HX + N; // Simulated code block that we would receive from MIMO-channel
             Ynorm = (Y + H*basis_sum*(q-1))*0.5; // normalize received matrix for the sphere decoder
@@ -154,13 +155,16 @@ int main(int argc, char** argv)
                 B.col(i) = to_real_vector(H*bases[i]);
             }
 
-            qr_econ(Q, R, B); // QR-decomposition of B
-            y = Q.st()*y;
+            qr_econ(Q, R, B); // QR-decomposition of B (omits zero rows in R)
+            y = Q.st()*y; // Map y to same basis as R
 
-            auto ans = sphdec(C, y, R, bases); // sphere decoder algorithm
+            x = sphdec(C, y, R, bases); // sphere decoder algorithm
+            for (int j = 0; j < k; j++)      
+                x[j] = 2*x[j] - q + 1;
 
-            // cout << B << endl << Q << endl << R << endl << endl;
-            // cout << y << endl;
+            log_msg("Found point: " + vec2str(x, k));
+
+
             // errors += 1000;
             runs++;
         }
