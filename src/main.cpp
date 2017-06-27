@@ -160,6 +160,7 @@ int main(int argc, char** argv)
             y = Q.st()*y; // Map y to same basis as R
 
             x = sphdec(C, y, R, bases); // sphere decoder algorithm
+
             for (int j = 0; j < k; j++)     
                 x[j] = 2*x[j] - q + 1;
 
@@ -167,7 +168,7 @@ int main(int argc, char** argv)
                 errors++;
             }
 
-            // log_msg("Found point: " + vec2str(x, k));
+            // log_msg("Found point: " + vec2str(x, k) + ", sent point: " + vec2str(codebook[a].first, k));
 
 
             // errors += 1000;
@@ -179,7 +180,10 @@ int main(int argc, char** argv)
         noisepow = 0;
         sigpow = 0;
         
-        log_msg("Simulated SNR: " + to_string(snr) + ", Real SNR: " + to_string(SNRreal) + ", BLER: " + to_string(errors) + "/" + to_string(runs));
+        log_msg("Simulated SNR: " + to_string(snr) + \
+                ", Real SNR: " + to_string(SNRreal) + \
+                ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(100.0*(double)errors/runs) + " %)");
+
         runs = 0;
         errors = 0;
     }
