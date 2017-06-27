@@ -93,7 +93,7 @@ vector<int> sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
             } else {
         		if (i > 0) {
         			for (int j = i; j < k; j++)
-        				ksitemp += R(i-1, j)*x[j];
+        				ksitemp += R(i-1, j)*xt[j];
         			ksi[i-1] = ksitemp;
         			dist[i-1] = dist[i] + d;
         			i--;

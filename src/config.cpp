@@ -11,7 +11,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 12
+#define NUM_OPTIONS 13
 
 using namespace std;
 using namespace arma;
@@ -32,6 +32,7 @@ void create_config(const string filepath){
             << "snr_min=6                       // Minimum value for signal-to-noise ratio" << endl \
             << "snr_max=12                      // Maximum value for signal-to-noise ratio" << endl \
             << "snr_step=2                      // Increase SNR by this value per each iteration" << endl \
+            << "simulation_rounds=100000        // Number of simulation rounds to run" << endl \
             << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
     defconf.close();     
 }

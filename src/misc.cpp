@@ -24,17 +24,17 @@ string time_str(){
 
 /* function used for logging, should be thread safe */
 void log_msg(const string msg, const string lvl){
-    string prefix = time_str();
-    prefix += " | [" + lvl + "]\t";
-    lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
-    ofstream logfile(log_filename, ios_base::app);
-    if (msg.compare("-exit-") == 0)
-        logfile << endl;
-    else {
-        logfile << prefix << msg << endl;
-        cout << prefix << msg << endl;
-    }
-    logfile.close();
+        string prefix = time_str();
+        prefix += " | [" + lvl + "]\t";
+        lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
+        ofstream logfile(log_filename, ios_base::app);
+        if (msg.compare("-exit-") == 0)
+            logfile << endl;
+        else {
+            logfile << prefix << msg << endl;
+            cout << prefix << msg << endl;
+        }
+        logfile.close();
 }
 
 /* Makes the user input somewhat more readable */
