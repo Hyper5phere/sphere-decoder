@@ -15,7 +15,10 @@ arma::cx_mat create_random_matrix(int n, int m, double mean, double variance);
 int* create_symbolset(int q);
 void combinations(std::set< std::vector<int> > &comblist, std::vector<int> symbset, std::vector<int> comb, int dim);
 std::set< std::vector<int> > comb_wrapper(int* symbset, int vector_len);
-std::vector<arma::cx_mat> create_codebook(const std::vector<arma::cx_mat> &bases, int* symbolset);
-std::pair<double,double> code_energy(const std::vector<arma::cx_mat> X);
+// std::vector<arma::cx_mat> create_codebook(const std::vector<arma::cx_mat> &bases, int* symbolset);
+std::vector<std::pair<std::vector<int>,arma::cx_mat>> create_codebook(const std::vector<arma::cx_mat> &bases, int* symbolset);
+// std::pair<double,double> code_energy(const std::vector<arma::cx_mat> X);
+std::pair<double,double> code_energy(const std::vector<std::pair<std::vector<int>,arma::cx_mat>> &X);
+
 
 #endif /* ALGORITHMS_HPP */

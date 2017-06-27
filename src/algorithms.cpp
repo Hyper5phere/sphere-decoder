@@ -84,7 +84,7 @@ set< vector<int> > comb_wrapper(int* symbset, int vector_len){
 }
 
 /* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
-vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
+vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
@@ -98,7 +98,8 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
     //     G.col(i) = vectorise(bases[i]);
     // }
 
-    vector<cx_mat> codebook;
+    vector<pair<vector<int>,cx_mat>> codebook;
+    // vector<cx_mat> codebook;
     vector<int> tmp;
     cx_mat X(m, t);
     
@@ -114,7 +115,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
             }
             log_msg(vec2str(tmp, tmp.size()));
             tmp.clear();
-            codebook.push_back(X);
+            codebook.push_back(make_pair(tmp, X));
             X.zeros();
         }
         cout << endl;
@@ -128,7 +129,7 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
             for (int i = 0; i < k; i++)
                 X = X + symbols[i]*bases[i];
             
-            codebook.push_back(X);
+            codebook.push_back(make_pair(symbols, X));
             X.zeros();
 
             log_msg(vec2str(symbols, k));
@@ -139,13 +140,13 @@ vector<cx_mat> create_codebook(const vector<cx_mat> &bases, int* symbolset){
 }
 
 /* Computes the average and maximum energy of given codebook X */
-pair<double,double> code_energy(const vector<cx_mat> X){
+pair<double,double> code_energy(const vector<pair<vector<int>,cx_mat>> &X){
     double sum = 0, max = 0, tmp = 0, average = 0;
     int cs = (int) X.size();
 
     for (int i = 0; i < cs; i++){
         //tmp = pow(norm(X[i], "fro"), 2);
-        tmp = frob_norm_squared(X[i]);
+        tmp = frob_norm_squared(X[i].second);
         sum += tmp;
         // cout << X[i] << endl;
         // cout << tmp << endl;

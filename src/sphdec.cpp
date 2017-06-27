@@ -12,25 +12,38 @@ using namespace std;
 using namespace arma;
 
 namespace {
+    /* Decision feedback equalization on xt[i] */
+    inline void step2(int i, int q, vec &xt, vec &y, vec &delta, vec &ksi, mat &R) {
+        xt[i] = (int)round((y[i]-ksi[i])/R(i,i));
+        if (xt[i] < 0) {
+            xt[i] = 0;
+            delta[i] = 1;
+        } else if (xt[i] > q - 1) {
+            xt[i] = q - 1;
+            delta[i] = -1;
+        } else {
+            delta[i] = sign((y[i]-ksi[i])-R(i,i)*xt[i]);
+        }
+    }
+
 	/* Schnorr-Euchner enumeration step for the sphere decoder */
-	inline void step6(int i, vec &xt, vec &delta, bool &nextlevel){
+	inline void step6(int i, vec &xt, vec &delta){
 		xt[i] = xt[i] + delta[i];
 		delta[i] = -delta[i] - sign(delta[i]);
-		nextlevel = false;
 	}
 }
 
 /* Sphere decoder algorithm */
-vec sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
+vector<int> sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
 
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
     int i = k-1;
 
-	vec x(k), xt(k), ksi(k), delta(k), dist(k);
+    vector<int> x(k); // found point
+	vec xt(k), ksi(k), delta(k), dist(k);
 	
 	double d = 0.0, ksitemp = 0.0;
-	bool nextlevel = false;
 
 	if (radius <= 0){
         log_msg("sphdec: negative squared initial radius given!", "Error");
@@ -51,20 +64,7 @@ vec sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
     }
 
     while (true) {
-        cout << i << ": " << vec2str(xt, k) << endl;
-    	// step 2.  
-    	if (nextlevel) {
-            xt[i] = (int)round((y[i]-ksi[i])/R(i,i));
-            if (xt[i] < 0) {
-                xt[i] = 0;
-                delta[i] = 1;
-            } else if (xt[i] > q - 1) {
-                xt[i] = q - 1;
-                delta[i] = -1;
-            } else {
-                delta[i] = sign((y[i]-ksi[i])-R(i,i)*xt[i]);
-            }
-        }
+        // cout << i << ": " << vec2str(xt, k) << endl;
 
         // Step 3.
         d = pow(fabs(y[i]-ksi[i]-R(i,i)*xt[i]), 2);
@@ -76,7 +76,7 @@ vec sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
         	} else {
         		// Step 6.
                 i++;
-        		step6(i, xt, delta, nextlevel);
+        		step6(i, xt, delta);
         	}
         } else { // we are inside the sphere
         	if (xt[i] < 0 || xt[i] > q - 1){ // we are outside the signal set boundaries
@@ -86,10 +86,10 @@ vec sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
                         break;
                     } else {
                         i++;
-                        step6(i, xt, delta, nextlevel);
+                        step6(i, xt, delta);
                     }
                 } else 
-        	        step6(i, xt, delta, nextlevel);
+        	        step6(i, xt, delta);
             } else {
         		if (i > 0) {
         			for (int j = i; j < k; j++)
@@ -97,17 +97,15 @@ vec sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
         			ksi[i-1] = ksitemp;
         			dist[i-1] = dist[i] + d;
         			i--;
-        			nextlevel = true;
+                    step2(i, q, xt, y, delta, ksi, R);
         		} else { // lattice point is found (Step 5)
         			radius = dist[0] + d;
-        			x = xt;
+        			x = conv_to<vector<int>>::from(xt);
                     i++;
-        			step6(i, xt, delta, nextlevel);
+        			step6(i, xt, delta);
         		}
         	}
         }
-        // break;
     }
-
 	return x;
 }

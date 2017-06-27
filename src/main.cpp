@@ -72,7 +72,7 @@ int main(int argc, char** argv)
     auto bases = read_matrices();
     cx_mat basis_sum(n, m);
 
-    log_msg("Read basis matrices:");
+    cout << "Read basis matrices: " << endl;
     for (auto const &basis : bases){
         cout << basis << endl;
         basis_sum += basis;
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
     
     log_msg("Using symbolset: " + vec2str(symbset, params["x-PAM"]));
     
-    auto codebook = create_codebook(bases, symbset);
+    vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, symbset);
 
     auto e = code_energy(codebook);
     log_msg("Code Energy");
@@ -105,12 +105,13 @@ int main(int argc, char** argv)
 
     mat B(2*t*n, k), Q, R;
 
-    vec y, x(k);
+    vec y;
+    vector<int> x(k);
 
     int runs = 0;
-    int max_runs = 10;
+    int max_runs = 10000;
     int a = 0;
-    // int errors = 0; 
+    int errors = 0; 
     // int max_err = params["required_errors"];
 
     double sigpow = 0;
@@ -120,7 +121,8 @@ int main(int argc, char** argv)
 
     uniform_int_distribution<int> random_code(0, codebook.size()-1);
 
-    
+    log_msg("-----------");
+    log_msg("Starting simulation...");
 
     // log_msg("Simulating received code matrices...");
 
@@ -131,7 +133,7 @@ int main(int argc, char** argv)
         // cout << Hvar << endl; 
         while (/*errors < max_err && */ runs < max_runs){
             a = random_code(mersenne_twister);
-            X = codebook[a]; // Code block we want to send
+            X = codebook[a].second; // Code block we want to send
             H = create_random_matrix(n, m, 0, Hvar);     // Channel matrix
             N = create_random_matrix(n, t, 0, Nvar);     // Noise matrix 
 
@@ -139,7 +141,6 @@ int main(int argc, char** argv)
             // cout << H << endl << endl;
             // cout << N << endl << endl;
             // cout << "-------------" << endl;
-
 
             HX = H*X;
             sigpow += frob_norm_squared(HX);
@@ -159,22 +160,28 @@ int main(int argc, char** argv)
             y = Q.st()*y; // Map y to same basis as R
 
             x = sphdec(C, y, R, bases); // sphere decoder algorithm
-            for (int j = 0; j < k; j++)      
+            for (int j = 0; j < k; j++)     
                 x[j] = 2*x[j] - q + 1;
 
-            log_msg("Found point: " + vec2str(x, k));
+            if (codebook[a].first != x){
+                errors++;
+            }
+
+            // log_msg("Found point: " + vec2str(x, k));
 
 
             // errors += 1000;
             runs++;
         }
-        runs = 0;
+        
         // errors = 0;
         SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
         noisepow = 0;
         sigpow = 0;
         
-        log_msg("Simulated SNR: " + to_string(snr) + ", Real SNR: " + to_string(SNRreal));
+        log_msg("Simulated SNR: " + to_string(snr) + ", Real SNR: " + to_string(SNRreal) + ", BLER: " + to_string(errors) + "/" + to_string(runs));
+        runs = 0;
+        errors = 0;
     }
 
     free(symbset);
