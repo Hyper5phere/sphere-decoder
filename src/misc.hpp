@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 /* default filenames */
 extern std::string options_filename;
@@ -17,6 +18,8 @@ extern std::map<std::string, int> params;
 std::string time_str(void);
 void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
 void clean_input(std::string &input);
+std::string create_output_filename(void);
+void output_csv_line(const std::string &filename, const std::vector<std::string> &line);
 
 /* Makes a string representation out of any basic vector type */
 template <typename T>

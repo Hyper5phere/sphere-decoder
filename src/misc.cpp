@@ -12,6 +12,7 @@ using namespace std;
 
 /* object for parallel computing synchronazation */
 mutex log_mutex;
+mutex output_mutex;
 
 string time_str(){
     struct tm *timeinfo;
@@ -45,4 +46,18 @@ void clean_input(string &input){
         input = input.substr(0, start);
     // remove white spaces
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end());
+}
+
+string create_output_filename(){
+    return string("output/") + time_str() + string(" sphdec output.csv");
+}
+
+void output_csv_line(const string &filename, const vector<string> &line){
+    // lock_guard<mutex> lock(output_mutex);
+    ofstream csv(filename, ios_base::app);
+    int last = line.size() - 1;
+    for (int i = 0; i < last; i++)
+        csv << line[i] << ",";
+    csv << line[last] << endl;
+    csv.close();
 }

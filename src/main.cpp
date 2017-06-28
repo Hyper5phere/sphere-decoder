@@ -94,6 +94,11 @@ int main(int argc, char** argv)
     log_msg("Max: " + to_string(e.second));
     log_msg("-----------");
     log_msg("Starting simulation...");
+
+    string output_file = create_output_filename();
+    vector<string> col_names = {"Simulated SNR", "Real SNR", "Runs", "BLER"};
+    vector<string> output_line;
+    output_csv_line(output_file, col_names);
     
     #pragma omp parallel // parallelize SNR simulations
     {
@@ -118,6 +123,7 @@ int main(int argc, char** argv)
         int max_err = params["required_errors"];
 
         double sigpow = 0;
+        double bler = 0;
         double noisepow = 0;
         double SNRreal = 0;
         double C = 0.0; // initial squared radius for the sphere decoder
@@ -133,7 +139,6 @@ int main(int argc, char** argv)
             // Hvar = e.first/pow(10, snr/10)*t; 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
             // cout << Hvar << endl; 
-
             while (errors < max_err || runs < max_runs){
                 a = random_code(mersenne_twister);
                 X = codebook[a].second;                     // Code block we want to send
@@ -176,15 +181,27 @@ int main(int argc, char** argv)
             }
             
             SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
-            noisepow = 0;
-            sigpow = 0;
+            bler = 100.0*(double)errors/runs;
+            
+            output_line.push_back(to_string(snr));
+            output_line.push_back(to_string(SNRreal));
+            output_line.push_back(to_string(runs));
+            output_line.push_back(to_string(bler));
+
+            // cout << output_line[2] << output_line[3] << endl;
+
+            // #pragma omp critical
+            // output_csv_line(output_file, output_line);
+            output_line.clear();
             
             log_msg("Simulated SNR: " + to_string(snr) + \
                     ", Real SNR: " + to_string(SNRreal) + \
-                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(100.0*(double)errors/runs) + " %)");
+                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + " %)");
 
             runs = 0;
             errors = 0;
+            noisepow = 0;git
+            sigpow = 0;
         }
     }
     free(symbset);
