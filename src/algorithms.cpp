@@ -13,8 +13,8 @@ using namespace std;
 using namespace arma;
 
 /* signum function */
-int sign(double x){
-    return (x < 0) ? -1 : 1;
+int sesd_sign(double x){
+    return (x <= 0) ? -1 : 1;
 }
 
 /* Takes the squared Frobenius norm from a complex matrix A */
@@ -24,6 +24,16 @@ double frob_norm_squared(cx_mat A){
         for (auto j = 0u; j < A.n_cols; j++)
             sum += norm(A(i,j)); 
     return sum;
+}
+
+/* Makes sure the upper triangular matrix R has only positive diagonal elements */
+void process_qr(mat &Q, mat &R){
+    for (auto i = 0u; i < R.n_cols; i++){
+        if (R(i,i) < 0.0){
+            R.col(i) *= -1;
+            Q.row(i) *= -1;
+        }
+    }
 }
 
 /* Vectorizes a complex matrix A to real vector (each row is concatenated) */

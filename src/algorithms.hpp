@@ -8,8 +8,9 @@
 
 extern std::mt19937_64 mersenne_twister;
 
-int sign(double x);
+int sesd_sign(double x);
 double frob_norm_squared(arma::cx_mat A);
+void process_qr(arma::mat &Q, arma::mat &R);
 arma::vec to_real_vector(arma::cx_mat A);
 arma::cx_mat create_random_matrix(int n, int m, double mean, double variance);
 int* create_symbolset(int q);

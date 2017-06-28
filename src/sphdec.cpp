@@ -22,14 +22,14 @@ namespace {
             xt[i] = q - 1;
             delta[i] = -1;
         } else {
-            delta[i] = sign((y[i]-ksi[i])-R(i,i)*xt[i]);
+            delta[i] = sesd_sign(y[i]-ksi[i]-R(i,i)*xt[i]);
         }
     }
 
 	/* Schnorr-Euchner enumeration step for the sphere decoder */
 	inline void step6(int i, vec &xt, vec &delta){
 		xt[i] = xt[i] + delta[i];
-		delta[i] = -delta[i] - sign(delta[i]);
+		delta[i] = -delta[i] - sesd_sign(delta[i]);
 	}
 }
 
@@ -67,7 +67,7 @@ vector<int> sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
         // cout << i << ": " << vec2str(xt, k) << endl;
 
         // Step 3.
-        d = pow(fabs(y[i]-ksi[i]-R(i,i)*xt[i]), 2);
+        d = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
         
         if (radius < dist[i] + d) { // current point xt is outside the sphere
         	// Step 4.

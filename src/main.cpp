@@ -83,11 +83,13 @@ int main(int argc, char** argv)
 
     int *symbset = create_symbolset(params["x-PAM"]);
     
+    log_msg("Using symbolset: " + vec2str(symbset, params["x-PAM"]));
+    
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, symbset);
 
     auto e = code_energy(codebook);
 
-    log_msg("Using symbolset: " + vec2str(symbset, params["x-PAM"]));
+    
     log_msg("Code Energy");
     log_msg("-----------");
     log_msg("Average: " + to_string(e.first));
@@ -98,7 +100,7 @@ int main(int argc, char** argv)
     string output_file = create_output_filename();
     vector<string> col_names = {"Simulated SNR", "Real SNR", "Runs", "BLER"};
     vector<string> output_line;
-    output_csv_line(output_file, col_names);
+    // output_csv_line(output_file, col_names);
     
     #pragma omp parallel // parallelize SNR simulations
     {
@@ -160,7 +162,12 @@ int main(int argc, char** argv)
                 }
 
                 qr_econ(Q, R, B); // QR-decomposition of B (omits zero rows in R)
+                // process_qr(Q, R); // Make sure R has positive diagonal elements
                 y = Q.st()*y; // Map y to same basis as R
+
+                // cout << R << endl;
+                // cout << Q << endl;
+                // cout << "-----" << endl;
 
                 // #pragma omp task
                 x = sphdec(C, y, R, bases); // sphere decoder algorithm
@@ -200,7 +207,7 @@ int main(int argc, char** argv)
 
             runs = 0;
             errors = 0;
-            noisepow = 0;git
+            noisepow = 0;
             sigpow = 0;
         }
     }
