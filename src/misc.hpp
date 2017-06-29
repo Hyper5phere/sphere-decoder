@@ -4,22 +4,31 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <mutex>
 
 /* default filenames */
 extern std::string options_filename;
 extern std::string basis_filename;
-extern std::string output_filename;
 extern std::string log_filename;
 
 /* storage for simulation parameters */
 extern std::map<std::string, int> params;
+
+class parallel_vector : public std::vector<std::string> {
+	public:
+		parallel_vector() : std::vector<std::string>(){};
+		void append(std::string item);
+	private:
+		std::mutex m_;
+};
 
 /* function prototypes */
 std::string time_str(void);
 void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
 void clean_input(std::string &input);
 std::string create_output_filename(void);
-void output_csv_line(const std::string &filename, const std::vector<std::string> &line);
+void output_csv(const std::string &filename, const parallel_vector &line);
+bool snr_ordering(std::string &a, std::string &b);
 
 /* Makes a string representation out of any basic vector type */
 template <typename T>

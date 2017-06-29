@@ -11,7 +11,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 13
+#define NUM_OPTIONS 12
 
 using namespace std;
 using namespace arma;
@@ -22,7 +22,6 @@ void create_config(const string filepath){
     ofstream defconf(filepath);
     defconf << "// configuration settings and simulation parameters for the sphere decoder program //" << endl << endl \
             << "basis_file=bases.txt            // Text file containing the basis matrices" << endl \
-            << "output_file=output.txt          // Text file used for simulation output" << endl \
             << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl \
             << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl \
             << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl \
@@ -73,8 +72,8 @@ void configure(const string filepath) {
                 clean_input(value);
                 if (key.compare("basis_file") == 0)
                     basis_filename = "bases/" + value;
-                else if (key.compare("output_file") == 0)
-                    output_filename = "output/" + value;
+                // else if (key.compare("output_file") == 0)
+                //     output_filename = "output/" + value;
                 else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
@@ -116,11 +115,12 @@ vector<cx_mat> read_matrices(){
      * - pattern is also case insensitive
      */
     regex elem_regex(
+        //"(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?\\s*[,)};\\]\n]{1})|"
         "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?)|"
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
         "\\s*" // white space
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "\\*?[Ii]{1})\\s*([,)};\\] \n]{1})" // element ends in comma, semicolon, newline, white space or closing bracket
+        "\\*?[Ii]{1})\\s*([,)};\\]\n]{1})" // element ends in comma, semicolon, newline or closing bracket
     );
 
     /* Some supported formats for the matrix elements:

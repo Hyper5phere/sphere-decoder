@@ -14,6 +14,11 @@ using namespace std;
 mutex log_mutex;
 mutex output_mutex;
 
+void parallel_vector::append(string item){
+    lock_guard<mutex> lock(this->m_);
+    this->push_back(item);
+}
+
 string time_str(){
     struct tm *timeinfo;
     time_t t = time(nullptr);
@@ -49,15 +54,23 @@ void clean_input(string &input){
 }
 
 string create_output_filename(){
-    return string("output/") + time_str() + string(" sphdec output.csv");
+    string bf = basis_filename;
+    size_t a = bf.find("/")+1;
+    size_t b = bf.find(".");
+    string name = basis_filename.substr(a, b-a);
+    return string("output/") + time_str() + string(" ") + name + string(" output.csv");
 }
 
-void output_csv_line(const string &filename, const vector<string> &line){
-    // lock_guard<mutex> lock(output_mutex);
-    ofstream csv(filename, ios_base::app);
-    int last = line.size() - 1;
-    for (int i = 0; i < last; i++)
-        csv << line[i] << ",";
-    csv << line[last] << endl;
+void output_csv(const string &filename, const parallel_vector &lines){
+    ofstream csv(filename);
+    for (const auto &line : lines){
+        csv << line << endl;
+    }
     csv.close();
+}
+
+bool snr_ordering(string &a, string &b){
+    int i = strtol(a.substr(0, a.find(",")).c_str(), NULL, 10);
+    int j = strtol(b.substr(0, b.find(",")).c_str(), NULL, 10);
+    return (i < j);
 }

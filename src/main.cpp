@@ -34,7 +34,6 @@ using namespace arma;
 /* default filepaths */
 string options_filename = "settings/settings.ini";
 string basis_filename   = "bases/bases.txt";
-string output_filename  = "output/output.txt";
 string log_filename     = "logs/log.txt";
 
 /* Storage for simulation parameters */
@@ -98,8 +97,11 @@ int main(int argc, char** argv)
     log_msg("Starting simulation...");
 
     string output_file = create_output_filename();
-    vector<string> col_names = {"Simulated SNR", "Real SNR", "Runs", "BLER"};
-    vector<string> output_line;
+    parallel_vector output;
+    output.append("Simulated SNR,Real SNR,Runs,BLER");
+    // cout << output[0] << endl;
+    // vector<string> col_names = {"Simulated SNR", "Real SNR", "Runs", "BLER"};
+    // vector<string> output_line;
     // output_csv_line(output_file, col_names);
     
     #pragma omp parallel // parallelize SNR simulations
@@ -205,16 +207,17 @@ int main(int argc, char** argv)
             SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
             bler = 100.0*(double)errors/runs;
             
-            output_line.push_back(to_string(snr));
-            output_line.push_back(to_string(SNRreal));
-            output_line.push_back(to_string(runs));
-            output_line.push_back(to_string(bler));
+            // output_line.push_back(to_string(snr));
+            // output_line.push_back(to_string(SNRreal));
+            // output_line.push_back(to_string(runs));
+            // output_line.push_back(to_string(bler));
+            output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler));
 
             // cout << output_line[2] << output_line[3] << endl;
 
             // #pragma omp critical
             // output_csv_line(output_file, output_line);
-            output_line.clear();
+            // output_line.clear();
             
             log_msg("Simulated SNR: " + to_string(snr) + \
                     ", Real SNR: " + to_string(SNRreal) + \
@@ -225,6 +228,12 @@ int main(int argc, char** argv)
             noisepow = 0;
             sigpow = 0;
         }
+
+    }
+    /* output the simulation results in a csv file in /output/ folder */
+    if (output.size() > 1){
+        sort(output.begin()+1, output.end(), snr_ordering);
+        output_csv(output_file, output);
     }
     free(symbset);
     log_msg();
