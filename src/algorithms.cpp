@@ -30,8 +30,10 @@ double frob_norm_squared(cx_mat A){
 void process_qr(mat &Q, mat &R){
     for (auto i = 0u; i < R.n_cols; i++){
         if (R(i,i) < 0.0){
-            R.col(i) *= -1;
-            Q.row(i) *= -1;
+            // R.col(i) *= -1;
+            // Q.row(i) *= -1;
+            R.row(i) *= -1;
+            Q.col(i) *= -1;
         }
     }
 }

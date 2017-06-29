@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 
 
     int *symbset = create_symbolset(params["x-PAM"]);
-    
+
     log_msg("Using symbolset: " + vec2str(symbset, params["x-PAM"]));
     
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, symbset);
@@ -116,7 +116,8 @@ int main(int argc, char** argv)
         mat B(2*t*n, k), Q, R;
 
         vec y;
-        vector<int> x(k);
+        vec y2;
+        vector<int> x(k), orig(k);
 
         int runs = 0;
         int max_runs = params["simulation_rounds"];
@@ -144,40 +145,52 @@ int main(int argc, char** argv)
             while (errors < max_err || runs < max_runs){
                 a = random_code(mersenne_twister);
                 X = codebook[a].second;                     // Code block we want to send
+                // cout << X << endl;
                 H = create_random_matrix(n, m, 0, Hvar);    // Channel matrix
                 N = create_random_matrix(n, t, 0, Nvar);    // Noise matrix 
+
+                // cout << N << endl;
 
                 HX = H*X;
                 sigpow += frob_norm_squared(HX);
                 noisepow += frob_norm_squared(N);
-                C = noisepow + 1e-3; // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
+                C = noisepow + 1e-2; // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
                 // log_msg("Signal power: " + to_string(sigpow) + ", Noise power: " + to_string(noisepow));
                 Y = HX + N; // Simulated code block that we would receive from MIMO-channel
-                Ynorm = (Y + H*basis_sum*(q-1))*0.5; // normalize received matrix for the sphere decoder
+                Ynorm = (Y + H*basis_sum*(q - 1))*0.5; // normalize received matrix for the sphere decoder
                 y = to_real_vector(Ynorm); // convert Y to real vector
 
                 // B = (HX1 HX2 ... HXk)
                 for(int i = 0; i < k; i++){
                     B.col(i) = to_real_vector(H*bases[i]);
                 }
+                // cout << B << endl;
 
                 qr_econ(Q, R, B); // QR-decomposition of B (omits zero rows in R)
                 // process_qr(Q, R); // Make sure R has positive diagonal elements
-                y = Q.st()*y; // Map y to same basis as R
+                // cout << vec2str(y, y.n_elem) << endl;
+                y2 = Q.st()*y; // Map y to same basis as R
+                // cout << "Input:" << endl << "C = " << C << endl;
+                // cout << "y = " << vec2str(y2, y2.n_elem) << endl << endl;
 
                 // cout << R << endl;
                 // cout << Q << endl;
                 // cout << "-----" << endl;
 
                 // #pragma omp task
-                x = sphdec(C, y, R, bases); // sphere decoder algorithm
+                x = sphdec(C, y2, R); //, bases); // sphere decoder algorithm                
 
                 for (int j = 0; j < k; j++)     
-                    x[j] = 2*x[j] - q + 1;
+                    // x[j] = 2*x[j] - q + 1;
+                    orig[j] = 0.5*(codebook[a].first[j] + q - 1);
 
-                if (codebook[a].first != x){
+                // if (codebook[a].first != x){
+                if (orig != x){
                     errors++;
+                    // cout << errors << endl;
                 }
+                // cout << endl << vec2str(orig, orig.size()) << endl;
+                // cout << vec2str(x, x.size()) << endl << endl;
                 // if (!equal(x.begin(), x.end(), codebook[a].first.begin(), codebook[a].first.end())){
                 //     errors++;
                 // }
@@ -185,6 +198,8 @@ int main(int argc, char** argv)
                 // log_msg("Found point: " + vec2str(x, k) + ", sent point: " + vec2str(codebook[a].first, k));
 
                 runs++;
+                Q.zeros();
+                R.zeros();
             }
             
             SNRreal = 10 * log(sigpow / noisepow) / log(10.0);

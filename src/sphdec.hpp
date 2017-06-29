@@ -5,6 +5,6 @@
 #include <vector>
 #include <complex>
 
-std::vector<int> sphdec(double radius, arma::Col<double> y, arma::mat R, std::vector<arma::cx_mat> bases);
+std::vector<int> sphdec(double radius, arma::vec &y, arma::mat &R); //, std::vector<arma::cx_mat> bases);
 
 #endif /* SPHDEC_HPP */

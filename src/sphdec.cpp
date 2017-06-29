@@ -34,8 +34,9 @@ namespace {
 }
 
 /* Sphere decoder algorithm */
-vector<int> sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
+vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
 
+    // Step 1
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
     int i = k-1;
@@ -63,12 +64,15 @@ vector<int> sphdec(double radius, vec y, mat R, vector<cx_mat> bases){
     	return x;
     }
 
-    while (true) {
-        // cout << i << ": " << vec2str(xt, k) << endl;
+    step2(i, q, xt, y, delta, ksi, R);
 
+    while (true) {
+        
         // Step 3.
         d = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
         
+        // cout << i << ": " << vec2str(xt, k) << ", d = " << d << endl;
+
         if (radius < dist[i] + d) { // current point xt is outside the sphere
         	// Step 4.
         	if (i == k-1) {
