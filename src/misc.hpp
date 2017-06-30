@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <mutex>
+#include <set>
 
 /* default filenames */
 extern std::string options_filename;
@@ -14,10 +15,28 @@ extern std::string log_filename;
 /* storage for simulation parameters */
 extern std::map<std::string, int> params;
 
-class parallel_vector : public std::vector<std::string> {
+/* thread safe vector data structure */
+template <typename T>
+class parallel_vector : public std::vector<T> {
 	public:
-		parallel_vector() : std::vector<std::string>(){};
-		void append(std::string item);
+		parallel_vector() : std::vector<T>(){};
+		void append(T item)	{
+		    std::lock_guard<std::mutex> lock(this->m_);
+		    this->push_back(item);
+		};
+	private:
+		std::mutex m_;
+};
+
+/* thread safe set data structure */
+template <typename T>
+class parallel_set : public std::set<T> {
+	public:
+		parallel_set() : std::set<T>(){};
+		void par_insert(T item)	{
+		    std::lock_guard<std::mutex> lock(this->m_);
+		    this->insert(item);
+		};
 	private:
 		std::mutex m_;
 };
@@ -27,7 +46,7 @@ std::string time_str(void);
 void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
 void clean_input(std::string &input);
 std::string create_output_filename(void);
-void output_csv(const std::string &filename, const parallel_vector &line);
+void output_csv(const std::string &filename, const parallel_vector<std::string> &line);
 bool snr_ordering(std::string &a, std::string &b);
 
 /* Makes a string representation out of any basic vector type */

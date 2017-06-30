@@ -14,10 +14,10 @@ using namespace std;
 mutex log_mutex;
 mutex output_mutex;
 
-void parallel_vector::append(string item){
-    lock_guard<mutex> lock(this->m_);
-    this->push_back(item);
-}
+// void parallel_vector::append(string item){
+//     lock_guard<mutex> lock(this->m_);
+//     this->push_back(item);
+// }
 
 string time_str(){
     struct tm *timeinfo;
@@ -61,7 +61,7 @@ string create_output_filename(){
     return string("output/") + time_str() + string(" ") + name + string(" output.csv");
 }
 
-void output_csv(const string &filename, const parallel_vector &lines){
+void output_csv(const string &filename, const parallel_vector<string> &lines){
     ofstream csv(filename);
     for (const auto &line : lines){
         csv << line << endl;

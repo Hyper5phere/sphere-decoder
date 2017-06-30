@@ -63,45 +63,55 @@ cx_mat create_random_matrix(int n, int m, double mean, double variance){
     });
 }
 
-/* Creates a C-style integer array representation of an x-PAM symbolset */
-int* create_symbolset(int q){
-    int *symbset = (int*) malloc(q * sizeof(int));
+// /* Creates a C-style integer array representation of an x-PAM symbolset */
+// int* create_symbolset(int q){
+//     int *symbset = (int*) malloc(q * sizeof(int));
+//     for (int u = 0; u < q; u++) {
+//         symbset[u] = 2*u - q + 1;
+//     }
+//     return symbset; // must be free()'d after use
+// }
+
+/* Creates q-PAM symbolset (integer array) */
+vector<int> create_symbolset(int q){
+    vector<int> symbset(q);
     for (int u = 0; u < q; u++) {
         symbset[u] = 2*u - q + 1;
     }
-    return symbset; // must be free()'d after use
+    return symbset; 
 }
 
 /* Calculates all combinations of elements for code vector _a_
    given the set of feasible symbols (element values) */
-void combinations(set< vector<int> > &comblist, vector<int> symbset, vector<int> comb, int dim){
-    comblist.insert(comb);
+void combinations(parallel_set< vector<int> > &comblist, const vector<int> &symbset, vector<int> comb, int dim){
+    comblist.par_insert(comb);
     if (dim >= 0){
-        for (const int symbol : symbset){
-            comb[dim] = symbol;
+        #pragma omp parallel for
+        for (size_t i = 0; i < symbset.size(); i++){
+            comb[dim] = symbset[i];
             combinations(comblist, symbset, comb, dim-1);
         }
     }
 }
 
 /* Helper function for above combinations algorithm */
-set< vector<int> > comb_wrapper(int* symbset, int vector_len){
-    set< vector<int> > comblist;
+set< vector<int> > comb_wrapper(const vector<int> &symbset, int vector_len){
+    parallel_set< vector<int> > comblist;
     vector<int> init(vector_len);
-    vector<int> symbset_v(symbset, symbset + params["x-PAM"]);
+    // vector<int> symbset_v(symbset, symbset + params["x-PAM"]);
     for (int i = 0; i < vector_len; i++)
         init[i] = symbset[0];
-    combinations(comblist, symbset_v, init, vector_len-1);
+    combinations(comblist, symbset, init, vector_len-1);
     return comblist;
 }
 
 /* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
-vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, int* symbolset){
+vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, const vector<int> &symbolset){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
-    // int cs = params["codebook_size"];
+    int cs = params["codebook_size"];
     int samples = params["energy_estimation_samples"];
 
     /* lattice generator matrix G (alternative approach) */
@@ -109,6 +119,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, in
     // for(int i = 0; i < k; i++){
     //     G.col(i) = vectorise(bases[i]);
     // }
+
 
     vector<pair<vector<int>,cx_mat>> codebook;
     // vector<cx_mat> codebook;
@@ -132,6 +143,8 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, in
         }
         cout << endl;
     } else {
+        if (cs > 1e6)
+            log_msg("create_codebook: Generating a codebook of size " + to_string(cs) + "!", "Warning");
 
         /* all possible combinations of code words */
         auto c = comb_wrapper(symbolset, k);
@@ -144,7 +157,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, in
             codebook.push_back(make_pair(symbols, X));
             X.zeros();
 
-            log_msg(vec2str(symbols, k));
+            // log_msg(vec2str(symbols, k));
         }
         cout << endl;
     }

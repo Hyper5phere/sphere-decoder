@@ -45,6 +45,7 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
 	vec xt(k), ksi(k), delta(k), dist(k);
 	
 	double d = 0.0, ksitemp = 0.0;
+    bool found = false;
 
 	if (radius <= 0){
         log_msg("sphdec: negative squared initial radius given!", "Error");
@@ -71,7 +72,7 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
         // Step 3.
         d = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
         
-        // cout << i << ": " << vec2str(xt, k) << ", d = " << d << endl;
+        cout << i << ": " << vec2str(xt, k) << ", d = " << d << ", C = " << radius << endl;
 
         if (radius < dist[i] + d) { // current point xt is outside the sphere
         	// Step 4.
@@ -104,6 +105,7 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
                     step2(i, q, xt, y, delta, ksi, R);
         		} else { // lattice point is found (Step 5)
         			radius = dist[0] + d;
+                    found = true;
         			x = conv_to<vector<int>>::from(xt);
                     i++;
         			step6(i, xt, delta);
@@ -111,5 +113,9 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
         	}
         }
     }
-	return x;
+    if (found)
+	    return x;
+    else
+        log_msg("Point not found!");
+        return vector<int>(0);
 }

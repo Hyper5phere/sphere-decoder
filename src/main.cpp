@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     }
 
 
-    int *symbset = create_symbolset(params["x-PAM"]);
+    vector<int> symbset = create_symbolset(params["x-PAM"]);
 
     log_msg("Using symbolset: " + vec2str(symbset, params["x-PAM"]));
     
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
     log_msg("Starting simulation...");
 
     string output_file = create_output_filename();
-    parallel_vector output;
+    parallel_vector<string> output;
     output.append("Simulated SNR,Real SNR,Runs,BLER");
     // cout << output[0] << endl;
     // vector<string> col_names = {"Simulated SNR", "Real SNR", "Runs", "BLER"};
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
                 // cout << B << endl;
 
                 qr_econ(Q, R, B); // QR-decomposition of B (omits zero rows in R)
-                // process_qr(Q, R); // Make sure R has positive diagonal elements
+                process_qr(Q, R); // Make sure R has positive diagonal elements
                 // cout << vec2str(y, y.n_elem) << endl;
                 y2 = Q.st()*y; // Map y to same basis as R
                 // cout << "Input:" << endl << "C = " << C << endl;
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
                 // cout << "-----" << endl;
 
                 // #pragma omp task
-                x = sphdec(C, y2, R); //, bases); // sphere decoder algorithm                
+                x = sphdec(C, y2, R); //, bases); // sphere decoder algorithm
 
                 for (int j = 0; j < k; j++)     
                     // x[j] = 2*x[j] - q + 1;
@@ -190,9 +190,11 @@ int main(int argc, char** argv)
                 if (orig != x){
                     errors++;
                     // cout << errors << endl;
+                    
                 }
-                // cout << endl << vec2str(orig, orig.size()) << endl;
-                // cout << vec2str(x, x.size()) << endl << endl;
+                cout << endl << vec2str(orig, orig.size()) << endl;
+                cout << vec2str(x, x.size()) << endl << endl;
+                
                 // if (!equal(x.begin(), x.end(), codebook[a].first.begin(), codebook[a].first.end())){
                 //     errors++;
                 // }
@@ -202,6 +204,8 @@ int main(int argc, char** argv)
                 runs++;
                 Q.zeros();
                 R.zeros();
+                x.clear();
+                // orig.clear();
             }
             
             SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
@@ -235,7 +239,7 @@ int main(int argc, char** argv)
         sort(output.begin()+1, output.end(), snr_ordering);
         output_csv(output_file, output);
     }
-    free(symbset);
+    // free(symbset);
     log_msg();
     return 0;
 }
