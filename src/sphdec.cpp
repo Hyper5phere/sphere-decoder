@@ -31,6 +31,16 @@ namespace {
 		xt[i] = xt[i] + delta[i];
 		delta[i] = -delta[i] - sesd_sign(delta[i]);
 	}
+
+    // template<class Matrix>
+    // void print_matrix(Matrix matrix) {
+    //     matrix.print(std::cout);
+    // }
+
+    // //provide explicit instantiations of the template function for 
+    // //every matrix type you use somewhere in your program.
+    // template void print_matrix<arma::mat>(arma::mat matrix);
+    // template void print_matrix<arma::cx_mat>(arma::cx_mat matrix);
 }
 
 /* Sphere decoder algorithm */
@@ -43,8 +53,9 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
 
     vector<int> x(k); // found point
 	vec xt(k), ksi(k), delta(k), dist(k);
+    xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros();
 	
-	double d = 0.0, ksitemp = 0.0;
+	double xidist = 0.0;
     bool found = false;
 
 	if (radius <= 0){
@@ -70,11 +81,11 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
     while (true) {
         
         // Step 3.
-        d = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
+        xidist = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
         
-        cout << i << ": " << vec2str(xt, k) << ", d = " << d << ", C = " << radius << endl;
+        cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
 
-        if (radius < dist[i] + d) { // current point xt is outside the sphere
+        if (radius < dist[i] + xidist) { // current point xt is outside the sphere
         	// Step 4.
         	if (i == k-1) {
         		break;
@@ -97,14 +108,14 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
         	        step6(i, xt, delta);
             } else {
         		if (i > 0) {
+                    ksi[i-1] = 0;
         			for (int j = i; j < k; j++)
-        				ksitemp += R(i-1, j)*xt[j];
-        			ksi[i-1] = ksitemp;
-        			dist[i-1] = dist[i] + d;
+        				ksi[i-1] += R(i-1, j)*xt[j];
+        			dist[i-1] = dist[i] + xidist;
         			i--;
                     step2(i, q, xt, y, delta, ksi, R);
         		} else { // lattice point is found (Step 5)
-        			radius = dist[0] + d;
+        			radius = dist[0] + xidist;
                     found = true;
         			x = conv_to<vector<int>>::from(xt);
                     i++;
@@ -115,7 +126,13 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
     }
     if (found)
 	    return x;
-    else
-        log_msg("Point not found!");
+    else {
+        log_msg("sphdec: point not found!", "Warning");
         return vector<int>(0);
+    }
 }
+
+// vector<int> sphdec_pohst(double radius, vec &y, mat &R){
+
+
+// }

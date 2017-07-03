@@ -86,10 +86,14 @@ vector<int> create_symbolset(int q){
 void combinations(parallel_set< vector<int> > &comblist, const vector<int> &symbset, vector<int> comb, int dim){
     comblist.par_insert(comb);
     if (dim >= 0){
-        #pragma omp parallel for
-        for (size_t i = 0; i < symbset.size(); i++){
-            comb[dim] = symbset[i];
-            combinations(comblist, symbset, comb, dim-1);
+        #pragma omp parallel 
+        {
+            vector<int> new_comb = comb;
+            #pragma omp for
+            for (size_t i = 0; i < symbset.size(); i++){
+                new_comb[dim] = symbset[i];
+                combinations(comblist, symbset, new_comb, dim-1);
+            }
         }
     }
 }
@@ -120,23 +124,22 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     //     G.col(i) = vectorise(bases[i]);
     // }
 
-
     vector<pair<vector<int>,cx_mat>> codebook;
-    // vector<cx_mat> codebook;
     vector<int> tmp;
     cx_mat X(m, t);
+    X.zeros();
     
     if(samples > 0){
         int random_index = 0;
         uniform_int_distribution<int> dist(0,q-1);
-        log_msg("Random sampled data vector combinations:");
+        // log_msg("Random sampled data vector combinations:");
         for (int j = 0; j < samples; j++){
             for (int i = 0; i < k; i++) {
                 random_index = dist(mersenne_twister);
                 tmp.push_back(symbolset[random_index]);
                 X = X + symbolset[random_index]*bases[i];
             }
-            log_msg(vec2str(tmp, tmp.size()));
+            // log_msg(vec2str(tmp, tmp.size()));
             tmp.clear();
             codebook.push_back(make_pair(tmp, X));
             X.zeros();
@@ -157,9 +160,8 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
             codebook.push_back(make_pair(symbols, X));
             X.zeros();
 
-            // log_msg(vec2str(symbols, k));
+            log_msg(vec2str(symbols, k));
         }
-        cout << endl;
     }
     return codebook;
 }

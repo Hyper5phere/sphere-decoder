@@ -10,7 +10,6 @@
  */
 
 // #define ARMA_NO_DEBUG // for speed
-
 #define _GLIBCXX_USE_CXX11_ABI 0
 
 #include <iostream>
@@ -62,8 +61,6 @@ int main(int argc, char** argv)
 
     log_msg("Starting program...");
 
-    
-
     int m = params["no_of_transmit_antennas"];
     int n = params["no_of_receiver_antennas"];
     int t = params["time_slots"];
@@ -79,15 +76,14 @@ int main(int argc, char** argv)
         basis_sum += basis;
     }
 
-
     vector<int> symbset = create_symbolset(params["x-PAM"]);
 
-    log_msg("Using symbolset: " + vec2str(symbset, params["x-PAM"]));
+    log_msg("Number of basis matrices (code length): " + to_string(k));
+    log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
     
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, symbset);
 
     auto e = code_energy(codebook);
-
     
     log_msg("Code Energy");
     log_msg("-----------");
@@ -99,10 +95,6 @@ int main(int argc, char** argv)
     string output_file = create_output_filename();
     parallel_vector<string> output;
     output.append("Simulated SNR,Real SNR,Runs,BLER");
-    // cout << output[0] << endl;
-    // vector<string> col_names = {"Simulated SNR", "Real SNR", "Runs", "BLER"};
-    // vector<string> output_line;
-    // output_csv_line(output_file, col_names);
     
     #pragma omp parallel // parallelize SNR simulations
     {
@@ -179,8 +171,18 @@ int main(int argc, char** argv)
                 // cout << Q << endl;
                 // cout << "-----" << endl;
 
+
+
                 // #pragma omp task
                 x = sphdec(C, y2, R); //, bases); // sphere decoder algorithm
+
+                if (x.size() == 0) {
+                    errors++;
+                    runs++;
+                    Q.zeros();
+                    R.zeros();
+                    continue;
+                }
 
                 for (int j = 0; j < k; j++)     
                     // x[j] = 2*x[j] - q + 1;
@@ -193,11 +195,8 @@ int main(int argc, char** argv)
                     
                 }
                 cout << endl << vec2str(orig, orig.size()) << endl;
+                cout << vec2str(y2, y2.size()) << endl;
                 cout << vec2str(x, x.size()) << endl << endl;
-                
-                // if (!equal(x.begin(), x.end(), codebook[a].first.begin(), codebook[a].first.end())){
-                //     errors++;
-                // }
 
                 // log_msg("Found point: " + vec2str(x, k) + ", sent point: " + vec2str(codebook[a].first, k));
 
@@ -211,17 +210,7 @@ int main(int argc, char** argv)
             SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
             bler = 100.0*(double)errors/runs;
             
-            // output_line.push_back(to_string(snr));
-            // output_line.push_back(to_string(SNRreal));
-            // output_line.push_back(to_string(runs));
-            // output_line.push_back(to_string(bler));
             output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler));
-
-            // cout << output_line[2] << output_line[3] << endl;
-
-            // #pragma omp critical
-            // output_csv_line(output_file, output_line);
-            // output_line.clear();
             
             log_msg("Simulated SNR: " + to_string(snr) + \
                     ", Real SNR: " + to_string(SNRreal) + \

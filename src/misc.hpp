@@ -15,7 +15,7 @@ extern std::string log_filename;
 /* storage for simulation parameters */
 extern std::map<std::string, int> params;
 
-/* thread safe vector data structure */
+/* thread safe std::vector data structure */
 template <typename T>
 class parallel_vector : public std::vector<T> {
 	public:
@@ -28,7 +28,7 @@ class parallel_vector : public std::vector<T> {
 		std::mutex m_;
 };
 
-/* thread safe set data structure */
+/* thread safe std::set data structure */
 template <typename T>
 class parallel_set : public std::set<T> {
 	public:
