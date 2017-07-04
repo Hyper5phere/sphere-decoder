@@ -14,7 +14,7 @@ using namespace arma;
 namespace {
     /* Decision feedback equalization on xt[i] */
     inline void step2(int i, int q, vec &xt, vec &y, vec &delta, vec &ksi, mat &R) {
-        xt[i] = (int)round((y[i]-ksi[i])/R(i,i));
+        xt[i] = round((y[i]-ksi[i])/R(i,i));
         if (xt[i] < 0) {
             xt[i] = 0;
             delta[i] = 1;
@@ -31,20 +31,10 @@ namespace {
 		xt[i] = xt[i] + delta[i];
 		delta[i] = -delta[i] - sesd_sign(delta[i]);
 	}
-
-    // template<class Matrix>
-    // void print_matrix(Matrix matrix) {
-    //     matrix.print(std::cout);
-    // }
-
-    // //provide explicit instantiations of the template function for 
-    // //every matrix type you use somewhere in your program.
-    // template void print_matrix<arma::mat>(arma::mat matrix);
-    // template void print_matrix<arma::cx_mat>(arma::cx_mat matrix);
 }
 
 /* Sphere decoder algorithm */
-vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
+vector<int> sphdec(double radius, vec &y, mat &R, int &counter){ //, vector<cx_mat> bases){
 
     // Step 1
     int k = params["no_of_matrices"];
@@ -54,6 +44,7 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
     vector<int> x(k); // found point
 	vec xt(k), ksi(k), delta(k), dist(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros();
+    counter = 0;
 	
 	double xidist = 0.0;
     bool found = false;
@@ -79,11 +70,11 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
     step2(i, q, xt, y, delta, ksi, R);
 
     while (true) {
-        
+        counter++;
         // Step 3.
         xidist = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
         
-        cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
+        // cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
 
         if (radius < dist[i] + xidist) { // current point xt is outside the sphere
         	// Step 4.
@@ -131,8 +122,3 @@ vector<int> sphdec(double radius, vec &y, mat &R){ //, vector<cx_mat> bases){
         return vector<int>(0);
     }
 }
-
-// vector<int> sphdec_pohst(double radius, vec &y, mat &R){
-
-
-// }

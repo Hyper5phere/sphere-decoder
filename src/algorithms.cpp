@@ -152,7 +152,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
         /* all possible combinations of code words */
         auto c = comb_wrapper(symbolset, k);
 
-        log_msg("All possible data vector combinations:");
+        // log_msg("All possible data vector combinations:");
         for (const auto &symbols : c){
             for (int i = 0; i < k; i++)
                 X = X + symbols[i]*bases[i];
@@ -160,7 +160,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
             codebook.push_back(make_pair(symbols, X));
             X.zeros();
 
-            log_msg(vec2str(symbols, k));
+            // log_msg(vec2str(symbols, k));
         }
     }
     return codebook;

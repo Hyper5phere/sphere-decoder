@@ -1,9 +1,9 @@
 PROGRAM=../sphdec
 OBJS=main.o misc.o config.o algorithms.o sphdec.o
 FLAGS=-std=c++14 -larmadillo -llapack -lblas -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0
-MODE=-g
+MODE=-O3
 # debug: MODE=-g
-# production: MODE=-02
+# production: MODE=-O2
 
 # ifeq (DEBUG, TRUE)
 # 	DFLAG=-g

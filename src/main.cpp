@@ -9,7 +9,7 @@
  ===================================================================================================
  */
 
-// #define ARMA_NO_DEBUG // for speed
+#define ARMA_NO_DEBUG // for speed
 #define _GLIBCXX_USE_CXX11_ABI 0
 
 #include <iostream>
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 
     string output_file = create_output_filename();
     parallel_vector<string> output;
-    output.append("Simulated SNR,Real SNR,Runs,BLER");
+    output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity");
     
     #pragma omp parallel // parallelize SNR simulations
     {
@@ -107,20 +107,25 @@ int main(int argc, char** argv)
         /* initialize a bunch of complex matrices used in the simulation */
         cx_mat H, HX, X, N, Y, Ynorm;
 
-        mat B(2*t*n, k), Q, R;
+        mat B(2*t*n, k), Q, R, M;
 
         vec y;
         vec y2;
+
         vector<int> x(k), orig(k);
+        // vec x(k);
 
         int runs = 0;
         int max_runs = params["simulation_rounds"];
         int a = 0;
         int errors = 0; 
         int max_err = params["required_errors"];
+        int visited_nodes = 0;
+        int total_nodes = 0;
 
         double sigpow = 0;
         double bler = 0;
+        double avg_complex = 0;
         double noisepow = 0;
         double SNRreal = 0;
         double C = 0.0; // initial squared radius for the sphere decoder
@@ -137,6 +142,7 @@ int main(int argc, char** argv)
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
             // cout << Hvar << endl; 
             while (errors < max_err || runs < max_runs){
+
                 a = random_code(mersenne_twister);
                 X = codebook[a].second;                     // Code block we want to send
                 // cout << X << endl;
@@ -164,6 +170,8 @@ int main(int argc, char** argv)
                 process_qr(Q, R); // Make sure R has positive diagonal elements
                 // cout << vec2str(y, y.n_elem) << endl;
                 y2 = Q.st()*y; // Map y to same basis as R
+
+
                 // cout << "Input:" << endl << "C = " << C << endl;
                 // cout << "y = " << vec2str(y2, y2.n_elem) << endl << endl;
 
@@ -171,12 +179,30 @@ int main(int argc, char** argv)
                 // cout << Q << endl;
                 // cout << "-----" << endl;
 
-
+                // M.eye(4,4);
+                // M *= 2;
+                // // M(1,3) = 0.5;
+                // // M(1,2) = 0.25;
+                // // M(0,3) = -2.75;
+                // // R(3,0) = 100;
+                // // qr_econ(Q,R,R);
+                // cout << "M = " << endl << M << endl;
+                // // cout << Q << endl;
+                // y2 = vec("0 0 0 0");
+                // cout << "y = " << vec2str(y2, y2.size()) << endl;
+                // for (int j = 0; j < k; j++)     
+                //     y2[j] = 0.5*(y2[j] + q - 1);
+                // cout << "y' = " << vec2str(y2, y2.size()) << endl;
+                // y2 = M*y2;
+                // cout << "M*y' = " << vec2str(y2, y2.size()) << endl;
+                // C = 25;
 
                 // #pragma omp task
-                x = sphdec(C, y2, R); //, bases); // sphere decoder algorithm
+                // x = R*Col<int>(sphdec(C, y2, R)); //, bases); // sphere decoder algorithm
+                x = sphdec(C, y2, R, visited_nodes);
+                total_nodes += visited_nodes;
 
-                if (x.size() == 0) {
+                if (x.size() == 0) { // point not found
                     errors++;
                     runs++;
                     Q.zeros();
@@ -185,18 +211,18 @@ int main(int argc, char** argv)
                 }
 
                 for (int j = 0; j < k; j++)     
-                    // x[j] = 2*x[j] - q + 1;
-                    orig[j] = 0.5*(codebook[a].first[j] + q - 1);
+                    x[j] = 2*x[j] - q + 1;
+                    // orig[j] = 0.5*(codebook[a].first[j] + q - 1);
 
-                // if (codebook[a].first != x){
-                if (orig != x){
+                if (codebook[a].first != x){
+                // if (orig != x){
                     errors++;
-                    // cout << errors << endl;
+                //     // cout << errors << endl;
                     
                 }
-                cout << endl << vec2str(orig, orig.size()) << endl;
-                cout << vec2str(y2, y2.size()) << endl;
-                cout << vec2str(x, x.size()) << endl << endl;
+                // cout << endl << vec2str(orig, orig.size()) << endl;
+                
+                // cout << "x = "<< vec2str(x, x.size()) << endl << endl;
 
                 // log_msg("Found point: " + vec2str(x, k) + ", sent point: " + vec2str(codebook[a].first, k));
 
@@ -209,17 +235,21 @@ int main(int argc, char** argv)
             
             SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
             bler = 100.0*(double)errors/runs;
+            avg_complex = (double)total_nodes/runs;
             
-            output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler));
+            output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler) + "," + to_string(avg_complex));
             
             log_msg("Simulated SNR: " + to_string(snr) + \
                     ", Real SNR: " + to_string(SNRreal) + \
-                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + " %)");
+                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + " %)" + \
+                    ", Avg Complexity: " + to_string(avg_complex));
 
+            // reset counters after simulation round
             runs = 0;
             errors = 0;
             noisepow = 0;
             sigpow = 0;
+            total_nodes = 0;
         }
 
     }

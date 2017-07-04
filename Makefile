@@ -1,3 +1,5 @@
+PROGRAM=sphdec
+
 subsystem:
 	$(MAKE) -C src
 
@@ -6,4 +8,7 @@ clean:
 	cd src && $(MAKE) clean
 
 run:
-	./sphdec
+	./$(PROGRAM)
+
+debug:
+	gdb $(PROGRAM)
