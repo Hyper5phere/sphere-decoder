@@ -12,6 +12,8 @@ How to setup and run the program on Linux
 -----------------------------------------
 - Download the whole repository (as a zip or using git clone) somewhere and open terminal there
 - Install all the required packages (e.g. with apt-get) and the [Armadillo C++ linear algebra library](http://arma.sourceforge.net/download.html)
+- If you wish to use plotting directly from the program you need to install C++ Boost library (eg. *libboost1.58-all-dev* from the package manager)
+- Otherwise comment out/remove the line that defines PLOTTING in the *main.cpp*
 - Compile the program in terminal by typing: **make**
 - Open the *settings.ini* in the */settings/* folder to setup the program, it should look something like this:
 
