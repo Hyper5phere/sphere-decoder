@@ -9,7 +9,7 @@
  ===================================================================================================
  */
 
-#define _GLIBCXX_USE_CXX11_ABI 0
+#define _GLIBCXX_USE_CXX11_ABI 0 // fixes some string related errors
 // #define ARMA_NO_DEBUG // for speed
 #define PLOTTING // enable plotting (requires boost C++ library)
 
@@ -137,8 +137,6 @@ int main(int argc, char** argv)
 
         uniform_int_distribution<int> random_code(0, codebook.size()-1);
 
-        // log_msg("Simulating received code matrices...");
-
         /* simulation main loop */
         #pragma omp for
         for (int snr = min; snr <= max; snr += step) {
@@ -155,25 +153,27 @@ int main(int argc, char** argv)
 
                 // cout << N << endl;
 
-                HX = H*X;
-                sigpow += frob_norm_squared(HX);
-                noisepow += frob_norm_squared(N);
-                C = noisepow + 1e-2; // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
-                // log_msg("Signal power: " + to_string(sigpow) + ", Noise power: " + to_string(noisepow));
-                Y = HX + N; // Simulated code block that we would receive from MIMO-channel
-                Ynorm = (Y + H*basis_sum*(q - 1))*0.5; // normalize received matrix for the sphere decoder
-                y = to_real_vector(Ynorm); // convert Y to real vector
+                x = sphdec_wrapper(H, X, N, visited_nodes);
 
-                // B = (HX1 HX2 ... HXk)
-                for(int i = 0; i < k; i++){
-                    B.col(i) = to_real_vector(H*bases[i]);
-                }
-                // cout << B << endl;
+                // HX = H*X;
+                // sigpow += frob_norm_squared(HX);
+                // noisepow += frob_norm_squared(N);
+                // C = noisepow + 1e-2; // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
+                // // log_msg("Signal power: " + to_string(sigpow) + ", Noise power: " + to_string(noisepow));
+                // Y = HX + N; // Simulated code block that we would receive from MIMO-channel
+                // Ynorm = (Y + H*basis_sum*(q - 1))*0.5; // normalize received matrix for the sphere decoder
+                // y = to_real_vector(Ynorm); // convert Y to real vector
 
-                qr_econ(Q, R, B); // QR-decomposition of B (omits zero rows in R)
-                process_qr(Q, R); // Make sure R has positive diagonal elements
-                // cout << vec2str(y, y.n_elem) << endl;
-                y2 = Q.st()*y; // Map y to same basis as R
+                // // B = (HX1 HX2 ... HXk)
+                // for(int i = 0; i < k; i++){
+                //     B.col(i) = to_real_vector(H*bases[i]);
+                // }
+                // // cout << B << endl;
+
+                // qr_econ(Q, R, B); // QR-decomposition of B (omits zero rows in R)
+                // process_qr(Q, R); // Make sure R has positive diagonal elements
+                // // cout << vec2str(y, y.n_elem) << endl;
+                // y2 = Q.st()*y; // Map y to same basis as R
 
 
                 // cout << "Input:" << endl << "C = " << C << endl;
@@ -203,8 +203,8 @@ int main(int argc, char** argv)
 
                 // #pragma omp task
                 // x = R*Col<int>(sphdec(C, y2, R)); //, bases); // sphere decoder algorithm
-                x = sphdec(C, y2, R, visited_nodes);
-                total_nodes += visited_nodes;
+                // x = sphdec(C, y2, R, visited_nodes);
+                
 
                 if (x.size() == 0) { // point not found
                     errors++;
@@ -214,15 +214,12 @@ int main(int argc, char** argv)
                     continue;
                 }
 
-                for (int j = 0; j < k; j++)     
-                    x[j] = 2*x[j] - q + 1;
+                // for (int j = 0; j < k; j++)     
+                //     x[j] = 2*x[j] - q + 1;
                     // orig[j] = 0.5*(codebook[a].first[j] + q - 1);
 
                 if (codebook[a].first != x){
-                // if (orig != x){
-                    errors++;
-                //     // cout << errors << endl;
-                    
+                    errors++;                    
                 }
                 // cout << endl << vec2str(orig, orig.size()) << endl;
                 
@@ -230,6 +227,7 @@ int main(int argc, char** argv)
 
                 // log_msg("Found point: " + vec2str(x, k) + ", sent point: " + vec2str(codebook[a].first, k));
 
+                total_nodes += visited_nodes;
                 runs++;
                 Q.zeros();
                 R.zeros();
@@ -259,9 +257,9 @@ int main(int argc, char** argv)
     }
     /* output the simulation results in a csv file in /output/ folder */
     if (output.size() > 1){
-        sort(output.begin()+1, output.end(), snr_ordering);
+        sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
         output_csv(output);
-        #ifdef PLOTTING
+        #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
         plot_csv(1, 4, "SNR (dB)", "BLER (%)");
         plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)");
         #endif
