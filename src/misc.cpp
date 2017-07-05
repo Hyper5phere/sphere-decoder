@@ -7,12 +7,15 @@
 #include <algorithm>
 
 #include "misc.hpp"
+#ifdef PLOTTING
+#include "gnuplot-iostream.hpp"
+#endif
 
 using namespace std;
 
 /* object for parallel computing synchronazation */
-mutex log_mutex;
-mutex output_mutex;
+std::mutex log_mutex;
+std::mutex output_mutex;
 
 /* Generates a standard datetime string of current local time */
 string time_str(){
@@ -29,7 +32,7 @@ void log_msg(const string msg, const string lvl){
         string prefix = time_str();
         prefix += " | [" + lvl + "]\t";
         lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
-        ofstream logfile(log_filename, ios_base::app);
+        ofstream logfile(filenames["log"], ios_base::app);
         if (msg.compare("-exit-") == 0)
             logfile << endl;
         else {
@@ -50,17 +53,18 @@ void clean_input(string &input){
 }
 
 /* Generates the output filename from current time and the used bases file name */
-string create_output_filename(){
-    string bf = basis_filename;
+void create_output_filename(){
+    string bf = filenames["bases"];
     size_t a = bf.find("/")+1;
     size_t b = bf.find(".");
-    string name = basis_filename.substr(a, b-a);
-    return string("output/") + time_str() + string(" ") + name + string(" output.csv");
+    string name = bf.substr(a, b-a);
+    filenames["output"] = string("output/") + time_str() + string(" ") + name + string(" output.csv");
+    // return string("output/") + time_str() + string(" ") + name + string(" output.csv");
 }
 
 /* Writes a vector of strings (lines) in a csv file */
-void output_csv(const string &filename, const parallel_vector<string> &lines){
-    ofstream csv(filename);
+void output_csv(const parallel_vector<string> &lines){
+    ofstream csv(filenames["output"]);
     for (const auto &line : lines){
         csv << line << endl;
     }
@@ -77,4 +81,18 @@ bool snr_ordering(string &a, string &b){
     int i = strtol(a.substr(0, a.find(",")).c_str(), NULL, 10);
     int j = strtol(b.substr(0, b.find(",")).c_str(), NULL, 10);
     return (i < j);
+}
+
+
+/* Uses gnuplot stream to plot the columns of the output csv file */
+void plot_csv(int xcol, int ycol, const string &xlabel, const string &ylabel){
+    #ifdef PLOTTING
+    Gnuplot gp;
+    gp << "set terminal x11\n";
+    gp << "set datafile separator \",\"\n";
+    gp << "set xlabel \"" << xlabel << "\"\n";
+    gp << "set ylabel \"" << ylabel << "\"\n";
+    gp << "set grid\n";
+    gp << "plot '" << filenames["output"] << "' using " << xcol << ":" << ycol << " with linespoints ls 3\n";
+    #endif
 }

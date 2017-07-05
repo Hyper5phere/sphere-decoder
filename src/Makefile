@@ -1,16 +1,15 @@
 PROGRAM=../sphdec
 OBJS=main.o misc.o config.o algorithms.o sphdec.o
-FLAGS=-std=c++14 -larmadillo -llapack -lblas -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0
+FLAGS=-std=c++14 -larmadillo -llapack -lblas -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0 -lboost_iostreams -lboost_system -lboost_filesystem
 MODE=-O3
 # debug: MODE=-g
 # production: MODE=-O2
 
-# ifeq (DEBUG, TRUE)
-# 	DFLAG=-g
-# endif
-
 $(PROGRAM): $(OBJS)
 	g++ -o $(PROGRAM) $(OBJS) $(FLAGS)
+
+main.o: main.cpp
+	g++ -c $(MODE) -o main.o main.cpp $(FLAGS)
 
 config.o: config.cpp
 	g++ -c $(MODE) -o config.o config.cpp $(FLAGS)
@@ -23,9 +22,6 @@ algorithms.o: algorithms.cpp
 
 sphdec.o: sphdec.cpp
 	g++ -c $(MODE) -o sphdec.o sphdec.cpp $(FLAGS)
-
-main.o: main.cpp
-	g++ -c $(MODE) -o main.o main.cpp $(FLAGS)
 
 .PHONY: clean
 clean:

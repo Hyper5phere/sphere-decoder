@@ -11,45 +11,48 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 12
+#define NUM_OPTIONS 13
 
 using namespace std;
 using namespace arma;
 
 /* Creates a default configuration file in case one does not exist */
-void create_config(const string filepath){
+void create_config(){
+    ofstream defconf(filenames["settings_default"]);
     // the file can contain comments similar to this line here
-    ofstream defconf(filepath);
-    defconf << "// configuration settings and simulation parameters for the sphere decoder program //" << endl << endl \
-            << "basis_file=bases.txt            // Text file containing the basis matrices" << endl \
-            << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl \
-            << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl \
-            << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl \
-            << "time_slots=2                    // Number of time slots used in the code" << endl \
-            << "no_of_transmit_antennas=2       // Number of transmit antennas" << endl \
-            << "no_of_receiver_antennas=2       // Number of receiver antennas"  << endl \
-            << "snr_min=6                       // Minimum value for signal-to-noise ratio" << endl \
-            << "snr_max=12                      // Maximum value for signal-to-noise ratio" << endl \
-            << "snr_step=2                      // Increase SNR by this value per each iteration" << endl \
-            << "simulation_rounds=100000        // Number of simulation rounds to run" << endl \
-            << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
+    defconf << "// configuration settings and simulation parameters for the sphere decoder program" << endl << endl;
+    defconf << "basis_file=bases.txt            // Text file containing the basis matrices" << endl;
+    defconf << "output_file=                    // Optionally spesify the output filename (empty = automatic)" << endl;
+    defconf << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl;
+    defconf << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl;
+    defconf << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl;
+    defconf << "time_slots=2                    // Number of time slots used in the code" << endl;
+    defconf << "no_of_transmit_antennas=2       // Number of transmit antennas" << endl;
+    defconf << "no_of_receiver_antennas=2       // Number of receiver antennas"  << endl;
+    defconf << "snr_min=6                       // Minimum value for signal-to-noise ratio" << endl;
+    defconf << "snr_max=12                      // Maximum value for signal-to-noise ratio" << endl;
+    defconf << "snr_step=2                      // Increase SNR by this value per each iteration" << endl;
+    defconf << "simulation_rounds=100000        // Number of simulation rounds to run" << endl;
+    defconf << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
     defconf.close();     
 }
 
 /* Read simulation parameters from a settings file */
-void configure(const string filepath) {
-    map<string, int> output;
+void configure() {
+    string filepath = filenames["settings"];
+    string default_filepath = filenames["settings_default"];
+
     ifstream config_file(filepath);
 
-    if (!config_file.good() && filepath.compare(options_filename) != 0) {
-        log_msg("[Warning] No options file '" + filepath + "' found, using the default one...");
-        config_file = ifstream(options_filename);
+    if (!config_file.good() && filepath.compare(default_filepath) != 0) {
+        log_msg("[Warning] No settings file '" + filepath + "' found, using the default one...");
+        config_file = ifstream(default_filepath);
     } 
 
     if (!config_file.good()) {
         log_msg("[Info] No default settings file found, creating a new one with default settings...");
-        create_config(options_filename);
-        log_msg("[Info] Make your changes to the options file and rerun this program.");
+        create_config();
+        log_msg("[Info] Make your changes to the settings file and rerun this program.");
         log_msg("[Info] Exiting...");
         log_msg();
         exit(0);
@@ -70,10 +73,14 @@ void configure(const string filepath) {
             getline(iss, value); 
             if (!value.empty()) {
                 clean_input(value);
-                if (key.compare("basis_file") == 0)
-                    basis_filename = "bases/" + value;
-                // else if (key.compare("output_file") == 0)
-                //     output_filename = "output/" + value;
+                if (key.compare("basis_file") == 0) {
+                    if(value.size() > 0)
+                        filenames["bases"] = "bases/" + value;
+                }
+                else if (key.compare("output_file") == 0) {
+                    if(value.size() > 0)
+                        filenames["output"] = "output/" + value;
+                }
                 else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
@@ -138,7 +145,7 @@ vector<cx_mat> read_matrices(){
     int k = params["no_of_matrices"];
     int idx = 0;
 
-    ifstream matrix_file(basis_filename);
+    ifstream matrix_file(filenames["bases"]);
     vector<cx_mat> output;
     smatch match, dummy;
     vector< complex<double> > numbers;
@@ -178,7 +185,7 @@ vector<cx_mat> read_matrices(){
     }
 
     if (m*t*k != (int)numbers.size()){
-        log_msg("[Error] Failed to read the " + to_string(m*t*k) + " matrix elements configured in '" + basis_filename + "'!");
+        log_msg("[Error] Failed to read the " + to_string(m*t*k) + " matrix elements configured in '" + filenames["bases"] + "'!");
         log_msg();
         exit(1);
     }

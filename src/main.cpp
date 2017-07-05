@@ -9,8 +9,9 @@
  ===================================================================================================
  */
 
-#define ARMA_NO_DEBUG // for speed
 #define _GLIBCXX_USE_CXX11_ABI 0
+// #define ARMA_NO_DEBUG // for speed
+#define PLOTTING // enable plotting (requires boost C++ library)
 
 #include <iostream>
 #include <armadillo> // linear algebra library
@@ -30,10 +31,8 @@
 using namespace std;
 using namespace arma;
 
-/* default filepaths */
-string options_filename = "settings/settings.ini";
-string basis_filename   = "bases/bases.txt";
-string log_filename     = "logs/log.txt";
+/* storage for filepaths */
+map<string, string> filenames;
 
 /* Storage for simulation parameters */
 map<string, int> params;
@@ -48,16 +47,20 @@ mt19937_64 mersenne_twister{
 /* The program starts here */
 int main(int argc, char** argv)
 {
+    /* define default filenames */
+    filenames["settings"]         = "settings/settings.ini";
+    filenames["settings_default"] = "settings/settings.ini";
+    filenames["bases"]            = "bases/bases.txt";
+    filenames["log"]              = "logs/log.txt";
 
-    string inputfile = options_filename;
     if (argc == 2){ // a parameter was given
-        inputfile = "settings/" + string(argv[1]); // use alternative settings file
+        filenames["settings"] = "settings/" + string(argv[1]); // use alternative settings file
     } else if (argc > 2) { // too many parameters were given
         cout << "Usage: " << argv[0] << " [settings_file*]" << endl;
         exit(0);
     }
 
-    configure(inputfile);
+    configure();
 
     log_msg("Starting program...");
 
@@ -92,7 +95,9 @@ int main(int argc, char** argv)
     log_msg("-----------");
     log_msg("Starting simulation...");
 
-    string output_file = create_output_filename();
+    if (filenames.count("output") == 0)
+        create_output_filename();
+
     parallel_vector<string> output;
     output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity");
     
@@ -116,7 +121,7 @@ int main(int argc, char** argv)
         // vec x(k);
 
         int runs = 0;
-        int max_runs = params["simulation_rounds"];
+        int min_runs = params["simulation_rounds"];
         int a = 0;
         int errors = 0; 
         int max_err = params["required_errors"];
@@ -132,7 +137,6 @@ int main(int argc, char** argv)
 
         uniform_int_distribution<int> random_code(0, codebook.size()-1);
 
-
         // log_msg("Simulating received code matrices...");
 
         /* simulation main loop */
@@ -141,7 +145,7 @@ int main(int argc, char** argv)
             // Hvar = e.first/pow(10, snr/10)*t; 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
             // cout << Hvar << endl; 
-            while (errors < max_err || runs < max_runs){
+            while (errors < max_err || runs < min_runs){
 
                 a = random_code(mersenne_twister);
                 X = codebook[a].second;                     // Code block we want to send
@@ -256,7 +260,11 @@ int main(int argc, char** argv)
     /* output the simulation results in a csv file in /output/ folder */
     if (output.size() > 1){
         sort(output.begin()+1, output.end(), snr_ordering);
-        output_csv(output_file, output);
+        output_csv(output);
+        #ifdef PLOTTING
+        plot_csv(1, 4, "SNR (dB)", "BLER (%)");
+        plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)");
+        #endif
     }
     // free(symbset);
     log_msg();

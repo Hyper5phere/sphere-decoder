@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-void create_config(const std::string);
-void configure(const std::string);
-std::vector<arma::cx_mat> read_matrices();
+void create_config(void);
+void configure(void);
+std::vector<arma::cx_mat> read_matrices(void);
 
 #endif /* CONFIG_HPP */

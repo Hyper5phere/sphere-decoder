@@ -1,16 +1,24 @@
 #ifndef MISC_HPP
 #define MISC_HPP
 
+// #define ARMA_NO_DEBUG // for speed
+// #define PLOTTING // needed for plotting (requires boost C++ library)
+
 #include <string>
 #include <map>
 #include <vector>
 #include <mutex>
 #include <set>
 
-/* default filenames */
-extern std::string options_filename;
-extern std::string basis_filename;
-extern std::string log_filename;
+
+
+// extern std::string options_filename;
+// extern std::string basis_filename;
+// extern std::string log_filename;
+// extern std::string output_filename;
+
+/* storage for filenames */
+extern std::map<std::string, std::string> filenames;
 
 /* storage for simulation parameters */
 extern std::map<std::string, int> params;
@@ -45,9 +53,10 @@ class parallel_set : public std::set<T> {
 std::string time_str(void);
 void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
 void clean_input(std::string &input);
-std::string create_output_filename(void);
-void output_csv(const std::string &filename, const parallel_vector<std::string> &line);
+void create_output_filename(void);
+void output_csv(const parallel_vector<std::string> &line);
 bool snr_ordering(std::string &a, std::string &b);
+void plot_csv(int xcol, int ycol, const std::string &xlabel, const std::string &ylabel);
 
 /* Makes a string representation out of any basic vector type */
 template <typename T>
