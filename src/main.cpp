@@ -151,9 +151,13 @@ int main(int argc, char** argv)
                 H = create_random_matrix(n, m, 0, Hvar);    // Channel matrix
                 N = create_random_matrix(n, t, 0, Nvar);    // Noise matrix 
 
+                sigpow += frob_norm_squared(H*X);       // Signal power
+                noisepow += frob_norm_squared(N);       // Noise power
+                C = noisepow + 1e-2;                    // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
+
                 // cout << N << endl;
 
-                x = sphdec_wrapper(H, X, N, visited_nodes);
+                x = sphdec_wrapper(bases, basis_sum, H, X, N, C, visited_nodes);
 
                 // HX = H*X;
                 // sigpow += frob_norm_squared(HX);

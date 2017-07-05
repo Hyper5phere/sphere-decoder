@@ -13,7 +13,7 @@ using namespace arma;
 
 namespace {
     /* Decision feedback equalization on xt[i] */
-    inline void step2(int i, int q, vec &xt, vec &y, vec &delta, vec &ksi, mat &R) {
+    inline void step2(int i, int q, vec &xt, const vec &y, vec &delta, const vec &ksi, const mat &R) {
         xt[i] = round((y[i]-ksi[i])/R(i,i));
         if (xt[i] < 0) {
             xt[i] = 0;
@@ -34,7 +34,7 @@ namespace {
 }
 
 /* Sphere decoder algorithm */
-vector<int> sphdec(double radius, vec &y, mat &R, int &counter){ //, vector<cx_mat> bases){
+vector<int> sphdec(double radius, const vec &y, const mat &R, int &counter){ //, vector<cx_mat> bases){
 
     // Step 1
     int k = params["no_of_matrices"];
@@ -121,4 +121,40 @@ vector<int> sphdec(double radius, vec &y, mat &R, int &counter){ //, vector<cx_m
         log_msg("sphdec: point not found!", "Warning");
         return vector<int>(0);
     }
+}
+
+/* Wrapper function for the sphere decoder to handle complex to real matrix conversion, QR-decomposition and other mappings */
+vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, const cx_mat &H, const cx_mat &X, const cx_mat &N, double radius, int &visited_nodes){
+
+    int n = params["no_of_receiver_antennas"];
+    int t = params["time_slots"];
+    int k = params["no_of_matrices"];
+    int q = params["x-PAM"];
+
+    vector<int> x(k);
+    cx_mat Y, Ynorm;                        // Helper complex matrices
+    mat B(2*t*n, k), Q, R;                  // real matrices
+    vec y, y2;                              // helper and sphdec input vector
+    
+    Y = H*X + N;                             // Simulated code block that we would receive from MIMO-channel
+    Ynorm = (Y + H*basis_sum*(q - 1))*0.5;  // normalize received matrix for the sphere decoder
+    y = to_real_vector(Ynorm);              // convert Y to real vector
+
+    for(int i = 0; i < k; i++)
+        B.col(i) = to_real_vector(H*bases[i]); // B = (HX1 HX2 ... HXk)
+
+    qr_econ(Q, R, B);  // QR-decomposition of B (omits zero rows in R)
+    process_qr(Q, R);  // Make sure R has positive diagonal elements
+
+    y2 = Q.st()*y;     // Map y to same basis as R
+
+    x = sphdec(radius, y2, R, visited_nodes); // Call the actual sphere decoder algorithm
+
+    if (x.size() == 0) // point not found
+        return vector<int>(0);
+
+    for (int j = 0; j < k; j++)     
+        x[j] = 2*x[j] - q + 1;
+
+    return x;
 }
