@@ -6,6 +6,8 @@
 #include <fstream>
 #include <algorithm>
 
+#define PLOTTING
+
 #include "misc.hpp"
 #ifdef PLOTTING
 #include "gnuplot-iostream.hpp"
@@ -73,11 +75,12 @@ void output_csv(const parallel_vector<string> &lines){
 
 /* Used to compare the SNR values of each output line */
 bool snr_ordering(string &a, string &b){
-    // example: 
-    // a = "16,15.976382,10000,9.760000"
-    // b = "18,17.976382,10000,10.160000"
-    // --> i = 16, j = 18
-    // --> a comes before b
+    /* Example: 
+     * a = "16,15.976382,10000,9.760000"
+     * b = "18,17.976382,10000,10.160000"
+     * --> i = 16, j = 18
+     * --> a comes before b
+     */
     int i = strtol(a.substr(0, a.find(",")).c_str(), NULL, 10);
     int j = strtol(b.substr(0, b.find(",")).c_str(), NULL, 10);
     return (i < j);
@@ -85,10 +88,12 @@ bool snr_ordering(string &a, string &b){
 
 
 /* Uses gnuplot stream to plot the columns of the output csv file */
-void plot_csv(int xcol, int ycol, const string &xlabel, const string &ylabel){
+void plot_csv(int xcol, int ycol, const string &xlabel, const string &ylabel, bool logscale){
     #ifdef PLOTTING
     Gnuplot gp;
-    gp << "set terminal x11\n";
+    gp << "set terminal x11\n"; // Open plots in new GUI window
+    if (logscale)
+        gp << "set logscale y 10\n";  // Set y axis to logscale of base 10 (SNR is already in log10 scale)
     gp << "set datafile separator \",\"\n";
     gp << "set xlabel \"" << xlabel << "\"\n";
     gp << "set ylabel \"" << ylabel << "\"\n";

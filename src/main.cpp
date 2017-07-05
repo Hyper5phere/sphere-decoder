@@ -9,10 +9,6 @@
  ===================================================================================================
  */
 
-#define _GLIBCXX_USE_CXX11_ABI 0 // fixes some string related errors
-// #define ARMA_NO_DEBUG // for speed
-#define PLOTTING // enable plotting (requires boost C++ library)
-
 #include <iostream>
 #include <armadillo> // linear algebra library
 #include <complex>
@@ -157,7 +153,7 @@ int main(int argc, char** argv)
 
                 // cout << N << endl;
 
-                x = sphdec_wrapper(bases, basis_sum, H, X, N, C, visited_nodes);
+                x = sphdec_wrapper(bases, basis_sum, H, X, N, visited_nodes, C);
 
                 // HX = H*X;
                 // sigpow += frob_norm_squared(HX);
@@ -262,13 +258,16 @@ int main(int argc, char** argv)
     /* output the simulation results in a csv file in /output/ folder */
     if (output.size() > 1){
         sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
+        log_msg("Printing simulation output to '" + filenames["output"] + "'...");
         output_csv(output);
         #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
-        plot_csv(1, 4, "SNR (dB)", "BLER (%)");
-        plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)");
+        log_msg("Drawing plots...");
+        plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
+        plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
         #endif
     }
-    // free(symbset);
+    
+    log_msg("Program exited successfully!");
     log_msg();
     return 0;
 }

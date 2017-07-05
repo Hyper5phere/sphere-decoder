@@ -3,7 +3,7 @@ OBJS=main.o misc.o config.o algorithms.o sphdec.o
 FLAGS=-std=c++14 -larmadillo -llapack -lblas -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0 -lboost_iostreams -lboost_system -lboost_filesystem
 MODE=-O3
 # debug: MODE=-g
-# production: MODE=-O2
+# production: MODE=-O3
 
 $(PROGRAM): $(OBJS)
 	g++ -o $(PROGRAM) $(OBJS) $(FLAGS)

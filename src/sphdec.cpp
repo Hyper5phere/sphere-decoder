@@ -34,7 +34,7 @@ namespace {
 }
 
 /* Sphere decoder algorithm */
-vector<int> sphdec(double radius, const vec &y, const mat &R, int &counter){ //, vector<cx_mat> bases){
+vector<int> sphdec(const vec &y, const mat &R, int &counter, double radius){ //, vector<cx_mat> bases){
 
     // Step 1
     int k = params["no_of_matrices"];
@@ -123,8 +123,10 @@ vector<int> sphdec(double radius, const vec &y, const mat &R, int &counter){ //,
     }
 }
 
-/* Wrapper function for the sphere decoder to handle complex to real matrix conversion, QR-decomposition and other mappings */
-vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, const cx_mat &H, const cx_mat &X, const cx_mat &N, double radius, int &visited_nodes){
+/* Wrapper function for the sphere decoder to handle complex to real matrix conversion, 
+   QR-decomposition and other mappings */
+vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, const cx_mat &H, 
+                           const cx_mat &X, const cx_mat &N, int &visited_nodes, double radius){
 
     int n = params["no_of_receiver_antennas"];
     int t = params["time_slots"];
@@ -148,12 +150,12 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, 
 
     y2 = Q.st()*y;     // Map y to same basis as R
 
-    x = sphdec(radius, y2, R, visited_nodes); // Call the actual sphere decoder algorithm
+    x = sphdec(y2, R, visited_nodes, radius); // Call the actual sphere decoder algorithm
 
     if (x.size() == 0) // point not found
         return vector<int>(0);
 
-    for (int j = 0; j < k; j++)     
+    for (int j = 0; j < k; j++)
         x[j] = 2*x[j] - q + 1;
 
     return x;

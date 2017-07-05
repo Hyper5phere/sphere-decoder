@@ -1,21 +1,15 @@
 #ifndef MISC_HPP
 #define MISC_HPP
 
+#define _GLIBCXX_USE_CXX11_ABI 0 // fixes some string related errors
 // #define ARMA_NO_DEBUG // for speed
-// #define PLOTTING // needed for plotting (requires boost C++ library)
+#define PLOTTING // enable plotting (requires boost C++ library)
 
 #include <string>
 #include <map>
 #include <vector>
 #include <mutex>
 #include <set>
-
-
-
-// extern std::string options_filename;
-// extern std::string basis_filename;
-// extern std::string log_filename;
-// extern std::string output_filename;
 
 /* storage for filenames */
 extern std::map<std::string, std::string> filenames;
@@ -56,7 +50,7 @@ void clean_input(std::string &input);
 void create_output_filename(void);
 void output_csv(const parallel_vector<std::string> &line);
 bool snr_ordering(std::string &a, std::string &b);
-void plot_csv(int xcol, int ycol, const std::string &xlabel, const std::string &ylabel);
+void plot_csv(int xcol, int ycol, const std::string &xlabel, const std::string &ylabel, bool logscale);
 
 /* Makes a string representation out of any basic vector type */
 template <typename T>
