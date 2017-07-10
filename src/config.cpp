@@ -59,7 +59,7 @@ void configure() {
     }
     
     string line;
-    uint lines = 0;
+    int lines = 0;
     while (getline(config_file, line))
     {
         istringstream iss(line);
