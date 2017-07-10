@@ -1,3 +1,9 @@
 /logs/*
 /output/*
 /src/*.o
+/docs/templates/*
+/docs/*.aux
+/docs/*.out
+/docs/*.log
+/docs/*.toc
+/docs/*.gz

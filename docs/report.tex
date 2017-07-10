@@ -1,0 +1,315 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                                                %%
+%% An example for writting your thesis using LaTeX                %%
+%% Original version by Luis Costa,  changes by Perttu Puska       %%
+%% Support for Swedish added 15092014                             %%
+%%                                                                %%
+%% This example consists of the files                             %%
+%%         thesistemplate.tex (versio 2.01)                       %%
+%%         opinnaytepohja.tex (versio 2.01) (for text in Finnish) %%
+%%         aaltothesis.cls (versio 2.01)                          %%
+%%         kuva1.eps                                              %%
+%%         kuva2.eps                                              %%
+%%         kuva1.pdf                                              %%
+%%         kuva2.pdf                                              %%
+%%                                                                %%
+%%                                                                %%
+%% Typeset either with                                            %%
+%% latex:                                                         %%
+%%             $ latex opinnaytepohja                             %%
+%%             $ latex opinnaytepohja                             %%
+%%                                                                %%
+%%   Result is the file opinnayte.dvi, which                      %%
+%%   is converted to ps format as follows:                        %%
+%%                                                                %%
+%%             $ dvips opinnaytepohja -o                          %%
+%%                                                                %%
+%%   and then to pdf as follows:                                  %%
+%%                                                                %%
+%%             $ ps2pdf opinnaytepohja.ps                         %%
+%%                                                                %%
+%% Or                                                             %%
+%% pdflatex:                                                      %%
+%%             $ pdflatex opinnaytepohja                          %%
+%%             $ pdflatex opinnaytepohja                          %%
+%%                                                                %%
+%%   Result is the file opinnaytepohja.pdf                        %%
+%%                                                                %%
+%% Explanatory comments in this example begin with                %%
+%% the characters %%, and changes that the user can make          %%
+%% with the character %                                           %%
+%%                                                                %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Uncomment one of these:
+%% the 1st when using pdflatex, which directly typesets your document in
+%% pdf (use jpg or pdf figures), or
+%% the 2nd when producing a ps file (use eps figures, don't use ps figures!).
+\documentclass[english,12pt,a4paper,pdftex,sci,utf8]{aaltothesis}
+%\documentclass[english,12pt,a4paper,dvips]{aaltothesis}
+
+%% To the \documentclass above
+%% specify your school: arts, biz, chem, elec, eng, sci
+%% specify the character encoding scheme used by your editor: utf8, latin1
+
+%% Use one of these if you write in Finnish (see the Finnish template):
+%%
+%\documentclass[finnish,12pt,a4paper,pdftex,elec,utf8]{aaltothesis}
+%\documentclass[finnish,12pt,a4paper,dvips]{aaltothesis}
+
+\usepackage{graphicx}
+
+%% Use this if you write hard core mathematics, these are usually needed
+\usepackage{amsfonts,amssymb,amsbsy}
+
+%% Use the macros in this package to change how the hyperref package below 
+%% typesets its hypertext -- hyperlink colour, font, etc. See the package
+%% documentation. It also defines the \url macro, so use the package when 
+%% not using the hyperref package.
+%%
+%\usepackage{url}
+
+%% Use this if you want to get links and nice output. Works well with pdflatex.
+\usepackage{hyperref}
+\hypersetup{pdfpagemode=UseNone, pdfstartview=FitH,
+  colorlinks=true,urlcolor=red,linkcolor=blue,citecolor=black,
+  pdftitle={Default Title, Modify},pdfauthor={Your Name},
+  pdfkeywords={Modify keywords}}
+
+
+%% All that is printed on paper starts here
+\begin{document}
+
+%% Change the school field to specify your school if the automatically 
+%% set name is wrong
+% \university{aalto-yliopisto}
+% \university{aalto University}
+% \school{Sähkötekniikan korkeakoulu}
+\school{School of Science}
+
+%% Only for B.Sc. thesis: Choose your degree programme. 
+\degreeprogram{Mathematics and Systems analysis}
+%%
+
+%% ONLY FOR M.Sc. AND LICENTIATE THESIS: Specify your department,
+%% professorship and professorship code. 
+%%
+%\department{Department of Radio Science and Technology}
+%\professorship{Circuit theory}
+%%
+
+%% Valitse yksi näistä kolmesta
+%%
+%% Choose one of these:
+\univdegree{BSc}
+%\univdegree{MSc}
+%\univdegree{Lic}
+
+%% Your own name (should be self explanatory...)
+\author{Pasi Pyrrö}
+
+%% Your thesis title comes here and again before a possible abstract in
+%% Finnish or Swedish . If the title is very long and latex does an
+%% unsatisfactory job of breaking the lines, you will have to force a
+%% linebreak with the \\ control character. 
+%% Do not hyphenate titles.
+%% 
+\thesistitle{Lattice codes and sphere decoding}
+
+\place{Espoo}
+
+%% For B.Sc. thesis use the date when you present your thesis. 
+%% 
+%% Kandidaatintyön päivämäärä on sen esityspäivämäärä! 
+\date{10.7.2017}
+
+%% B.Sc. or M.Sc. thesis supervisor 
+%% Note the "\" after the comma. This forces the following space to be 
+%% a normal interword space, not the space that starts a new sentence. 
+%% This is done because the fullstop isn't the end of the sentence that
+%% should be followed by a slightly longer space but is to be followed
+%% by a regular space.
+%%
+\supervisor{Prof.\ Camilla Hollanti} %{Prof.\ Pirjo Professori}
+
+%% B.Sc. or M.Sc. thesis advisors(s). You can give upto two advisors in
+%% this template. Check with your supervisor how many official advisors
+%% you can have.
+%%
+%\advisor{Prof.\ Pirjo Professori}
+\advisor{Prof.\ Marcus Greferath}
+\advisor{postdoc.\ Oliver Gnilke}
+%\advisor{M.Sc.\ Polli Pohjaaja}
+
+%% Aalto logo: syntax:
+%% \uselogo{aaltoRed|aaltoBlue|aaltoYellow|aaltoGray|aaltoGrayScale}{?|!|''}
+%%
+%% Logo language is set to be the same as the document language.
+%% Logon kieli on sama kuin dokumentin kieli
+%%
+\uselogo{aaltoRed}{''}
+
+%% Create the coverpage
+%%
+\makecoverpage
+
+
+%% Note that when writting your master's thesis in English, place
+%% the English abstract first followed by the possible Finnish abstract
+
+%% English abstract.
+%% All the information required in the abstract (your name, thesis title, etc.)
+%% is used as specified above.
+%% Specify keywords
+%%
+%% Kaikki tiivistelmässä tarvittava tieto (nimesi, työnnimi, jne.) käytetään
+%% niin kuin se on yllä määritelty.
+%% Avainsanat
+%%
+\keywords{sphere decoding, lattice codes, information technology}
+%% Abstract text
+\begin{abstractpage}[english]
+ \end{abstractpage}
+
+%% Force a new page so that the possible English abstract starts on a new page
+%%
+%% Pakotetaan uusi sivu varmuuden vuoksi, jotta 
+%% mahdollinen suomenkielinen ja englanninkielinen tiivistelmä
+%% eivät tule vahingossakaan samalle sivulle
+
+\newpage
+
+%% Preface
+%%
+%% Esipuhe 
+%\mysection{Preface}
+
+
+%\vspace{5cm}
+%Otaniemi, 16.1.2015
+
+%\vspace{5mm}
+%{\hfill Pasi Pyrrö \hspace{1cm}}
+
+%% Force new page after preface
+%\newpage
+
+
+%% Table of contents.
+\thesistableofcontents
+
+
+%% Symbols and abbreviations
+\mysection{Symbols and abbreviations}
+
+\subsection*{Symbols}
+
+\begin{tabular}{ll}
+$\mathbf{B}$  & magnetic flux density  \\
+$c$              & speed of light in vacuum $\approx 3\times10^8$ [m/s]\\
+$\omega_{\mathrm{D}}$    & Debye frequency \\
+$\omega_{\mathrm{latt}}$ & average phonon frequency of lattice \\
+$\uparrow$       & electron spin direction up\\
+$\downarrow$     & electron spin direction down
+\end{tabular}
+
+\subsection*{Operators}
+
+\begin{tabular}{ll}
+$\nabla \times \mathbf{A}$              & curl of vectorin $\mathbf{A}$\\
+$\displaystyle\frac{\mbox{d}}{\mbox{d} t}$ & derivative with respect to 
+variable $t$\\[3mm]
+$\displaystyle\frac{\partial}{\partial t}$  & partial derivative with respect 
+to variable $t$ \\[3mm]
+$\sum_i $                       & sum over index $i$\\
+$\mathbf{A} \cdot \mathbf{B}$    & dot product of vectors $\mathbf{A}$ and 
+$\mathbf{B}$
+\end{tabular}
+
+\subsection*{Abbreviations}
+
+\begin{tabular}{ll}
+AC         & alternating current \\
+APLAC      & an object-oriented analog circuit simulator and design tool \\
+           & (originally Analysis Program for Linear Active Circuits) \\
+BCS        & Bardeen-Cooper-Schrieffer \\ %% dash between the names
+DC         & direct current \\
+TEM        & transverse eletromagnetic
+\end{tabular}
+
+
+%% Tweaks the page numbering to meet the requirement of the thesis format:
+%% Begin the pagenumbering in Arabian numerals (and leave the first page
+%% of the text body empty, see \thispagestyle{empty} below).
+%% Additionally, force the actual text to begin on a new page with the 
+%% \clearpage command.
+%% \clearpage is similar to \newpage, but it also flushes the floats (figures
+%% and tables).
+%% There is no need to change these
+%%
+\cleardoublepage
+\storeinipagenumber
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+
+%% Text body begins. Note that since the text body
+%% is mostly in Finnish the majority of comments are
+%% also in Finnish after this point. There is no point in explaining
+%% Finnish-language specific thesis conventions in English. Someday 
+%% this text will possibly be translated to English.
+%%
+\section{Introduction}
+%% Leave first page empty
+
+
+%% In a thesis, every section starts a new page, hence \clearpage
+\clearpage
+
+\section{Lattices in communications technology}
+
+\subsection{Closest vector problem}
+
+\clearpage
+
+\section{Sphere decoder}
+
+\clearpage
+
+\section{Simulations and results}
+ 
+\clearpage
+
+\section{Summary}
+
+
+\clearpage
+%% L\"ahdeluettelo
+%%
+%% \phantomsection varmistaa, ett\"a hyperref-paketti latoo hypertekstilinkit
+%% oikein.
+%%
+%% The \phantomsection command is nessesary for hyperref to jump to the 
+%% correct page, in other words it puts a hyper marker on the page.
+
+\phantomsection
+\addcontentsline{toc}{section}{\refname}
+%\addcontentsline{toc}{section}{References}
+\begin{thebibliography}{99}
+
+\bibitem{Mia} Mäki,\ M. Space-time block codes and the complexity of sphere decoding. \textit{Doria,} Referenced 10.7.2017. Available:
+  \url{https://www.doria.fi/bitstream/handle/10024/54404/gradu2008maki-miia.pdf}
+
+
+\end{thebibliography}
+
+%% Appendices
+%% Liitteet
+\clearpage
+
+\thesisappendix
+
+
+\end{document}
