@@ -90,7 +90,7 @@
 \school{School of Science}
 
 %% Only for B.Sc. thesis: Choose your degree programme. 
-\degreeprogram{Mathematics and Systems analysis}
+\degreeprogram{Mathematics and Systems Analysis}
 %%
 
 %% ONLY FOR M.Sc. AND LICENTIATE THESIS: Specify your department,
@@ -206,38 +206,21 @@
 
 \subsection*{Symbols}
 
-
 \begin{tabular}{ll}
-$\mathbf{B}$  & magnetic flux density  \\
-$c$              & speed of light in vacuum $\approx 3\times10^8$ [m/s]\\
-$\omega_{\mathrm{D}}$    & Debye frequency \\
-$\omega_{\mathrm{latt}}$ & average phonon frequency of lattice \\
-$\uparrow$       & electron spin direction up\\
-$\downarrow$     & electron spin direction down
+$\mathbb{C}$  & Field of complex numbers  \\
+$\mathbf{X}$  & Matrix \\
 \end{tabular}
 
 \subsection*{Operators}
 
 \begin{tabular}{ll}
-$\nabla \times \mathbf{A}$              & curl of vectorin $\mathbf{A}$\\
-$\displaystyle\frac{\mbox{d}}{\mbox{d} t}$ & derivative with respect to 
-variable $t$\\[3mm]
-$\displaystyle\frac{\partial}{\partial t}$  & partial derivative with respect 
-to variable $t$ \\[3mm]
-$\sum_i $                       & sum over index $i$\\
-$\mathbf{A} \cdot \mathbf{B}$    & dot product of vectors $\mathbf{A}$ and 
-$\mathbf{B}$
+$|| \cdot || $  & Euclidean norm\\
 \end{tabular}
 
 \subsection*{Abbreviations}
 
 \begin{tabular}{ll}
-AC         & alternating current \\
-APLAC      & an object-oriented analog circuit simulator and design tool \\
-           & (originally Analysis Program for Linear Active Circuits) \\
-BCS        & Bardeen-Cooper-Schrieffer \\ %% dash between the names
-DC         & direct current \\
-TEM        & transverse eletromagnetic
+SNR & Signal to noise ratio
 \end{tabular}
 
 
@@ -264,6 +247,8 @@ TEM        & transverse eletromagnetic
 %%
 \section{Introduction}
 %% Leave first page empty
+Wireless communication has been a crucial part of modern information technology for a couple of decades now. It is facing a lot of practical everyday problems which motivate the ongoing extensive research on the field. One of these problems is the noise and fading that occurs on wireless channels due to obstacles and radiation from the surroundings. To avoid data loss during transmission via wireless link one has to encode the data to be sent in such a robust way that it can still be recovered at the receiving end even in the presence of noise and fading of reasonable scale. 
+\par One way to tackle this problem, and the method this thesis focuses on, is the use of space-time lattice codes and sphere decoding. From a mathematical point of view the process of decoding can then be viewed as a problem of finding the closest lattice point to a given input vector, that is, the possibly noisy vector containing the data we receive from the wireless channel. This problem in its general form is known to be NP-hard but for communications applications where the dimensionality and lattice shape are kept reasonable there exist algorithms, like the sphere decoder, that offer polynomial expected complexity \cite{mia}.
 
 
 %% In a thesis, every section starts a new page, hence \clearpage
