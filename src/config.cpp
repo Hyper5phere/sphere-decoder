@@ -35,7 +35,7 @@ void create_config(){
     defconf << "simulation_rounds=100000        // Number of simulation rounds to run" << endl;
     defconf << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
     defconf << "plot_results=-1                 // Draw plots? (1 = yes, -1 = no)" << endl;
-    defconf << "spherical_shaping_max_power=-1  // Defines the maximum distance from origin for codebook elements (-1 = infinity)" << endl;
+    defconf << "spherical_shaping_max_power=-1  // Defines the maximum distance from origin for codebook elements (-1 = unbounded)" << endl;
     defconf.close();     
 }
 

@@ -20,18 +20,21 @@ How to setup and run the program on Linux
 ```ini
 // configuration settings and simulation parameters for the sphere decoder program //
 
-basis_file=bases.txt          // Text file containing the basis matrices
-x-PAM=2                       // The size of the PAM signaling set
-energy_estimation_samples=10  // Number of samples to make the code energy estimation (-1 = sample all)
-no_of_matrices=2              // Number of basis matrices (dimension of the data vectors)
-time_slots=2                  // Number of time slots used in the code
-no_of_transmit_antennas=2     // Number of transmit antennas
-no_of_receiver_antennas=2     // Number of receiver antennas
-snr_min=6                     // Minimum value for signal-to-noise ratio
-snr_max=12                    // Maximum value for signal-to-noise ratio
-snr_step=2                    // Increase SNR by this value per each iteration
-simulation_rounds=100000      // Number of simulation rounds to run
-required_errors=500           // Demand at minimum this many errors before the simulation ends
+basis_file=alamouti.txt         // Text file containing the basis matrices
+output_file=auto                // Optionally spesify the output filename (auto = automatic)
+x-PAM=4                         // The size of the PAM signaling set
+energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)
+no_of_matrices=4                // Number of basis matrices
+no_of_transmit_antennas=2       // Number of broadcast antennas
+no_of_receiver_antennas=2       // Number of receiver antennas
+snr_min=6                       // Minimum value for signal-to-noise ratio
+snr_max=20                      // Maximum value for signal-to-noise ratio
+snr_step=2		                // Increase SNR by this value per each iteration
+simulation_rounds=10000         // Number of simulation rounds to run
+required_errors=-1              // Demand at minimum this many errors before the simulation ends
+time_slots=2		            // Number of time slots used in the code
+plot_results=1                  // Draw plots? (1 = yes, -1 = no)
+spherical_shaping_max_power=-1  // Defines the maximum distance from origin for codebook elements (-1 = unbounded)
 ```
 
 - Create file called *bases.txt* in */bases/* folder and put your code basis matrices there (e.g. in Mathematica format)
