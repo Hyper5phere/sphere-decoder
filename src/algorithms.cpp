@@ -26,6 +26,13 @@ double frob_norm_squared(cx_mat A){
     return sum;
 }
 
+double euclidean_norm(const vector<int> &x){
+    double sum = 0;
+    for (const int &elem : x)
+        sum += pow(elem, 2);
+    return sum;
+}
+
 /* Makes sure the upper triangular matrix R has only positive diagonal elements */
 void process_qr(mat &Q, mat &R){
     for (auto i = 0u; i < R.n_cols; i++){
@@ -140,6 +147,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     // int q = params["x-PAM"];
     int cs = params["codebook_size"];
     int samples = params["energy_estimation_samples"];
+    int P = params["spherical_shaping_max_power"];
 
     /* lattice generator matrix G (alternative approach) */
     // cx_mat G(m*n,k);
@@ -148,6 +156,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     // }
 
     vector<pair<vector<int>,cx_mat>> codebook;
+    pair<vector<int>,cx_mat> code;
     vector<int> tmp;
     cx_mat X(m, t);
     X.zeros();
@@ -164,7 +173,10 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
             // }
             // // log_msg(vec2str(tmp, tmp.size()));
             // tmp.clear();
-            codebook.push_back(create_random_codeword(bases, symbolset));
+            do {
+                code = create_random_codeword(bases, symbolset);
+            } while (euclidean_norm(code.first) > P + 1e-6 && P > 0); // do until we're inside spherical constellation
+            codebook.push_back(code);
             // X.zeros();
         }
         // cout << endl;
@@ -177,6 +189,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
 
         // log_msg("All possible data vector combinations:");
         for (const auto &symbols : c){
+            if (euclidean_norm(symbols) > P + 1e-6 && P > 0) continue; // We're outside the spherical constellation
             for (int i = 0; i < k; i++)
                 X = X + symbols[i]*bases[i];
             

@@ -60,11 +60,20 @@ int main(int argc, char** argv)
 
     log_msg("Starting program...");
 
+    /* initialize simulation parameters */
     int m = params["no_of_transmit_antennas"];
     int n = params["no_of_receiver_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
+    int P = params["spherical_shaping_max_power"];
+
+    int min = params["snr_min"];
+    int max = params["snr_max"];
+    int step = params["snr_step"];
+
+    int min_runs = params["simulation_rounds"];
+    int max_err = params["required_errors"];
 
     auto bases = read_matrices();
     cx_mat basis_sum(n, m);
@@ -94,16 +103,13 @@ int main(int argc, char** argv)
     if (filenames.count("output") == 0)
         create_output_filename();
 
-    parallel_vector<string> output;
-    output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity");
+    parallel_vector<string> output; // Used for writing the csv output file
+    output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); // add label row
     
     #pragma omp parallel // parallelize SNR simulations
     {
-        double Hvar = 1, Nvar = 1;  
-
-        int min = params["snr_min"];
-        int max = params["snr_max"];
-        int step = params["snr_step"];
+        double Hvar = 1, Nvar = 1;
+ 
 
         /* initialize a bunch of complex matrices used in the simulation */
         cx_mat H, HX, X, N, Y, Ynorm;
@@ -117,10 +123,8 @@ int main(int argc, char** argv)
         // vec x(k);
 
         int runs = 0;
-        int min_runs = params["simulation_rounds"];
         // int a = 0;
         int errors = 0; 
-        int max_err = params["required_errors"];
         int visited_nodes = 0;
         int total_nodes = 0;
 
@@ -144,13 +148,14 @@ int main(int argc, char** argv)
             while (errors < max_err || runs < min_runs){
 
                 // a = random_code(mersenne_twister);
-                // X = codebook[a].second;                     // Code block we want to send
+                // X = codebook[a].second;                     
 
-                codeword = create_random_codeword(bases, symbset);
+                codeword = create_random_codeword(bases, symbset); 
 
-                orig = codeword.first;
-                X = codeword.second;
+                orig = codeword.first;  // coefficients from the signal set (i.e. data vector)
+                X = codeword.second;    // Code block we want to send
 
+                if (euclidean_norm(orig) > P + 1e-6 && P > 0) continue;  // We're outside the spherical constellation
 
                 // cout << X << endl;
 
