@@ -109,12 +109,35 @@ set< vector<int> > comb_wrapper(const vector<int> &symbset, int vector_len){
     return comblist;
 }
 
+/* Creates a random codeword from basis matrices B_i and symbolset x-PAM */
+pair<vector<int>, cx_mat> create_random_codeword(const vector<cx_mat> &bases, const vector<int> &symbolset){
+    int m = params["no_of_transmit_antennas"];
+    int t = params["time_slots"];
+    int k = params["no_of_matrices"];
+    int q = params["x-PAM"];
+    int random_index = 0;
+
+    cx_mat X(m, t);
+    vector<int> coeffs(k);
+    X.zeros();
+
+    uniform_int_distribution<int> dist(0,q-1);
+
+    for (int i = 0; i < k; i++) {
+        random_index = dist(mersenne_twister);
+        coeffs[i] = symbolset[random_index];
+        X = X + symbolset[random_index]*bases[i];
+    }
+
+    return make_pair(coeffs, X);   
+}
+
 /* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
 vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, const vector<int> &symbolset){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
-    int q = params["x-PAM"];
+    // int q = params["x-PAM"];
     int cs = params["codebook_size"];
     int samples = params["energy_estimation_samples"];
 
@@ -130,21 +153,21 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     X.zeros();
     
     if(samples > 0){
-        int random_index = 0;
-        uniform_int_distribution<int> dist(0,q-1);
+        // int random_index = 0;
+        // uniform_int_distribution<int> dist(0,q-1);
         // log_msg("Random sampled data vector combinations:");
         for (int j = 0; j < samples; j++){
-            for (int i = 0; i < k; i++) {
-                random_index = dist(mersenne_twister);
-                tmp.push_back(symbolset[random_index]);
-                X = X + symbolset[random_index]*bases[i];
-            }
-            // log_msg(vec2str(tmp, tmp.size()));
-            tmp.clear();
-            codebook.push_back(make_pair(tmp, X));
-            X.zeros();
+            // for (int i = 0; i < k; i++) {
+            //     random_index = dist(mersenne_twister);
+            //     tmp.push_back(symbolset[random_index]);
+            //     X = X + symbolset[random_index]*bases[i];
+            // }
+            // // log_msg(vec2str(tmp, tmp.size()));
+            // tmp.clear();
+            codebook.push_back(create_random_codeword(bases, symbolset));
+            // X.zeros();
         }
-        cout << endl;
+        // cout << endl;
     } else {
         if (cs > 1e6)
             log_msg("create_codebook: Generating a codebook of size " + to_string(cs) + "!", "Warning");

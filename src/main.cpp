@@ -108,17 +108,17 @@ int main(int argc, char** argv)
         /* initialize a bunch of complex matrices used in the simulation */
         cx_mat H, HX, X, N, Y, Ynorm;
 
-        mat B(2*t*n, k), Q, R, M;
+        // mat B(2*t*n, k), Q, R, M;
 
-        vec y;
-        vec y2;
+        // vec y;
+        // vec y2;
 
         vector<int> x(k), orig(k);
         // vec x(k);
 
         int runs = 0;
         int min_runs = params["simulation_rounds"];
-        int a = 0;
+        // int a = 0;
         int errors = 0; 
         int max_err = params["required_errors"];
         int visited_nodes = 0;
@@ -131,7 +131,9 @@ int main(int argc, char** argv)
         double SNRreal = 0;
         double C = 0.0; // initial squared radius for the sphere decoder
 
-        uniform_int_distribution<int> random_code(0, codebook.size()-1);
+        pair<vector<int>,cx_mat> codeword;
+
+        // uniform_int_distribution<int> random_code(0, codebook.size()-1);
 
         /* simulation main loop */
         #pragma omp for
@@ -141,15 +143,23 @@ int main(int argc, char** argv)
             // cout << Hvar << endl; 
             while (errors < max_err || runs < min_runs){
 
-                a = random_code(mersenne_twister);
-                X = codebook[a].second;                     // Code block we want to send
+                // a = random_code(mersenne_twister);
+                // X = codebook[a].second;                     // Code block we want to send
+
+                codeword = create_random_codeword(bases, symbset);
+
+                orig = codeword.first;
+                X = codeword.second;
+
+
                 // cout << X << endl;
+
                 H = create_random_matrix(n, m, 0, Hvar);    // Channel matrix
                 N = create_random_matrix(n, t, 0, Nvar);    // Noise matrix 
 
                 sigpow += frob_norm_squared(H*X);       // Signal power
                 noisepow += frob_norm_squared(N);       // Noise power
-                C = noisepow + 1e-2;                    // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
+                C = noisepow + 1e-3;                    // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
 
                 // cout << N << endl;
 
@@ -206,20 +216,21 @@ int main(int argc, char** argv)
                 // x = sphdec(C, y2, R, visited_nodes);
                 
 
-                if (x.size() == 0) { // point not found
-                    errors++;
-                    runs++;
-                    Q.zeros();
-                    R.zeros();
-                    continue;
-                }
+                // if (x.size() == 0) { // point not found
+                //     errors++;
+                //     runs++;
+                //     // Q.zeros();
+                //     // R.zeros();
+                //     continue;
+                // }
 
                 // for (int j = 0; j < k; j++)     
                 //     x[j] = 2*x[j] - q + 1;
                     // orig[j] = 0.5*(codebook[a].first[j] + q - 1);
 
-                if (codebook[a].first != x){
-                    errors++;                    
+                // if (codebook[a].first != x){
+                if (orig != x){
+                    errors++;
                 }
                 // cout << endl << vec2str(orig, orig.size()) << endl;
                 
@@ -229,8 +240,8 @@ int main(int argc, char** argv)
 
                 total_nodes += visited_nodes;
                 runs++;
-                Q.zeros();
-                R.zeros();
+                // Q.zeros();
+                // R.zeros();
                 x.clear();
                 // orig.clear();
             }
@@ -261,12 +272,14 @@ int main(int argc, char** argv)
         log_msg("Printing simulation output to '" + filenames["output"] + "'...");
         output_csv(output);
         #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
-        log_msg("Drawing plots...");
-        plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
-        plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
+        if (params["plot_results"] > 0){
+            log_msg("Drawing plots...");
+            plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
+            plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
+        }
         #endif
     }
-    
+
     log_msg("Program exited successfully!");
     log_msg();
     return 0;

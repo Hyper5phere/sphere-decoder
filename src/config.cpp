@@ -11,7 +11,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 13
+#define NUM_OPTIONS 15
 
 using namespace std;
 using namespace arma;
@@ -22,7 +22,7 @@ void create_config(){
     // the file can contain comments similar to this line here
     defconf << "// configuration settings and simulation parameters for the sphere decoder program" << endl << endl;
     defconf << "basis_file=bases.txt            // Text file containing the basis matrices" << endl;
-    defconf << "output_file=                    // Optionally spesify the output filename (empty = automatic)" << endl;
+    defconf << "output_file=auto                // Optionally spesify the output filename (auto = automatic)" << endl;
     defconf << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl;
     defconf << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl;
     defconf << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl;
@@ -34,6 +34,8 @@ void create_config(){
     defconf << "snr_step=2                      // Increase SNR by this value per each iteration" << endl;
     defconf << "simulation_rounds=100000        // Number of simulation rounds to run" << endl;
     defconf << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
+    defconf << "plot_results=-1                 // Draw plots? (1 = yes, -1 = no)" << endl;
+    defconf << "spherical_shaping_max_power=-1  // Defines the maximum distance from origin for codebook elements (-1 = infinity)" << endl;
     defconf.close();     
 }
 
@@ -70,18 +72,17 @@ void configure() {
             if (key.find("//", 0) != string::npos)
                 continue;
             string value;
-            getline(iss, value); 
+            getline(iss, value);
+            clean_input(value); 
             if (!value.empty()) {
-                clean_input(value);
                 if (key.compare("basis_file") == 0) {
                     if(value.size() > 0)
                         filenames["bases"] = "bases/" + value;
-                }
-                else if (key.compare("output_file") == 0) {
+                } else if (key.compare("output_file") == 0) {
                     if(value.size() > 0)
-                        filenames["output"] = "output/" + value;
-                }
-                else {
+                        if (value.compare("auto") != 0)
+                            filenames["output"] = "output/" + value;
+                } else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
                         log_msg();
