@@ -62,7 +62,7 @@
 \usepackage{graphicx}
 
 %% Use this if you write hard core mathematics, these are usually needed
-\usepackage{amsfonts,amssymb,amsbsy}
+\usepackage{amsfonts,amssymb,amsbsy,amsmath}
 
 %% Use the macros in this package to change how the hyperref package below 
 %% typesets its hypertext -- hyperlink colour, font, etc. See the package
@@ -208,13 +208,14 @@
 
 \begin{tabular}{ll}
 $\mathbb{C}$  & Field of complex numbers  \\
+$\mathbf{x}$  & Vector \\
 $\mathbf{X}$  & Matrix \\
 \end{tabular}
 
 \subsection*{Operators}
 
 \begin{tabular}{ll}
-$|| \cdot || $  & Euclidean norm\\
+$\| \cdot \| $  & Euclidean norm\\
 \end{tabular}
 
 \subsection*{Abbreviations}
@@ -256,7 +257,14 @@ Wireless communication has been a crucial part of modern information technology 
 
 \section{Lattices in communications technology}
 
-Before we go into lattice codes let us start with the definition of a lattice: Let $\mathbf{a_1}, ... , \mathbf{a_n}$
+Before we go into communications applications of lattices such as lattice codes, let us start off with the definition of a lattice. Let $n$ and $m$ be positive integers such that $n \leq m$ and $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ be linearly independent vectors. A subset $\Lambda$ of $\mathbb{R}^m$ is called a lattice of dimension $n$ if it is defined as
+
+\begin{equation}
+\Lambda = \sum_{i=1}^{n} \mathbb{Z}\mathbf{b}_i = \{r_1\mathbf{b}_1 + ...+r_n\mathbf{b}_n | r_i \in \mathbb{Z}, 1 \leq i \leq n\}\label{eq:lattice}
+\end{equation}
+
+where the set of vectors $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ is called the basis of the lattice $\Lambda$. All points of the lattice can be obtained as a linear combination of the basis vectors and $n$ integer coefficients as stated in \eqref{eq:lattice}.
+
 
 \subsection{Space--time lattice codes}
 
