@@ -8,3 +8,4 @@
 /docs/*.toc
 /docs/*.gz
 /docs/.*
+/docs/*eps-converted-to.pdf
