@@ -260,11 +260,21 @@ Wireless communication has been a crucial part of modern information technology 
 Before we go into communications applications of lattices such as lattice codes, let us start off with the definition of a lattice. Let $n$ and $m$ be positive integers such that $n \leq m$ and $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ be linearly independent vectors. A subset $\Lambda$ of $\mathbb{R}^m$ is called a lattice of dimension $n$ if it is defined as
 
 \begin{equation}
-\Lambda = \sum_{i=1}^{n} \mathbb{Z}\mathbf{b}_i = \{r_1\mathbf{b}_1 + ...+r_n\mathbf{b}_n | r_i \in \mathbb{Z}, 1 \leq i \leq n\}\label{eq:lattice}
+\Lambda = \sum_{i=1}^{n} \mathbb{Z}\mathbf{b}_i = \{a_1\mathbf{b}_1 + ...+a_n\mathbf{b}_n | a_i \in \mathbb{Z}, 1 \leq i \leq n\}\label{eq:lattice}
 \end{equation}
 
-where the set of vectors $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ is called the basis of the lattice $\Lambda$. All points of the lattice can be obtained as a linear combination of the basis vectors and $n$ integer coefficients as stated in \eqref{eq:lattice}.
-
+\noindent where the set of vectors $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ is called the basis of the lattice $\Lambda$. All points of the lattice can be obtained as a linear combination of the basis vectors $\mathbf{b}_n$ and integer coefficients $\mathbf{a}_n$ as stated in \eqref{eq:lattice}. The number of basis vectors $n$ is also called the rank of the lattice. The points of the lattice $\Lambda$ form a group under addition which means that if $\mathbf{x} \in \Lambda$ then $-\mathbf{x} \in \Lambda$ and if $\mathbf{x}, \mathbf{y} \in \Lambda$ then $\mathbf{x} \pm \mathbf{y} \in \Lambda$. \cite{cassels}
+\par There is also a matrix representation for the same lattice
+\begin{equation}
+\Lambda = \{\mathbf{x}|\mathbf{x} = \mathbf{B}\mathbf{a} \} \label{eq:matrix}
+\end{equation}
+where $\mathbf{B} = [\mathbf{b}_1, ... , \mathbf{b}_n]$ is an $m \times n$ matrix called the generator matrix of the lattice $\Lambda$ and $\mathbf{a}$ is an $n$-dimensional integer column vector. Note that $\mathbf{B}$ is not uniquely determined by the lattice as in fact there exists infinitely many bases for the same lattice. If $\mathbf{B}$ is a basis for lattice $\Lambda$ then $\mathbf{B}'$ is also a basis for the same lattice if the following holds
+\begin{align}
+\mathbf{B}' &= \mathbf{W}\mathbf{B}, \\
+\text{det}(\mathbf{W}) &= \pm 1
+\label{eq:basis_change}
+\end{align}
+where $\mathbf{W}$ is an $m \times m$ matrix with integer entries.
 
 \subsection{Space--time lattice codes}
 

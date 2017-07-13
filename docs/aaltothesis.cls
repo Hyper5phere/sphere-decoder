@@ -217,7 +217,7 @@
    \renewcommand*{\thesisadvisorname}{Thesis advisor}%
    \renewcommand*{\thesisadvisorsname}{Thesis advisors}%
    \renewcommand{\covertext}{%
-     \ifthenelse{\boolean{BSc}}{Bachelor's thesis}{}%
+     \ifthenelse{\boolean{BSc}}{Bachelor's special assignment}{}%
      \ifthenelse{\boolean{MSc}}%
                 {Thesis submitted for examination for the degree of %
                   Master of Science in Technology.}{}%
@@ -320,8 +320,8 @@
    \renewcommand*{\codename}{Code}%
    %
    \ifthenelse{\boolean{BSc}}{%
-     \renewcommand*{\absheadname}{abstract of the bachelor's thesis}%
-     \settowidth{\absheadlen}{BACHELOR'S THESIS}%
+     \renewcommand*{\absheadname}{abstract of the bachelor's special assignment}%
+     \settowidth{\absheadlen}{LOR'S SPECIAL ASSIGNMENT}%
    }{}%
    \ifthenelse{\boolean{MSc}}{%
      \renewcommand*{\absheadname}{abstract of the master's thesis}%
