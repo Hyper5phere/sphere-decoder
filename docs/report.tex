@@ -117,7 +117,7 @@
 %% linebreak with the \\ control character. 
 %% Do not hyphenate titles.
 %% 
-\thesistitle{Lattice codes and sphere decoding}
+\thesistitle{Lattice Codes and Sphere Decoding}
 
 \place{Espoo}
 
@@ -169,7 +169,7 @@
 %% niin kuin se on yllä määritelty.
 %% Avainsanat
 %%
-\keywords{sphere decoding, lattice codes, information technology}
+\keywords{sphere decoding, space--time lattice codes, wireless communications}
 %% Abstract text
 \begin{abstractpage}[english]
  \end{abstractpage}
@@ -208,7 +208,8 @@
 \subsection*{Symbols}
 
 \begin{tabular}{ll}
-$\mathbb{C}$  & Field of complex numbers  \\
+$\mathbb{Z}$  & Set of integers \\
+$\mathbb{C}$  & Field of complex numbers \\
 $\mathbf{x}$  & Vector \\
 $\mathbf{X}$  & Matrix \\
 \end{tabular}
@@ -216,13 +217,15 @@ $\mathbf{X}$  & Matrix \\
 \subsection*{Operators}
 
 \begin{tabular}{ll}
-$\| \cdot \| $  & Euclidean norm\\
+$\| \cdot \| $     & Euclidean norm \\
+det$(\mathbf{X})$  & Determinant of matrix $\mathbf{X}$
 \end{tabular}
 
 \subsection*{Abbreviations}
 
 \begin{tabular}{ll}
-SNR & Signal to noise ratio
+SNR & Signal to noise ratio \\
+CVP & Closest vector problem
 \end{tabular}
 
 
@@ -275,7 +278,7 @@ where $\mathbf{B} = [\mathbf{b}_1, ... , \mathbf{b}_n]$ is an $m \times n$ matri
 \text{det}(\mathbf{W}) &= \pm 1
 \label{eq:basis_change}
 \end{align}
-where $\mathbf{W}$ is an $m \times m$ matrix with integer entries \cite{agrell}. Some bases are however better in some sense than others, especially in communications applications as one could imagine. Usually orthogonality and small norm for the basis vectors is desired. A better basis can be obtained via a process called basis reduction, which is illustrated in figure \ref{fig:bases}. Clearly basis vectors $\mathbf{u}_i$ obtained from the basis reduction are more pleasant to work with than the original vectors $\mathbf{v}_i$ although they both span the same lattice.
+where $\mathbf{W}$ is an $m \times m$ matrix with integer entries \cite{agrell}. Some bases are however better in some sense than others, especially in communications applications, as one could imagine. Usually reasonable orthogonality and relatively small norm for the basis vectors are desired \cite{agrell}. A better basis can be obtained via a process called basis reduction, which is illustrated in figure \ref{fig:bases}. Clearly basis vectors $\mathbf{u}_i$ obtained from the basis reduction are more pleasant to work with than the original vectors $\mathbf{v}_i$ although they both span the same lattice.
 
 \begin{figure}[ht]
   \centering
@@ -301,7 +304,14 @@ In other words we convert each column of $\mathbf{B}$ to real vector by separati
 
 \subsection{Closest vector problem}
 
+One relevant mathematical problem related to sphere decoding, a communications application of interest in this paper, is the closest vector problem (CVP). Given a lattice $\Lambda$ and an input point $\mathbf{y}$ the problem is to find a lattice point $\hat{\mathbf{x}} \in \Lambda$ that is closest to $\mathbf{y}$. More precisely $\hat{\mathbf{x}} \in \Lambda$ has to meet the following condition
 
+\begin{equation}
+\|\mathbf{y}-\hat{\mathbf{x}}\| \leq \|\mathbf{y}-\mathbf{x}\|, \ \ \ \forall \mathbf{x} \in \Lambda.
+\label{eq:cvp}
+\end{equation}
+
+\noindent For a fixed point $\hat{\mathbf{x}} \in \Lambda$ the set of vectors $\mathbf{y}_i$ that satisfy the confition \eqref{eq:cvp} is called the Voronoi region of lattice point $\hat{\mathbf{x}}$, $\mathcal{V}_{\hat{\mathbf{x}}}$. This means that if $\mathbf{y} \in \mathcal{V}_{\hat{\mathbf{x}}}$ then the solution to CVP is $\hat{\mathbf{x}}$. The volume of the $\mathcal{V}_{\hat{\mathbf{x}}}$ is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$.
 
 \subsection{Space--time lattice codes}
 
