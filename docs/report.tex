@@ -304,16 +304,29 @@ In other words we convert each column of $\mathbf{B}$ to real vector by separati
 
 \subsection{Closest vector problem}
 
-One relevant mathematical problem related to sphere decoding, a communications application of interest in this paper, is the closest vector problem (CVP). Given a lattice $\Lambda$ and an input point $\mathbf{y}$ the problem is to find a lattice point $\hat{\mathbf{x}} \in \Lambda$ that is closest to $\mathbf{y}$. More precisely $\hat{\mathbf{x}} \in \Lambda$ has to meet the following condition
+One relevant mathematical problem related to sphere decoding, a communications application of interest in this paper, is the closest vector problem (CVP). Given a lattice $\Lambda \subset J$ and an input point $\mathbf{y} \in J$ the problem is to find a lattice point $\hat{\mathbf{x}} \in \Lambda$ that is closest to $\mathbf{y}$. More precisely $\hat{\mathbf{x}} \in \Lambda$ has to meet the following condition
 
 \begin{equation}
 \|\mathbf{y}-\hat{\mathbf{x}}\| \leq \|\mathbf{y}-\mathbf{x}\|, \ \ \ \forall \mathbf{x} \in \Lambda.
 \label{eq:cvp}
 \end{equation}
 
-\noindent For a fixed point $\hat{\mathbf{x}} \in \Lambda$ the set of vectors $\mathbf{y}_i$ that satisfy the confition \eqref{eq:cvp} is called the Voronoi region of lattice point $\hat{\mathbf{x}}$, $\mathcal{V}_{\hat{\mathbf{x}}}$. This means that if $\mathbf{y} \in \mathcal{V}_{\hat{\mathbf{x}}}$ then the solution to CVP is $\hat{\mathbf{x}}$. The volume of the $\mathcal{V}_{\hat{\mathbf{x}}}$ is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$.
+\noindent$J$ is the vector space, in which $\Lambda$ belongs in. In this thesis we mostly consider $J=\mathbb{C}^n$. 
+\par For a fixed point $\mathbf{x}' \in \Lambda$ the set of vectors $\mathbf{y}_i \in J$ that satisfy the inequality \eqref{eq:cvp} is called the Voronoi region (see figure \ref{fig:voronoi}) of lattice point $\mathbf{x}'$, $\mathcal{V}_{\mathbf{x}'} \subset J$. This means that if $\mathbf{y} \in \mathcal{V}_{\mathbf{x}'}$ then the solution to CVP is $\mathbf{x}'$. If $\mathbf{y} \in \partial\mathcal{V}_{\mathbf{x}'}$ the solution to CVP is a random choice between points whose Voronoi region contains that boundary. The volume of the $\mathcal{V}_{\mathbf{x}'}$, also know as the lattice constant as it is independent of the choice of basis, is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$. 
+
+\begin{figure}[ht]
+% source: http://www.gregegan.net/APPLETS/12/deBruijnNotes.html
+  \centering
+  \includegraphics[width=0.5\linewidth]{voronoi_cells}
+  \caption{The voronoi cells of the two dimensional hexagonal lattice $\mathsf{A}_2$.}
+  \label{fig:voronoi}
+\end{figure}
+
+CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for a lattice codes sent via channel that induces fading. Such decoding process can be reduced to CVP and it's later explained in further detail.
 
 \subsection{Space--time lattice codes}
+
+
 
 \clearpage
 
