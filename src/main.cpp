@@ -84,10 +84,14 @@ int main(int argc, char** argv)
         basis_sum += basis;
     }
 
-    vector<int> symbset = create_symbolset(params["x-PAM"]);
+    vector<int> symbset = create_symbolset(q);
+    // symbset.push_back(-3);
+    // symbset.push_back(0);
+    // symbset.push_back(2);
+
 
     log_msg("Number of basis matrices (code length): " + to_string(k));
-    log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
+    // log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
     
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, symbset);
 
@@ -155,12 +159,14 @@ int main(int argc, char** argv)
                 orig = codeword.first;  // coefficients from the signal set (i.e. data vector)
                 X = codeword.second;    // Code block we want to send
 
-                if (euclidean_norm(orig) > P + 1e-6 && P > 0) continue;  // We're outside the spherical constellation
+                if (/*euclidean_norm(orig)*/ frob_norm_squared(X) > P + 1e-6 && P > 0) continue;  // We're outside the spherical constellation
 
                 // cout << X << endl;
-
+                // X = bases[0]*2.9+bases[1]*3;
                 H = create_random_matrix(n, m, 0, Hvar);    // Channel matrix
                 N = create_random_matrix(n, t, 0, Nvar);    // Noise matrix 
+                // H.eye(2,2);
+                // N.zeros(2,2);
 
                 sigpow += frob_norm_squared(H*X);       // Signal power
                 noisepow += frob_norm_squared(N);       // Noise power

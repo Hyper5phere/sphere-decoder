@@ -175,7 +175,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
             // tmp.clear();
             do {
                 code = create_random_codeword(bases, symbolset);
-            } while (euclidean_norm(code.first) > P + 1e-6 && P > 0); // do until we're inside spherical constellation
+            } while (/*euclidean_norm(code.first)*/ frob_norm_squared(code.second) > P + 1e-6 && P > 0); // do until we're inside spherical constellation
             codebook.push_back(code);
             // X.zeros();
         }
@@ -189,14 +189,18 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
 
         // log_msg("All possible data vector combinations:");
         for (const auto &symbols : c){
-            if (euclidean_norm(symbols) > P + 1e-6 && P > 0) continue; // We're outside the spherical constellation
+            // if (euclidean_norm(symbols) > P + 1e-6 && P > 0) continue; // We're outside the spherical constellation
+            X.zeros();
             for (int i = 0; i < k; i++)
                 X = X + symbols[i]*bases[i];
-            
-            codebook.push_back(make_pair(symbols, X));
-            X.zeros();
 
-            // log_msg(vec2str(symbols, k));
+            // cout << "------------" << endl;
+            // cout << X << endl;
+            // log_msg(vec2str(symbols, symbols.size()));
+            if (frob_norm_squared(X) > P + 1e-6 && P > 0) continue;
+            codebook.push_back(make_pair(symbols, X));
+            // cout << "added to codebook!" << endl;
+    
         }
     }
     return codebook;
