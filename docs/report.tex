@@ -405,10 +405,49 @@ Regarding the hardware as the rule of the thumb, the better the performance your
 \item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
 \end{enumerate}
 % (libarmadillo-dev)
-You can follow the links for detailed instructions how install those packages if you're facing problems (e.g. you're not installing the program on Linux OS) but the most straightforward way of doing this is opening terminal in Linux and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. In package manager those libraries go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev} and \textit{libboost-all-dev}. Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compability reasons, but requires a few modifications in the source code and Makefile for the compilation process. If all the install processes succeed you are now all set up to install the program itself.
-
+You can follow the links for detailed instructions how install those packages if you're facing problems (e.g. you're not installing the program on Linux OS) but the most straightforward way of doing this is opening terminal in Linux and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. In package manager those libraries should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev} and \textit{libboost-all-dev}. Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compability reasons, but requires a few modifications in the source code and Makefile for the compilation process. If all the install processes succeed you are now all set up to install the program itself.
 
 \subsection{Installing the program}
+
+Open terminal (CTRL+ALT+T) and create a folder for the program 
+\begin{verbatim}
+$ mkdir sphere-decoder
+$ cd sphere-decoder
+\end{verbatim}Once you are in that folder copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. This can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command in the terminal:
+\begin{verbatim}
+$ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
+\end{verbatim}
+
+\noindent After copying the files check the contents of that folder by typing this command in the terminal:
+\begin{verbatim}
+$ ll
+\end{verbatim}
+Check if the contents of that folder look similar to those of the gitlab repository. If everything looks all right and you're using Linux with Boost library, just type the following in terminal
+\begin{verbatim}
+$ make
+\end{verbatim}
+to compile the program. For other operating systems you likely need to modify the Makefile located in the /src/ directory. If you didn't install the Boost C++ library you need to do the following in order to compile the program:
+\begin{verbatim}
+$ nano src/misc.hpp
+\end{verbatim}
+In the text editor locate a line of code saying
+\begin{verbatim}
+#define PLOTTING // enable plotting (requires boost C++ library)
+\end{verbatim}
+and either remove it or comment it out (type '//' in front of the line). After that save and exit by pressing CTRL+O, Enter and CTRL+X. After that type the command:
+\begin{verbatim}
+$ nano src/Makefile
+\end{verbatim}
+and remove all the compiler flags that have the word 'lboost' in it. Save changes and exit the text editor as before. Now you should be able to compile the program by typing:
+\begin{verbatim}
+$ make
+\end{verbatim}
+
+\noindent If the compiling succeeded, now check if the program runs correctly by typing:
+\begin{verbatim}
+$ make run
+\end{verbatim}
+If there are no errors regarding missing libraries or such, you have correctly installed the program! If there are errors during the compilation or program runtime, go back to previous section and double check that you have installed the correct libraries. 
 
 \subsection{Setup and Input}
 
