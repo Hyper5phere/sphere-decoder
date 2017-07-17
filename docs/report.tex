@@ -405,7 +405,8 @@ Regarding the hardware as the rule of the thumb, the better the performance your
 \item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
 \end{enumerate}
 % (libarmadillo-dev)
-You can follow the links for detailed instructions how install those packages if you're facing problems (e.g. you're not installing the program on Linux OS) but the most straightforward way of doing this is opening terminal in Linux and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. In package manager those libraries should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev} and \textit{libboost-all-dev}. Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compability reasons, but requires a few modifications in the source code and Makefile for the compilation process. If all the install processes succeed you are now all set up to install the program itself.
+You can follow the links for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux OS) but the most straightforward way of doing this is opening terminal in Linux and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link. 
+\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev} and \textit{libboost-all-dev}. Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compability reasons, but requires a few modifications in the source code and Makefile for the compilation process. If all the install processes succeed you are now all set up to install the program itself.
 
 \subsection{Installing the program}
 
@@ -434,7 +435,7 @@ In the text editor locate a line of code saying
 \begin{verbatim}
 #define PLOTTING // enable plotting (requires boost C++ library)
 \end{verbatim}
-and either remove it or comment it out (type '//' in front of the line). After that save and exit by pressing CTRL+O, Enter and CTRL+X. After that type the command:
+and either remove it or comment it out (type '//' in front of the line). After that save and exit by pressing CTRL+O, ENTER and CTRL+X. After that type the command:
 \begin{verbatim}
 $ nano src/Makefile
 \end{verbatim}
@@ -447,14 +448,46 @@ $ make
 \begin{verbatim}
 $ make run
 \end{verbatim}
-If there are no errors regarding missing libraries or such, you have correctly installed the program! If there are errors during the compilation or program runtime, go back to previous section and double check that you have installed the correct libraries. 
+If there are no errors regarding missing libraries or such then you have just correctly installed the program! If there are such errors during the compilation or program runtime, go back to previous section and double check that you have installed the correct libraries. 
 
 \subsection{Setup and Input}
 
+Now that the program runs it is time to take a look at the simulation parameters and the program input to make reasonable simulations. In the /bases/ folder one can save text files containing the lattice code basis matrices for the simulation which the program takes as input. The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
+\par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The contents of the file are displayed in figure \ref{fig:settings}. After '//' begins a comment sequence which is ignored by the program when reading the settings file. Make sure not to remove any of the 15 option lines or the program will give you an error. In case you end up messing up the settings file in some way, easy way to reset it is to just delete it and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}.
+
+\begin{figure}[htb]
+\begin{center}
+  \includegraphics[width=\linewidth]{settings}
+  \caption{The default settings file for the sphere decoder program.}
+  \label{fig:settings}
+\end{center}
+\end{figure}
+
+When editing the settings, only modify the right hand side of the equality sign. If you change the variable names, the program will work incorrectly. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program doesn't need to be recompiled for these changes to take effect, just run it again. 
+\par One can also create multiple settings file in that folder. To use a different settings file one just needs to give its name as a command line argument for the program.
+
 \subsection{Running the program}
+
+Once the program is set up correctly, running the program is a relatively easy task. Just make sure you're in the main folder of the local repository and type the following in terminal:
+\begin{verbatim}
+$ make run
+\end{verbatim}
+or
+\begin{verbatim}
+$ ./sphdec [settings_file.ini*]
+\end{verbatim}
+
+\noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the two commands are equal.
 
 \subsection{Output and Plots}
 
+
+
 \subsection{General troubleshooting}
+Some general miscellaneous tips are listed here to help you troubleshoot errors while using the program:
+\begin{enumerate}
+\item Do not include the dollar sign in terminal commands. It's just there to indicate terminal input.
+\end{enumerate}
+
 
 \end{document}
