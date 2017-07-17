@@ -377,13 +377,36 @@ August 2002.
 
 \section{User guide}
 
+\subsection{Abbreviations}
+\begin{tabular}{ll}
+SNR & Signal to noise ratio \\
+CPU & Central processing unit \\
+RAM & Random access memory \\
+GPU & Graphical processing unit \\
+C++ & C++ programming language \\
+OS & Operating system \\
+\end{tabular}
+
+
+
 \subsection{Preface}
 The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. It is a command line application that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here. In the following chapters we will go through the installation and basic use cases for the program in detail. 
 
 \subsection{System requirements}
 
 Regarding the hardware as the rule of the thumb, the better the performance your computer has the faster the simulations, although nearly all modern computers with a keyboard and a monitor should suffice for small simulations. The program makes use of parallel CPU cores so one does not need to worry too much about single thread performance of the CPU. The program should not be too memory consuming except in some special use cases so no excessive amount of RAM is needed for fast simulations. GPU support might also be implemented in the future but for now the choice of GPU is irrelevant regarding the simulations.
-\par Before trying to install and run the program itself, you need to make sure you have the all the required libraries and a compatible C++ compiler installed. 
+\par Before trying to install and run the program itself, you need to make sure you have the all the required libraries and a compatible C++ compiler installed. The recommended GNU C++ compiler (g++) should be preinstalled in most Linux distributions but in case it is not, please refer to installation notes here: \url{https://gcc.gnu.org/wiki/InstallingGCC}. 
+\par The next thing is to gather the required library packages:
+\begin{enumerate}
+\item OpenBLAS library: \url{https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide}
+\item LAPACK -- Linear Algebra PACKage: \url{http://www.netlib.org/lapack}
+\item ARPACK library: \url{http://www.caam.rice.edu/software/ARPACK}
+\item Armadillo C++ Linear algebra library: \url{http://arma.sourceforge.net/download.html} 
+\item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
+\end{enumerate}
+% (libarmadillo-dev)
+You can follow the links for detailed instructions how install those packages if you're facing problems (e.g. you're not installing the program on Linux OS) but the most straightforward way of doing this is opening terminal in Linux and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. In package manager those libraries go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev} and \textit{libboost-all-dev}. Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compability reasons, but requires a few modifications in the source code and Makefile for the compilation process. If all the install processes succeed you are now all set up to install the program itself.
+
 
 \subsection{Installing the program}
 
