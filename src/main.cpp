@@ -30,8 +30,11 @@ using namespace arma;
 /* storage for filepaths */
 map<string, string> filenames;
 
-/* Storage for simulation parameters */
+/* Storage for simulation integer parameters */
 map<string, int> params;
+
+/* storage for simulation double parameters */
+map<string, double> dparams;
 
 /* random number generator */
 mt19937_64 mersenne_twister{
@@ -66,7 +69,6 @@ int main(int argc, char** argv)
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
-    int P = params["spherical_shaping_max_power"];
 
     int min = params["snr_min"];
     int max = params["snr_max"];
@@ -74,6 +76,8 @@ int main(int argc, char** argv)
 
     int min_runs = params["simulation_rounds"];
     int max_err = params["required_errors"];
+
+    double P = dparams["spherical_shaping_max_power"];
 
     auto bases = read_matrices();
     cx_mat basis_sum(n, m);
@@ -91,7 +95,7 @@ int main(int argc, char** argv)
 
 
     log_msg("Number of basis matrices (code length): " + to_string(k));
-    // log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
+    log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
     
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, symbset);
 

@@ -147,7 +147,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     // int q = params["x-PAM"];
     int cs = params["codebook_size"];
     int samples = params["energy_estimation_samples"];
-    int P = params["spherical_shaping_max_power"];
+    double P = dparams["spherical_shaping_max_power"];
 
     /* lattice generator matrix G (alternative approach) */
     // cx_mat G(m*n,k);

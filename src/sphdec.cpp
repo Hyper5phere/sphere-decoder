@@ -224,7 +224,7 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, 
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
-    int P = params["spherical_shaping_max_power"];
+    double P = dparams["spherical_shaping_max_power"];
 
     vector<int> x(k);
     cx_mat Y, Ynorm;                           // Helper complex matrices

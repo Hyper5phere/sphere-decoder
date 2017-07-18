@@ -1,6 +1,7 @@
 #include <iostream>
 #include <armadillo> // linear algebra library
 #include <complex>
+#include <algorithm>
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -59,6 +60,9 @@ void configure() {
         log_msg();
         exit(0);
     }
+
+    // vector<string> string_params = {"basis_file", "output_file"};
+    vector<string> dparam_names = {"spherical_shaping_max_power"};
     
     string line;
     int lines = 0;
@@ -75,13 +79,18 @@ void configure() {
             getline(iss, value);
             clean_input(value); 
             if (!value.empty()) {
+                // cout << value << endl;
                 if (key.compare("basis_file") == 0) {
-                    if(value.size() > 0)
-                        filenames["bases"] = "bases/" + value;
+                    filenames["bases"] = "bases/" + value;
                 } else if (key.compare("output_file") == 0) {
-                    if(value.size() > 0)
-                        if (value.compare("auto") != 0)
-                            filenames["output"] = "output/" + value;
+                    if (value.compare("auto") != 0)
+                        filenames["output"] = "output/" + value;
+                } else if (find(dparam_names.begin(), dparam_names.end(), key) != dparam_names.end()) {
+                    if ((dparams[key] = strtod(value.c_str(), NULL)) == 0) {
+                        log_msg("Invalid value for option '" + key + "'", "Error");
+                        log_msg();
+                        exit(1);
+                    }
                 } else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");

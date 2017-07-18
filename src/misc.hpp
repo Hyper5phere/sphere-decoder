@@ -14,8 +14,11 @@
 /* storage for filenames */
 extern std::map<std::string, std::string> filenames;
 
-/* storage for simulation parameters */
+/* storage for simulation integer parameters */
 extern std::map<std::string, int> params;
+
+/* storage for simulation double parameters */
+extern std::map<std::string, double> dparams;
 
 /* thread safe std::vector data structure */
 template <typename T>
