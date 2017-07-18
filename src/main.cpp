@@ -4,7 +4,7 @@
  Author      : Pasi Pyrrö
  Version     : 1.0
  Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis
- Date        : 21.6.2017
+ Date        : 18.7.2017
  Description : Sphere Decoder in C++14
  ===================================================================================================
  */

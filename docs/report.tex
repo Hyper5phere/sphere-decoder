@@ -225,7 +225,8 @@ det$(\mathbf{X})$  & Determinant of matrix $\mathbf{X}$
 
 \begin{tabular}{ll}
 SNR & Signal to noise ratio \\
-CVP & Closest vector problem
+CVP & Closest vector problem \\
+MIMO & Multiple input multiple output
 \end{tabular}
 
 
@@ -325,6 +326,14 @@ One relevant mathematical problem related to sphere decoding, a communications a
 CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for a lattice codes sent via channel that induces fading. Such decoding process can be reduced to CVP and it's later explained in further detail.
 
 \subsection{Space--time lattice codes}
+
+Space--time lattice codes are a robust way of encoding the data on a  wireless channel that uses multiple transmit and receiver antennas, i.e. a MIMO-system. Wireless channels are usually very error prone due to interference and fading caused by the surrounding electrical devices, obstacles and nature. This method helps to improve the reliability of the data transmission on such channel, meaning we get decoding errors less likely. A single codeword from certain space--time lattice code constellation can be represented as a matrix that is defined like so
+
+\begin{equation}
+\mathcal{L} = \Bigg\{\sum_{i=1}^k a_i\mathbf{X}_i \ \Big| \ \mathbf{X}_i \in \mathcal{M}_{m \times l}(\mathbb{C}), \ a_i \in S \subset \mathbb{Z} \Bigg\}.
+\label{eq:codeword}
+\end{equation}
+The $\mathbf{X}_i, i = 1,...,k$ denote the constant basis matrices of the lattice code and the coefficients $a_i, i = 1,...,k$ are integers from a finite signal set $S$ which represent the data we want to send.
 
 
 
