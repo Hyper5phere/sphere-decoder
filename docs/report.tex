@@ -356,10 +356,16 @@ In this chapter we will discuss an efficient decoding algorithm for the space--t
 \subsection{Recursive sublattice decomposition}
 
 For understanding how the sphere decoder works we introduce the concept of sublattice decomposition from $n$-dimensional lattice to a stack of $(n-1)$-dimensional sublattices. As one could guess this can also be done recursively and ultimately we end up with 0-dimensional lattices also known as the lattice points. The motivation to this recursive representation of a lattice is that one only needs to consider intervals of sublattice layer indices when doing the distance comparison in each dimension from $n$ to $0$.
-\par Let us consider a $m \times n$ lattice generator matrix $\mathbf{G}$ for a lattice $\Lambda$ and $\mathbf{G}'$ is a $m \times (n-1)$ matrix so that
+\par Let us consider a $m \times n$ lattice generator matrix $\mathbf{G}$ for a lattice $\Lambda$ and $m \times (n-1)$ matrix $\mathbf{G}'$ so that
  
 \begin{equation}
 \mathbf{G} = \big[\mathbf{G}' \ \ \mathbf{v}_n \big]
+\label{eq:gen}
+\end{equation}
+ where the last column vector can be written as $\mathbf{v}_n = \mathbf{v}_{\parallel} + \mathbf{v}_{\bot}$, with $\mathbf{v}_{\parallel}$ in the column space of $\mathbf{G}'$ and $\mathbf{v}_{\bot}$ in the null space of $\mathbf{G}'$. With this notation we can decompose any $n$-dimensional lattice as follows
+
+\begin{equation}
+\Lambda(\mathbf{G}) = \bigcup_{u_n=-\infty}^{+\infty} \big\{\mathbf{c+u_n}\mathbf{v}_{\parallel}+u_n\mathbf{v}_{\bot} \mid \mathbf{c} \in \Lambda(\mathbf{G}') \big\}
 \label{eq:gen}
 \end{equation}
 
