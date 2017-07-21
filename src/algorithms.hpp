@@ -18,6 +18,7 @@ void process_qr(arma::mat &Q, arma::mat &R);
 arma::cx_mat create_generator_matrix(const std::vector<arma::cx_mat> &bases);
 arma::vec to_real_vector(arma::cx_mat A);
 arma::cx_mat create_random_matrix(int n, int m, double mean, double variance);
+arma::cx_mat create_random_diag_matrix(int n, double mean, double variance);
 // int* create_symbolset(int q);
 std::vector<int> create_symbolset(int q);
 void combinations(parallel_set< std::vector<int> > &comblist, const std::vector<int> &symbset, std::vector<int> comb, int dim);

@@ -98,6 +98,20 @@ cx_mat create_random_matrix(int n, int m, double mean, double variance){
     });
 }
 
+/* generates a random n x n complex matrix from uniform distribution */
+cx_mat create_random_diag_matrix(int n, double mean, double variance){
+    normal_distribution<double> distr(mean, sqrt(variance));
+    cx_vec diag(n);
+    cx_mat A(n,n);
+
+    A.zeros();
+    diag.imbue([&]() {
+        return complex<double>(distr(mersenne_twister), 0.0);
+    });
+    A.diag() = diag;
+    return A;
+}
+
 // /* Creates a C-style integer array representation of an x-PAM symbolset */
 // int* create_symbolset(int q){
 //     int *symbset = (int*) malloc(q * sizeof(int));

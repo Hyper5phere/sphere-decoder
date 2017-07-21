@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 15
+#define NUM_OPTIONS 16
 
 using namespace std;
 using namespace arma;
@@ -24,6 +24,7 @@ void create_config(){
     defconf << "// configuration settings and simulation parameters for the sphere decoder program" << endl << endl;
     defconf << "basis_file=bases.txt            // Text file containing the basis matrices" << endl;
     defconf << "output_file=auto                // Optionally spesify the output filename (auto = automatic)" << endl;
+    defconf << "channel_model=mimo              // define the channel model for the simulation (either 'mimo' or 'siso')" << endl;
     defconf << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl;
     defconf << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl;
     defconf << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl;
@@ -48,20 +49,20 @@ void configure() {
     ifstream config_file(filepath);
 
     if (!config_file.good() && filepath.compare(default_filepath) != 0) {
-        log_msg("[Warning] No settings file '" + filepath + "' found, using the default one...");
+        log_msg("No settings file '" + filepath + "' found, using the default one...", "Warning");
         config_file = ifstream(default_filepath);
     } 
 
     if (!config_file.good()) {
-        log_msg("[Info] No default settings file found, creating a new one with default settings...");
+        log_msg("No default settings file found, creating a new one with default settings...");
         create_config();
-        log_msg("[Info] Make your changes to the settings file and rerun this program.");
-        log_msg("[Info] Exiting...");
+        log_msg("Make your changes to the settings file and rerun this program.");
+        log_msg("Exiting...");
         log_msg();
         exit(0);
     }
 
-    // vector<string> string_params = {"basis_file", "output_file"};
+    vector<string> sparam_names = {"channel_model"};
     vector<string> dparam_names = {"spherical_shaping_max_power"};
     
     string line;
@@ -88,9 +89,11 @@ void configure() {
                 } else if (find(dparam_names.begin(), dparam_names.end(), key) != dparam_names.end()) {
                     if ((dparams[key] = strtod(value.c_str(), NULL)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
-                        log_msg();
+                        // log_msg();
                         exit(1);
                     }
+                } else if (find(sparam_names.begin(), sparam_names.end(), key) != sparam_names.end()) {
+                    sparams[key] = value;
                 } else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
@@ -107,20 +110,20 @@ void configure() {
         lines++;
     }
     if (lines < NUM_OPTIONS){
-        log_msg("[Error] Too few options spesified in the '" + filepath + "'!");
-        log_msg("[Info] Consider deleting the default settings file which will reset the program settings.");
+        log_msg("Too few options spesified in the '" + filepath + "'!", "Error");
+        log_msg("Consider deleting the default settings file which will reset the program settings.");
         // log_msg();
         exit(1);
     } 
     if ((params["x-PAM"] <= 0) || (params["x-PAM"] % 2 == 1)){
-        log_msg("[Error] Invalid x-PAM signal set spesified!");
-        log_msg("[Info] x-PAM option accepts positive even integers.");
+        log_msg("Invalid x-PAM signal set spesified!", "Error");
+        log_msg("x-PAM option accepts positive even integers.");
         // log_msg();
         exit(1);
     }
 
     // helper variable (size of the code matrix set) calculated from the input parameters
-    params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
+    // params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
 }
 
 /* reads k (m x t) matrices from the spesified basis_file */
@@ -195,8 +198,8 @@ vector<cx_mat> read_matrices(){
     }
 
     if (m*t*k != (int)numbers.size()){
-        log_msg("[Error] Failed to read the " + to_string(m*t*k) + " matrix elements configured in '" + filenames["bases"] + "'!");
-        log_msg();
+        log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements configured in '" + filenames["bases"] + "'!", "Error");
+        // log_msg();
         exit(1);
     }
 

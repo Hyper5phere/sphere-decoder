@@ -36,6 +36,9 @@ map<string, int> params;
 /* storage for simulation double parameters */
 map<string, double> dparams;
 
+/* storage for simulation string parameters */
+map<string, string> sparams;
+
 /* random number generator */
 mt19937_64 mersenne_twister{
     static_cast<long unsigned int>(
@@ -79,6 +82,8 @@ int main(int argc, char** argv)
     int max_err = params["required_errors"];
 
     double P = dparams["spherical_shaping_max_power"];
+
+    string channel_model = sparams["channel_model"];
 
     auto bases = read_matrices();
     cx_mat basis_sum(n, m);
@@ -174,7 +179,16 @@ int main(int argc, char** argv)
 
                 // cout << X << endl;
                 // X = bases[0]*2.9+bases[1]*3;
-                H = create_random_matrix(n, m, 0, Hvar);    // Channel matrix
+                if (channel_model.compare("mimo") == 0)
+                    H = create_random_matrix(n, m, 0, Hvar);    // Channel matrix
+                else if (channel_model.compare("siso") == 0)
+                    H = create_random_diag_matrix(n, 0, Hvar);
+                else {
+                    log_msg("Invalid channel model parameter used!", "Error");
+                    exit(1);
+                }
+                // cout << H << endl;
+
                 N = create_random_matrix(n, t, 0, Nvar);    // Noise matrix 
                 // H.eye(2,2);
                 // N.zeros(2,2);
