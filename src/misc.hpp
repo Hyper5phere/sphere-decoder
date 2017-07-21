@@ -57,6 +57,7 @@ void create_output_filename(void);
 void output_csv(const parallel_vector<std::string> &line);
 bool snr_ordering(std::string &a, std::string &b);
 void plot_csv(int xcol, int ycol, const std::string &xlabel, const std::string &ylabel, bool logscale);
+void output_data(parallel_vector<std::string> &output);
 
 /* Makes a string representation out of any basic vector type */
 template <typename T>

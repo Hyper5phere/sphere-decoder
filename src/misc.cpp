@@ -99,3 +99,18 @@ void plot_csv(int xcol, int ycol, const string &xlabel, const string &ylabel, bo
     gp << "plot '" << filenames["output"] << "' using " << xcol << ":" << ycol << " with linespoints ls 3\n";
     #endif
 }
+
+void output_data(parallel_vector<string> &output){
+    if (output.size() > 1){
+        sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
+        log_msg("Printing simulation output to '" + filenames["output"] + "'...");
+        output_csv(output);
+        #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
+        if (params["plot_results"] > 0){
+            log_msg("Drawing plots...");
+            plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
+            plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
+        }
+        #endif
+    }
+}

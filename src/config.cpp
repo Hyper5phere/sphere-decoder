@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 16
+#define NUM_OPTIONS 17
 
 using namespace std;
 using namespace arma;
@@ -37,6 +37,7 @@ void create_config(){
     defconf << "simulation_rounds=100000        // Number of simulation rounds to run" << endl;
     defconf << "required_errors=500             // Demand at minimum this many errors before the simulation ends" << endl;
     defconf << "plot_results=-1                 // Draw plots? (1 = yes, -1 = no)" << endl;
+    defconf << "stat_display_interval=-1        // Defines after each how many rounds to display the current simulation stats (-1 = disabled)" << endl;
     defconf << "spherical_shaping_max_power=-1  // Defines the maximum distance from origin for codebook elements (-1 = unbounded)" << endl;
     defconf.close();     
 }

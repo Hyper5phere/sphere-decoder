@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <csignal>
 
 #include "misc.hpp"
 #include "config.hpp"
@@ -39,6 +40,9 @@ map<string, double> dparams;
 /* storage for simulation string parameters */
 map<string, string> sparams;
 
+/* Used for writing the csv output file */
+parallel_vector<string> output;
+
 /* random number generator */
 mt19937_64 mersenne_twister{
     static_cast<long unsigned int>(
@@ -46,9 +50,19 @@ mt19937_64 mersenne_twister{
     )
 };
 
+/* Handles task kills (CTRL-C) */
+void signal_handler(int signum) {
+    log_msg("Simulation terminated by user!", "Warning");
+    output_data(output);
+    exit(signum);
+}
+
 /* The program starts here */
 int main(int argc, char** argv)
 {
+    // assign signal SIGINT (when CTRL-C is pressed) to signal handler
+    signal(SIGINT, signal_handler);
+
     /* define default filenames */
     filenames["settings"]         = "settings/settings.ini";
     filenames["settings_default"] = "settings/settings.ini";
@@ -80,6 +94,8 @@ int main(int argc, char** argv)
 
     int min_runs = params["simulation_rounds"];
     int max_err = params["required_errors"];
+
+    int stat_interval = params["stat_display_interval"];
 
     double P = dparams["spherical_shaping_max_power"];
 
@@ -118,19 +134,17 @@ int main(int argc, char** argv)
     log_msg("Average: " + to_string(e.first));
     log_msg("Max: " + to_string(e.second));
     log_msg("-----------");
-    log_msg("Starting simulation...");
+    log_msg("Starting simulations... (Press CTRL-C to abort)");
 
     if (filenames.count("output") == 0)
         create_output_filename();
 
-    parallel_vector<string> output; // Used for writing the csv output file
     output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); // add label row
     
     #pragma omp parallel // parallelize SNR simulations
     {
         double Hvar = 1, Nvar = 1;
  
-
         /* initialize a bunch of complex matrices used in the simulation */
         cx_mat H, HX, X, N, Y, Ynorm;
 
@@ -141,6 +155,7 @@ int main(int argc, char** argv)
 
         vector<int> x(k), orig(k);
         // vec x(k);
+        vector<string> stats;
 
         int runs = 0;
         // int a = 0;
@@ -276,6 +291,20 @@ int main(int argc, char** argv)
 
                 total_nodes += visited_nodes;
                 runs++;
+
+                if (runs % stat_interval == 0 && stat_interval > 0){
+                    SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
+                    bler = 100.0*(double)errors/runs;
+                    avg_complex = (double)total_nodes/runs;
+                    log_msg("SNR-simulation " + to_string(snr) + \
+                    "\tReal SNR: " + to_string(SNRreal) + \
+                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + " %)" + \
+                    ", Avg Complexity: " + to_string(avg_complex));
+                    
+                    // for (const string &s : stats)
+                    //     log_msg(s);
+                }
+
                 // Q.zeros();
                 // R.zeros();
                 x.clear();
@@ -288,8 +317,8 @@ int main(int argc, char** argv)
             
             output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler) + "," + to_string(avg_complex));
             
-            log_msg("Simulated SNR: " + to_string(snr) + \
-                    ", Real SNR: " + to_string(SNRreal) + \
+            log_msg("SNR-simulation " + to_string(snr) + \
+                    "\t[Finished] Real SNR: " + to_string(SNRreal) + \
                     ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + " %)" + \
                     ", Avg Complexity: " + to_string(avg_complex));
 
@@ -299,22 +328,24 @@ int main(int argc, char** argv)
             noisepow = 0;
             sigpow = 0;
             total_nodes = 0;
+            stats.clear();
         }
 
     }
     /* output the simulation results in a csv file in /output/ folder */
-    if (output.size() > 1){
-        sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
-        log_msg("Printing simulation output to '" + filenames["output"] + "'...");
-        output_csv(output);
-        #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
-        if (params["plot_results"] > 0){
-            log_msg("Drawing plots...");
-            plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
-            plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
-        }
-        #endif
-    }
+    // if (output.size() > 1){
+    //     sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
+    //     log_msg("Printing simulation output to '" + filenames["output"] + "'...");
+    //     output_csv(output);
+    //     #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
+    //     if (params["plot_results"] > 0){
+    //         log_msg("Drawing plots...");
+    //         plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
+    //         plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
+    //     }
+    //     #endif
+    // }
+    output_data(output);
 
     log_msg("Program exited successfully!");
     // log_msg();
