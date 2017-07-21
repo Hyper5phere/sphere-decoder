@@ -6,8 +6,6 @@
 #include <fstream>
 #include <algorithm>
 
-#define PLOTTING
-
 #include "misc.hpp"
 #ifdef PLOTTING
 #include "gnuplot-iostream.hpp"
@@ -35,7 +33,7 @@ void log_msg(const string msg, const string lvl){
         prefix += " | [" + lvl + "]\t";
         lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
         ofstream logfile(filenames["log"], ios_base::app);
-        if (msg.compare("-exit-") == 0)
+        if (msg.compare("-start-") == 0)
             logfile << endl;
         else {
             logfile << prefix << msg << endl;

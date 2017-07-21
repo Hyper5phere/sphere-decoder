@@ -94,13 +94,13 @@ void configure() {
                 } else {
                     if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
-                        log_msg();
+                        // log_msg();
                         exit(1);
                     }
                 }
             } else {
                 log_msg("[Error] Value for option '" + key + "' not spesified!");
-                log_msg();
+                // log_msg();
                 exit(1);
             }
         }
@@ -109,13 +109,13 @@ void configure() {
     if (lines < NUM_OPTIONS){
         log_msg("[Error] Too few options spesified in the '" + filepath + "'!");
         log_msg("[Info] Consider deleting the default settings file which will reset the program settings.");
-        log_msg();
+        // log_msg();
         exit(1);
     } 
     if ((params["x-PAM"] <= 0) || (params["x-PAM"] % 2 == 1)){
         log_msg("[Error] Invalid x-PAM signal set spesified!");
         log_msg("[Info] x-PAM option accepts positive even integers.");
-        log_msg();
+        // log_msg();
         exit(1);
     }
 

@@ -61,6 +61,7 @@ int main(int argc, char** argv)
 
     configure();
 
+    log_msg();
     log_msg("Starting program...");
 
     /* initialize simulation parameters */
@@ -87,6 +88,12 @@ int main(int argc, char** argv)
         cout << basis << endl;
         basis_sum += basis;
     }
+
+    cx_mat G = create_generator_matrix(bases);
+
+    cout << "Orthogonality check:" << endl;
+    cout << G*G.t() << endl;
+    // exit(0);
 
     vector<int> symbset = create_symbolset(q);
     // symbset.push_back(-3);
@@ -178,7 +185,7 @@ int main(int argc, char** argv)
 
                 // cout << N << endl;
 
-                x = sphdec_wrapper(bases, basis_sum, H, X, N, visited_nodes, C);
+                x = sphdec_wrapper(bases, basis_sum, H, X, N, symbset, visited_nodes, C);
 
                 // HX = H*X;
                 // sigpow += frob_norm_squared(HX);
@@ -296,6 +303,6 @@ int main(int argc, char** argv)
     }
 
     log_msg("Program exited successfully!");
-    log_msg();
+    // log_msg();
     return 0;
 }

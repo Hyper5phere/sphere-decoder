@@ -48,7 +48,7 @@ class parallel_set : public std::set<T> {
 
 /* function prototypes */
 std::string time_str(void);
-void log_msg(const std::string msg = "-exit-", const std::string lvl = "Info");
+void log_msg(const std::string msg = "-start-", const std::string lvl = "Info");
 void clean_input(std::string &input);
 void create_output_filename(void);
 void output_csv(const parallel_vector<std::string> &line);

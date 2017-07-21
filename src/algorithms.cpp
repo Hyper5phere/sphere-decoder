@@ -17,6 +17,22 @@ int sesd_sign(double x){
     return (x <= 0) ? -1 : 1;
 }
 
+/* Rounds x to nearest integer in S */
+double nearest_symbol(double x, const vector<int> &S){
+    double min = 10e6;
+    double d = 0.0;
+    double nearest = 0.0;
+
+    for (const int symbol : S) {
+        d = fabs(x - symbol);
+        if (d < min) {
+            nearest = symbol;
+            min = d;
+        }
+    }
+    return nearest;
+}
+
 /* Takes the squared Frobenius norm from a complex matrix A */
 double frob_norm_squared(cx_mat A){
     double sum = 0;
@@ -43,6 +59,18 @@ void process_qr(mat &Q, mat &R){
             Q.col(i) *= -1;
         }
     }
+}
+
+/* Create the lattice generator matrix G out of basis matrices*/
+cx_mat create_generator_matrix(const vector<cx_mat> &bases){
+    int m = params["no_of_transmit_antennas"];
+    int t = params["time_slots"];
+    int k = params["no_of_matrices"];
+    cx_mat G(m*t,k);
+    for(int i = 0; i < k; i++){
+        G.col(i) = vectorise(bases[i]);
+    }
+    return G;
 }
 
 /* Vectorizes a complex matrix A to real vector (each row is concatenated) */
