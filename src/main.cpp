@@ -102,18 +102,19 @@ int main(int argc, char** argv)
     string channel_model = sparams["channel_model"];
 
     auto bases = read_matrices();
-    cx_mat basis_sum(n, m);
+    cx_mat basis_sum(m, t);
 
     cout << "Read basis matrices: " << endl;
     for (auto const &basis : bases){
         cout << basis << endl;
         basis_sum += basis;
     }
+    // exit(0);
 
     cx_mat G = create_generator_matrix(bases);
 
     cout << "Orthogonality check:" << endl;
-    cout << G*G.t() << endl;
+    cout << G.t()*G << endl;
     // exit(0);
 
     vector<int> symbset = create_symbolset(q);

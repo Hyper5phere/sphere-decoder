@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 17
+#define NUM_OPTIONS 18
 
 using namespace std;
 using namespace arma;
@@ -28,6 +28,7 @@ void create_config(){
     defconf << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl;
     defconf << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl;
     defconf << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl;
+    defconf << "matrix_coefficient=1.0          // Multiply all basis matrices by this constant" << endl;
     defconf << "time_slots=2                    // Number of time slots used in the code" << endl;
     defconf << "no_of_transmit_antennas=2       // Number of transmit antennas" << endl;
     defconf << "no_of_receiver_antennas=2       // Number of receiver antennas"  << endl;
@@ -64,7 +65,7 @@ void configure() {
     }
 
     vector<string> sparam_names = {"channel_model"};
-    vector<string> dparam_names = {"spherical_shaping_max_power"};
+    vector<string> dparam_names = {"spherical_shaping_max_power", "matrix_coefficient"};
     
     string line;
     int lines = 0;
@@ -137,11 +138,11 @@ vector<cx_mat> read_matrices(){
      */
     regex elem_regex(
         //"(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?\\s*[,)};\\]\n]{1})|"
-        "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?)|"
+        "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\s*\\*?[Ii]?)|"
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
         "\\s*" // white space
         "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "\\*?[Ii]{1})\\s*([,)};\\]\n]{1})" // element ends in comma, semicolon, newline or closing bracket
+        "\\s*\\*?[Ii]{1})\\s*([,)};\\]\n]{1})" // element ends in comma, semicolon, newline or closing bracket
     );
 
     /* Some supported formats for the matrix elements:
@@ -174,7 +175,7 @@ vector<cx_mat> read_matrices(){
         //     cout << i << ": " << match[i].str() << endl;
 
         string z = match[1].str();
-        // cout << z << endl;
+        cout << z << endl;
         //if (count(z.begin(), z.end(), '.') > 1){
 
         // do the split between "whole" complex numbers and partial ones
@@ -199,7 +200,8 @@ vector<cx_mat> read_matrices(){
     }
 
     if (m*t*k != (int)numbers.size()){
-        log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements configured in '" + filenames["bases"] + "'!", "Error");
+        log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements (read " + to_string(numbers.size()) + \
+            ") configured in '" + filenames["bases"] + "'!", "Error");
         // log_msg();
         exit(1);
     }
@@ -214,7 +216,7 @@ vector<cx_mat> read_matrices(){
                 idx++;
             }
         }
-        output.push_back(X);
+        output.push_back(dparams["matrix_coefficient"]*X);
         X.zeros();
     }
     
