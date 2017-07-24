@@ -19,6 +19,7 @@
 #include <random>
 #include <chrono>
 #include <csignal>
+#include <thread>
 
 #include "misc.hpp"
 #include "config.hpp"
@@ -40,9 +41,6 @@ map<string, double> dparams;
 /* storage for simulation string parameters */
 map<string, string> sparams;
 
-/* Used for writing the csv output file */
-parallel_vector<string> output;
-
 /* random number generator */
 mt19937_64 mersenne_twister{
     static_cast<long unsigned int>(
@@ -50,11 +48,15 @@ mt19937_64 mersenne_twister{
     )
 };
 
+bool exit_flag = false;
+
 /* Handles task kills (CTRL-C) */
 void signal_handler(int signum) {
-    log_msg("Simulation terminated by user!", "Warning");
-    output_data(output);
-    exit(signum);
+    exit_flag = true;
+    // this_thread::sleep_for(chrono::milliseconds(1000));
+    log_msg("Simulations terminated by user!");
+    // output_data(output); // output current simulation data
+    // exit(signum);
 }
 
 /* The program starts here */
@@ -118,10 +120,6 @@ int main(int argc, char** argv)
     // exit(0);
 
     vector<int> symbset = create_symbolset(q);
-    // symbset.push_back(-3);
-    // symbset.push_back(0);
-    // symbset.push_back(2);
-
 
     log_msg("Number of basis matrices (code length): " + to_string(k));
     log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
@@ -139,6 +137,9 @@ int main(int argc, char** argv)
 
     if (filenames.count("output") == 0)
         create_output_filename();
+
+    /* Used for writing the csv output file */
+    parallel_vector<string> output;
 
     output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); // add label row
     
@@ -182,6 +183,8 @@ int main(int argc, char** argv)
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
             // cout << Hvar << endl; 
             while (errors < max_err || runs < min_runs){
+
+                if (exit_flag) break; // terminate simulations
 
                 // a = random_code(mersenne_twister);
                 // X = codebook[a].second;                     
