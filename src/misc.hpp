@@ -3,7 +3,7 @@
 
 #define _GLIBCXX_USE_CXX11_ABI 0 // fixes some string related errors
 // #define ARMA_NO_DEBUG // for speed
-#define PLOTTING // enable plotting (requires boost C++ library)
+// #define PLOTTING // enable plotting (requires boost C++ library)
 
 #include <string>
 #include <map>
