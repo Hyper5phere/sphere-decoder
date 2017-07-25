@@ -223,10 +223,55 @@ vector<cx_mat> read_matrices(){
     return output;
 }
 
-// map<int, int> read_error_requirements(const string &filepath){
-//     ifstream error_file(filenames["error_file"]);
-//     if (!error_file.good()) {
-//         log_msg("No error requirements file '" + filepath + "' found", "Error");
-//         exit(0);
-//     }
-// }
+map<int, int> read_error_requirements(const string &filepath){
+    map<int, int> snr_to_error;
+    vector<int> snrs, errors;
+    int line_num = 1;
+    ifstream error_file(filenames["error_file"]);
+    string line;
+    string value;
+
+    if (!error_file.good()) {
+        log_msg("No error requirements file '" + filepath + "' found!", "Error");
+        exit(0);
+    }
+
+    while(getline(error_file, line)){
+        istringstream iss(line);
+        while(getline(iss, value, ',')){
+            clean_input(value);
+            if (line_num == 1){
+                snrs.push_back(strtol(value.c_str(), NULL, 10));
+            } else if (line_num == 2){
+                errors.push_back(strtol(value.c_str(), NULL, 10));
+            } else break;
+        }
+        line_num++;
+    }
+
+    if (snrs.empty()){
+        log_msg("Error requirements file '" + filepath + "' is empty!", "Error");
+        exit(0);
+    }
+
+    int min = params["snr_min"];
+    int max = params["snr_max"];
+    int step = params["snr_step"];
+    unsigned required_size = (max-min)/step + 1;
+
+    if (snrs.size() != required_size){
+        log_msg("Error requirements file '" + filepath + "' has incorrect amount of values!", "Error");
+        exit(0);
+    }
+
+    if (snrs.size() != errors.size()){
+        log_msg("Error requirements file '" + filepath + "' is invalid!", "Error");
+        exit(0);
+    }
+
+    for (auto i = 0u; i < snrs.size(); i++){
+        snr_to_error[snrs[i]] = errors[i];
+    }
+
+    return snr_to_error;
+}
