@@ -51,7 +51,7 @@ void configure() {
     ifstream config_file(filepath);
 
     if (!config_file.good() && filepath.compare(default_filepath) != 0) {
-        log_msg("No settings file '" + filepath + "' found, using the default one...", "Warning");
+        log_msg("No settings file '" + filepath + "' found, using the default one...", "Alert");
         config_file = ifstream(default_filepath);
     } 
 
@@ -60,7 +60,7 @@ void configure() {
         create_config();
         log_msg("Make your changes to the settings file and rerun this program.");
         log_msg("Exiting...");
-        log_msg();
+        // log_msg();
         exit(0);
     }
 
@@ -175,7 +175,7 @@ vector<cx_mat> read_matrices(){
         //     cout << i << ": " << match[i].str() << endl;
 
         string z = match[1].str();
-        cout << z << endl;
+        // cout << z << endl;
         //if (count(z.begin(), z.end(), '.') > 1){
 
         // do the split between "whole" complex numbers and partial ones
@@ -222,3 +222,11 @@ vector<cx_mat> read_matrices(){
     
     return output;
 }
+
+// map<int, int> read_error_requirements(const string &filepath){
+//     ifstream error_file(filenames["error_file"]);
+//     if (!error_file.good()) {
+//         log_msg("No error requirements file '" + filepath + "' found", "Error");
+//         exit(0);
+//     }
+// }

@@ -54,7 +54,7 @@ bool exit_flag = false;
 void signal_handler(int signum) {
     exit_flag = true;
     // this_thread::sleep_for(chrono::milliseconds(1000));
-    log_msg("Simulations terminated by user!");
+    log_msg("Simulations terminated by user!", "Alert");
     // output_data(output); // output current simulation data
     // exit(signum);
 }
@@ -148,7 +148,7 @@ int main(int argc, char** argv)
         double Hvar = 1, Nvar = 1;
  
         /* initialize a bunch of complex matrices used in the simulation */
-        cx_mat H, HX, X, N, Y, Ynorm;
+        cx_mat H, X(m, t), N(n, t); // Y //, HX, Ynorm;
 
         // mat B(2*t*n, k), Q, R, M;
 
@@ -311,7 +311,7 @@ int main(int argc, char** argv)
 
                 // Q.zeros();
                 // R.zeros();
-                x.clear();
+                // x.clear();
                 // orig.clear();
             }
             

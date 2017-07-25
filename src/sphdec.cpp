@@ -66,6 +66,8 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     int q = params["x-PAM"];
     int i = k-1;
 
+    // cout << "sphdec called" << endl;
+
     vector<int> x(k); // candidate for the closest lattice point
 	vec xt(k), ksi(k), delta(k), dist(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros();
@@ -229,34 +231,46 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, 
                            const cx_mat &X, const cx_mat &N, const vector<int> &symbset, int &visited_nodes, double radius){
 
     int n = params["no_of_receiver_antennas"];
+    int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     // int q = params["x-PAM"];
     double P = dparams["spherical_shaping_max_power"];
 
-
+    // cout << "sphdec_wrapper called!" << endl;
 
     vector<int> x(k);
-    cx_mat Y, Ynorm;                           // Helper complex matrices
-    mat B(2*t*n, k), G(2*t*n,k), Q, R, Rorig;  // real matrices
+    cx_mat Y(n, t); //, Ynorm;                 // Helper complex matrices
+    mat B(2*t*n, k), G(2*t*m,k), Q, R, Rorig;  // real matrices
+    // vec y(2*t*n), y2;                                // helper and sphdec input vector
+    // cx_mat Y;                                  // Helper complex matrices
+    // mat B, G, Q, R, Rorig;                     // real matrices
     vec y, y2;                                 // helper and sphdec input vector
     
-    Y = H*X + N;                            // Simulated code block that we would receive from MIMO-channel
+    Y = H*X + N;                               // Simulated code block that we would receive from MIMO-channel
+    // cout << "check 0" << endl;                 
     // Ynorm = (Y + H*basis_sum*(q - 1))*0.5;  // normalize received matrix for the sphere decoder
-    y = to_real_vector(Y);              // convert Y to real vector
-
+    y = to_real_vector(Y);                     // convert Y to real vector
+    // cout << "check 1" << endl;
     for(int i = 0; i < k; i++){
-        G.col(i) = to_real_vector(bases[i]);   // G = (X1 X2 ... Xk) = generator matrix of original lattice
         B.col(i) = to_real_vector(H*bases[i]); // B = (HX1 HX2 ... HXk) = generator matrix of faded lattice
+        if (P > 0) 
+            G.col(i) = to_real_vector(bases[i]);   // G = (X1 X2 ... Xk) = generator matrix of original lattice
     }
 
-    qr_econ(Q, Rorig, G);  // QR-decomposition of G (omits zero rows in Rorig)
-    process_qr(Q, Rorig);  // Make sure Rorig has positive diagonal elements
-    Q.zeros();
+    // cout << "check 2" << endl;
+
+    if (P > 0) {
+        qr_econ(Q, Rorig, G);  // QR-decomposition of G (omits zero rows in Rorig)
+        process_qr(Q, Rorig);  // Make sure Rorig has positive diagonal elements
+        Q.zeros();
+    }
+    // cout << "check 3" << endl;
     qr_econ(Q, R, B);  // QR-decomposition of B (omits zero rows in R)
     process_qr(Q, R);  // Make sure R has positive diagonal elements
 
     y2 = Q.st()*y;     // Map y to same basis as R
+    // cout << "check 4" << endl;
 
     if (P < 0)
         x = sphdec(y2, R, symbset, visited_nodes, radius); // Call the actual sphere decoder algorithm
