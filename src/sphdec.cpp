@@ -82,6 +82,9 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     step2(i, q, xt, y, delta, ksi, R, S);
 
     while (true) {
+
+        if (exit_flag) break; // terminate simulations
+        
         counter++;
         // Step 3.
         xidist = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
@@ -162,6 +165,9 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
     step2(i, q, xt, y, delta, ksi, HR, S);
 
     while (true) {
+
+        if (exit_flag) break; // terminate simulations
+
         counter++;
         // Step 3.
         xidist = pow(y[i]-ksi[i]-HR(i,i)*xt[i], 2);

@@ -48,15 +48,18 @@ mt19937_64 mersenne_twister{
     )
 };
 
-bool exit_flag = false;
+/* Used for writing the csv output file */
+parallel_vector<string> output;
+
+bool exit_flag;
 
 /* Handles task kills (CTRL-C) */
 void signal_handler(int signum) {
     exit_flag = true;
-    // this_thread::sleep_for(chrono::milliseconds(1000));
+    this_thread::sleep_for(chrono::milliseconds(1000));
     log_msg("Simulations terminated by user!", "Alert");
-    // output_data(output); // output current simulation data
-    // exit(signum);
+    output_data(output); // output current simulation data
+    exit(signum);
 }
 
 /* The program starts here */
@@ -64,6 +67,7 @@ int main(int argc, char** argv)
 {
     // assign signal SIGINT (when CTRL-C is pressed) to signal handler
     signal(SIGINT, signal_handler);
+    exit_flag = false;
 
     /* define default filenames */
     filenames["settings"]         = "settings/settings.ini";
@@ -138,9 +142,6 @@ int main(int argc, char** argv)
     if (filenames.count("output") == 0)
         create_output_filename();
 
-    /* Used for writing the csv output file */
-    parallel_vector<string> output;
-
     output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); // add label row
     
     #pragma omp parallel // parallelize SNR simulations
@@ -157,7 +158,7 @@ int main(int argc, char** argv)
 
         vector<int> x(k), orig(k);
         // vec x(k);
-        vector<string> stats;
+        // vector<string> stats;
 
         int runs = 0;
         // int a = 0;
@@ -332,7 +333,7 @@ int main(int argc, char** argv)
             noisepow = 0;
             sigpow = 0;
             total_nodes = 0;
-            stats.clear();
+            // stats.clear();
         }
 
     }

@@ -23,6 +23,9 @@ extern std::map<std::string, double> dparams;
 /* storage for simulation string parameters */
 extern std::map<std::string, std::string> sparams;
 
+/* flag which indicates early stop of the simulation */
+extern bool exit_flag;
+
 /* thread safe std::vector data structure */
 template <typename T>
 class parallel_vector : public std::vector<T> {
