@@ -7,5 +7,6 @@
 void create_config(void);
 void configure(void);
 std::vector<arma::cx_mat> read_matrices(void);
+std::map<int, int> read_error_requirements(const std::string &filepath);
 
 #endif /* CONFIG_HPP */

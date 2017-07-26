@@ -51,6 +51,7 @@ mt19937_64 mersenne_twister{
 /* Used for writing the csv output file */
 parallel_vector<string> output;
 
+/* flag which indicates early stop of the simulation */
 bool exit_flag;
 
 /* Handles task kills (CTRL-C) */
@@ -99,7 +100,6 @@ int main(int argc, char** argv)
     int step = params["snr_step"];
 
     int min_runs = params["simulation_rounds"];
-    int max_err = params["required_errors"];
 
     int stat_interval = params["stat_display_interval"];
 
@@ -138,6 +138,13 @@ int main(int argc, char** argv)
     log_msg("Max: " + to_string(e.second));
     log_msg("-----------");
     log_msg("Starting simulations... (Press CTRL-C to abort)");
+
+    map<int, int> required_errors;
+    if (filenames.count("error") == 0)
+        for (int snr = min; snr <= max; snr += step)
+            required_errors[snr] = params["required_errors"];
+    else
+        required_errors = read_error_requirements(filenames["error"]);
 
     if (filenames.count("output") == 0)
         create_output_filename();
@@ -183,7 +190,7 @@ int main(int argc, char** argv)
             // Hvar = e.first/pow(10, snr/10)*t; 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
             // cout << Hvar << endl; 
-            while (errors < max_err || runs < min_runs){
+            while (errors < required_errors[snr] || runs < min_runs){
 
                 if (exit_flag) break; // terminate simulations
 

@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 18
+#define NUM_OPTIONS 19
 
 using namespace std;
 using namespace arma;
@@ -23,8 +23,9 @@ void create_config(){
     // the file can contain comments similar to this line here
     defconf << "// configuration settings and simulation parameters for the sphere decoder program" << endl << endl;
     defconf << "basis_file=bases.txt            // Text file containing the basis matrices" << endl;
-    defconf << "output_file=auto                // Optionally spesify the output filename (auto = automatic)" << endl;
-    defconf << "channel_model=mimo              // define the channel model for the simulation (either 'mimo' or 'siso')" << endl;
+    defconf << "output_file=                    // Optionally spesify the output filename" << endl;
+    defconf << "error_file=                     // Optionally spesify the file containing error requirements for the SNR simulations." << endl;
+    defconf << "channel_model=mimo              // Define the channel model for the simulation (either 'mimo' or 'siso')" << endl;
     defconf << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl;
     defconf << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl;
     defconf << "no_of_matrices=2                // Number of basis matrices (dimension of the data vectors)" << endl;
@@ -66,6 +67,7 @@ void configure() {
 
     vector<string> sparam_names = {"channel_model"};
     vector<string> dparam_names = {"spherical_shaping_max_power", "matrix_coefficient"};
+    vector<string> accept_empty_names = {"output_file", "error_file"};
     
     string line;
     int lines = 0;
@@ -78,6 +80,7 @@ void configure() {
         {
             if (key.find("//", 0) != string::npos)
                 continue;
+            lines++;
             string value;
             getline(iss, value);
             clean_input(value); 
@@ -86,8 +89,10 @@ void configure() {
                 if (key.compare("basis_file") == 0) {
                     filenames["bases"] = "bases/" + value;
                 } else if (key.compare("output_file") == 0) {
-                    if (value.compare("auto") != 0)
-                        filenames["output"] = "output/" + value;
+                    // if (value.compare("auto") != 0)
+                    filenames["output"] = "output/" + value;
+                } else if (key.compare("error_file") == 0) {
+                    filenames["error"] = "settings/" + value;
                 } else if (find(dparam_names.begin(), dparam_names.end(), key) != dparam_names.end()) {
                     if ((dparams[key] = strtod(value.c_str(), NULL)) == 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
@@ -103,13 +108,12 @@ void configure() {
                         exit(1);
                     }
                 }
-            } else {
+            } else if (find(accept_empty_names.begin(), accept_empty_names.end(), key) == accept_empty_names.end()){
                 log_msg("[Error] Value for option '" + key + "' not spesified!");
                 // log_msg();
                 exit(1);
             }
         }
-        lines++;
     }
     if (lines < NUM_OPTIONS){
         log_msg("Too few options spesified in the '" + filepath + "'!", "Error");
@@ -227,7 +231,7 @@ map<int, int> read_error_requirements(const string &filepath){
     map<int, int> snr_to_error;
     vector<int> snrs, errors;
     int line_num = 1;
-    ifstream error_file(filenames["error_file"]);
+    ifstream error_file(filepath);
     string line;
     string value;
 
@@ -260,16 +264,20 @@ map<int, int> read_error_requirements(const string &filepath){
     unsigned required_size = (max-min)/step + 1;
 
     if (snrs.size() != required_size){
-        log_msg("Error requirements file '" + filepath + "' has incorrect amount of values!", "Error");
+        log_msg("Error requirements file '" + filepath + "' has an incorrect amount of SNR values!", "Error");
         exit(0);
     }
 
     if (snrs.size() != errors.size()){
-        log_msg("Error requirements file '" + filepath + "' is invalid!", "Error");
+        log_msg("Error requirements file '" + filepath + "' has an incorrect amount of error values!", "Error");
         exit(0);
     }
 
     for (auto i = 0u; i < snrs.size(); i++){
+        if (min + (int)i*step != snrs[i]){
+            log_msg("Error requirements file '" + filepath + "' has unspesified SNR value at column " + to_string(i+1) + "!", "Error");
+            exit(0);
+        }
         snr_to_error[snrs[i]] = errors[i];
     }
 

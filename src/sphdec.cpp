@@ -84,7 +84,7 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     while (true) {
 
         if (exit_flag) break; // terminate simulations
-        
+
         counter++;
         // Step 3.
         xidist = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
@@ -135,7 +135,7 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     if (found)
 	    return x;
     else {
-        log_msg("sphdec: point not found!", "Warning");
+        log_msg("sphdec: point not found!", "Alert");
         return vector<int>(0);
     }
 }
@@ -226,7 +226,7 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
     if (found)
         return x;
     else {
-        log_msg("sphdec: point not found!", "Warning");
+        log_msg("sphdec: point not found!", "Alert");
         return vector<int>(0);
     }
 }
