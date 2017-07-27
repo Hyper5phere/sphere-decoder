@@ -131,7 +131,7 @@ int main(int argc, char** argv)
     log_msg("Number of basis matrices (code length): " + to_string(k));
     log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
     
-    vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, symbset);
+    vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
     auto e = code_energy(codebook);
     

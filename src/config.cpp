@@ -129,7 +129,7 @@ void configure() {
     }
 
     // helper variable (size of the code matrix set) calculated from the input parameters
-    // params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
+    params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
 }
 
 /* reads k (m x t) matrices from the spesified basis_file */

@@ -239,7 +239,7 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
 
 
 /* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
-vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, const vector<int> &symbolset){
+vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, const mat &R, const vector<int> &symbolset){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
@@ -272,9 +272,13 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
             // }
             // // log_msg(vec2str(tmp, tmp.size()));
             // tmp.clear();
-            do {
+            // do {
+            //     code = create_random_codeword(bases, symbolset);
+            // } while (/*euclidean_norm(code.first)*/ frob_norm_squared(code.second) > P + 1e-6 && P > 0); // do until we're inside spherical constellation
+            if (P > 0)
+                code = create_random_spherical_codeword(bases, R, symbolset, P);
+            else
                 code = create_random_codeword(bases, symbolset);
-            } while (/*euclidean_norm(code.first)*/ frob_norm_squared(code.second) > P + 1e-6 && P > 0); // do until we're inside spherical constellation
             codebook.push_back(code);
             // X.zeros();
         }
