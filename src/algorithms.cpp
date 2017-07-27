@@ -61,14 +61,26 @@ void process_qr(mat &Q, mat &R){
     }
 }
 
-/* Create the lattice generator matrix G out of basis matrices*/
+/* Create the lattice generator matrix G out of basis matrices */
 cx_mat create_generator_matrix(const vector<cx_mat> &bases){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     cx_mat G(m*t,k);
     for(int i = 0; i < k; i++){
-        G.col(i) = vectorise(bases[i]);
+        G.col(i) = vectorise(bases[i]);  
+    }
+    return G;
+}
+
+/* Create the real valued lattice generator matrix G out of basis matrices */
+mat create_real_generator_matrix(const vector<cx_mat> &bases){
+    int m = params["no_of_transmit_antennas"];
+    int t = params["time_slots"];
+    int k = params["no_of_matrices"];
+    mat G(2*m*t,k);
+    for(int i = 0; i < k; i++){    
+        G.col(i) = to_real_vector(bases[i]);
     }
     return G;
 }
@@ -180,6 +192,51 @@ pair<vector<int>, cx_mat> create_random_codeword(const vector<cx_mat> &bases, co
 
     return make_pair(coeffs, X);   
 }
+
+/* Creates a random codeword from basis matrices B_i and symbolset x-PAM within given radius (spherical shaping) */
+pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> &bases, const mat &R, const vector<int> &S, double radius){
+    int m = params["no_of_transmit_antennas"];
+    int t = params["time_slots"];
+    int k = params["no_of_matrices"];
+
+    cx_mat X(m, t);
+    vector<int> coeffs(k);
+    X.zeros();
+
+    vec xt(k), curr(k), ener(k);
+    xt.zeros(); curr.zeros(); ener.zeros();
+    int i = k-1;
+    double xiener = 0.0;
+    double lb = 0.0; // lower bound
+    double ub = 0.0; // upper bound
+
+    while (i >= 0){
+        lb = -(sqrt(radius - ener[i]) + curr[i])/R(i,i);
+        ub = (sqrt(radius - ener[i]) - curr[i])/R(i,i);
+        uniform_real_distribution<double> xirange(lb, ub);
+        xt[i] = nearest_symbol(xirange(mersenne_twister), S);
+        xiener = pow(R(i,i)*xt[i] + curr[i], 2);
+
+        if (xiener + ener[i] < radius + 1e-6) {  
+            if (i > 0){                     
+                for (int j = i; j < k; j++)
+                    curr[i-1] += xt[j]*R(i-1,j);
+                ener[i-1] = ener[i] + xiener;       
+            }  
+            i--;
+        } else {
+            i = k-1;
+            xt.zeros(); curr.zeros(); ener.zeros();
+        }
+    }
+    coeffs = conv_to<vector<int>>::from(xt);
+    for (int i = 0; i < k; i++) {
+        X = X + coeffs[i]*bases[i];
+    }
+    // cout << vec2str(coeffs, coeffs.size()) << endl;
+    return make_pair(coeffs, X);
+}
+
 
 /* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
 vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, const vector<int> &symbolset){

@@ -108,12 +108,12 @@ int main(int argc, char** argv)
     string channel_model = sparams["channel_model"];
 
     auto bases = read_matrices();
-    cx_mat basis_sum(m, t);
+    // cx_mat basis_sum(m, t);
 
     cout << "Read basis matrices: " << endl;
     for (auto const &basis : bases){
         cout << basis << endl;
-        basis_sum += basis;
+        // basis_sum += basis;
     }
     // exit(0);
 
@@ -121,7 +121,10 @@ int main(int argc, char** argv)
 
     cout << "Orthogonality check:" << endl;
     cout << G.t()*G << endl;
-    // exit(0);
+
+    mat Q, Rorig;
+    qr_econ(Q, Rorig, create_real_generator_matrix(bases));  // QR-decomposition of G (omits zero rows in Rorig)
+    process_qr(Q, Rorig);
 
     vector<int> symbset = create_symbolset(q);
 
@@ -196,13 +199,15 @@ int main(int argc, char** argv)
 
                 // a = random_code(mersenne_twister);
                 // X = codebook[a].second;                     
-
-                codeword = create_random_codeword(bases, symbset); 
+                if (P < 0)
+                    codeword = create_random_codeword(bases, symbset); 
+                else
+                    codeword = create_random_spherical_codeword(bases, Rorig, symbset, P);
 
                 orig = codeword.first;  // coefficients from the signal set (i.e. data vector)
                 X = codeword.second;    // Code block we want to send
 
-                if (/*euclidean_norm(orig)*/ frob_norm_squared(X) > P + 1e-6 && P > 0) continue;  // We're outside the spherical constellation
+                // if (/*euclidean_norm(orig)*/ frob_norm_squared(X) > P + 1e-6 && P > 0) continue;  // We're outside the spherical constellation
 
                 // cout << X << endl;
                 // X = bases[0]*2.9+bases[1]*3;
@@ -226,7 +231,7 @@ int main(int argc, char** argv)
 
                 // cout << N << endl;
 
-                x = sphdec_wrapper(bases, basis_sum, H, X, N, symbset, visited_nodes, C);
+                x = sphdec_wrapper(bases, Rorig, H, X, N, symbset, visited_nodes, C);
 
                 // HX = H*X;
                 // sigpow += frob_norm_squared(HX);

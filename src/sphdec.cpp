@@ -233,7 +233,7 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
 
 /* Wrapper function for the sphere decoder to handle complex to real matrix conversion, 
    QR-decomposition and other mappings */
-vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, const cx_mat &H, 
+vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const mat Rorig, const cx_mat &H, 
                            const cx_mat &X, const cx_mat &N, const vector<int> &symbset, int &visited_nodes, double radius){
 
     int n = params["no_of_receiver_antennas"];
@@ -247,7 +247,7 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, 
 
     vector<int> x(k);
     cx_mat Y(n, t); //, Ynorm;                 // Helper complex matrices
-    mat B(2*t*n, k), G(2*t*m,k), Q, R, Rorig;  // real matrices
+    mat B(2*t*n, k), G(2*t*m,k), Q, R;         // real matrices
     // vec y(2*t*n), y2;                                // helper and sphdec input vector
     // cx_mat Y;                                  // Helper complex matrices
     // mat B, G, Q, R, Rorig;                     // real matrices
@@ -260,17 +260,17 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, 
     // cout << "check 1" << endl;
     for(int i = 0; i < k; i++){
         B.col(i) = to_real_vector(H*bases[i]); // B = (HX1 HX2 ... HXk) = generator matrix of faded lattice
-        if (P > 0) 
-            G.col(i) = to_real_vector(bases[i]);   // G = (X1 X2 ... Xk) = generator matrix of original lattice
+        // if (P > 0) 
+        //     G.col(i) = to_real_vector(bases[i]);   // G = (X1 X2 ... Xk) = generator matrix of original lattice
     }
 
     // cout << "check 2" << endl;
 
-    if (P > 0) {
-        qr_econ(Q, Rorig, G);  // QR-decomposition of G (omits zero rows in Rorig)
-        process_qr(Q, Rorig);  // Make sure Rorig has positive diagonal elements
-        Q.zeros();
-    }
+    // if (P > 0) {
+    //     qr_econ(Q, Rorig, G);  // QR-decomposition of G (omits zero rows in Rorig)
+    //     process_qr(Q, Rorig);  // Make sure Rorig has positive diagonal elements
+    //     Q.zeros();
+    // }
     // cout << "check 3" << endl;
     qr_econ(Q, R, B);  // QR-decomposition of B (omits zero rows in R)
     process_qr(Q, R);  // Make sure R has positive diagonal elements
@@ -283,8 +283,8 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const cx_mat basis_sum, 
     else
         x = sphdec_spherical_shaping(y2, R, Rorig, symbset, visited_nodes, P, radius);
 
-    if (x.size() == 0) // point not found
-        return vector<int>(0);
+    // if (x.size() == 0) // point not found
+    //     return vector<int>(0);
 
     // for (int j = 0; j < k; j++)
     //     x[j] = 2*x[j] - q + 1;
