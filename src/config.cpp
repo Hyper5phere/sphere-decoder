@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 19
+#define NUM_OPTIONS 20
 
 using namespace std;
 using namespace arma;
@@ -23,8 +23,9 @@ void create_config(){
     // the file can contain comments similar to this line here
     defconf << "// configuration settings and simulation parameters for the sphere decoder program" << endl << endl;
     defconf << "basis_file=bases.txt            // Text file containing the basis matrices" << endl;
-    defconf << "output_file=                    // Optionally spesify the output filename" << endl;
-    defconf << "error_file=                     // Optionally spesify the file containing error requirements for the SNR simulations." << endl;
+    defconf << "coset_file=                     // Optionally specify the coset encoding sublattice basis matrix file" << endl;
+    defconf << "output_file=                    // Optionally specify the output filename" << endl;
+    defconf << "error_file=                     // Optionally specify the file containing error requirements for the SNR simulations" << endl;
     defconf << "channel_model=mimo              // Define the channel model for the simulation (either 'mimo' or 'siso')" << endl;
     defconf << "x-PAM=4                         // The size of the PAM signaling set (even positive integer)" << endl;
     defconf << "energy_estimation_samples=-1    // Number of samples to make the code energy estimation (-1 = sample all)" << endl;
@@ -67,7 +68,7 @@ void configure() {
 
     vector<string> sparam_names = {"channel_model"};
     vector<string> dparam_names = {"spherical_shaping_max_power", "matrix_coefficient"};
-    vector<string> accept_empty_names = {"output_file", "error_file"};
+    vector<string> accept_empty_names = {"output_file", "error_file", "coset_file"};
     
     string line;
     int lines = 0;
@@ -88,6 +89,8 @@ void configure() {
                 // cout << value << endl;
                 if (key.compare("basis_file") == 0) {
                     filenames["bases"] = "bases/" + value;
+                } else if (key.compare("coset_file") == 0) {
+                    filenames["cosets"] = "bases/" + value;
                 } else if (key.compare("output_file") == 0) {
                     // if (value.compare("auto") != 0)
                     filenames["output"] = "output/" + value;
@@ -133,7 +136,7 @@ void configure() {
 }
 
 /* reads k (m x t) matrices from the spesified basis_file */
-vector<cx_mat> read_matrices(){
+vector<cx_mat> read_matrices(const string &filepath){
 
     /* - regular expression pattern used to search 
      *   matrix elements in almost any known format (eg. Mathematica, Matlab)
@@ -164,7 +167,7 @@ vector<cx_mat> read_matrices(){
     int k = params["no_of_matrices"];
     int idx = 0;
 
-    ifstream matrix_file(filenames["bases"]);
+    ifstream matrix_file(filepath);
     vector<cx_mat> output;
     smatch match, dummy;
     vector< complex<double> > numbers;
@@ -205,7 +208,7 @@ vector<cx_mat> read_matrices(){
 
     if (m*t*k != (int)numbers.size()){
         log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements (read " + to_string(numbers.size()) + \
-            ") configured in '" + filenames["bases"] + "'!", "Error");
+            ") configured in '" + filepath + "'!", "Error");
         // log_msg();
         exit(1);
     }

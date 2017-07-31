@@ -107,7 +107,17 @@ int main(int argc, char** argv)
 
     string channel_model = sparams["channel_model"];
 
-    auto bases = read_matrices();
+    vector<cx_mat> bases = read_matrices(filenames["bases"]);
+    vector<cx_mat> coset_bases;
+
+    bool coset_encoding = false;
+
+    if (filenames.count("cosets") != 0)
+        coset_encoding = true;
+
+    if (coset_encoding)
+        coset_bases = read_matrices(filenames["cosets"]);
+
     // cx_mat basis_sum(m, t);
 
     cout << "Read basis matrices: " << endl;
@@ -118,6 +128,10 @@ int main(int argc, char** argv)
     // exit(0);
 
     cx_mat G = create_generator_matrix(bases);
+    cx_mat invGe;
+
+    if (coset_encoding)
+        invGe = pinv(create_generator_matrix(coset_bases));
 
     cout << "Orthogonality check:" << endl;
     cout << G.t()*G << endl;
@@ -134,6 +148,8 @@ int main(int argc, char** argv)
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
     auto e = code_energy(codebook);
+
+    // e.first = 46.210487;
     
     log_msg("Code Energy");
     log_msg("-----------");
@@ -151,6 +167,7 @@ int main(int argc, char** argv)
 
     if (filenames.count("output") == 0)
         create_output_filename();
+
 
     output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); // add label row
     
@@ -193,7 +210,7 @@ int main(int argc, char** argv)
             // Hvar = e.first/pow(10, snr/10)*t; 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
             // cout << Hvar << endl; 
-            while (errors < required_errors[snr] || runs < min_runs){
+            while (errors < required_errors[snr] || runs < min_runs) {
 
                 if (exit_flag) break; // terminate simulations
 
@@ -297,8 +314,14 @@ int main(int argc, char** argv)
                     // orig[j] = 0.5*(codebook[a].first[j] + q - 1);
 
                 // if (codebook[a].first != x){
-                if (orig != x){
-                    errors++;
+                if(coset_encoding) {
+                    if (!coset_check(G, invGe, Col<int>(orig) - Col<int>(x))) {
+                        errors++;
+                    }
+                } else {
+                    if (orig != x) {
+                        errors++;
+                    }
                 }
                 // cout << endl << vec2str(orig, orig.size()) << endl;
                 

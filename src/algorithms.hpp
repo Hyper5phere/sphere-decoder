@@ -15,6 +15,7 @@ double nearest_symbol(double x, const std::vector<int> &S);
 double frob_norm_squared(arma::cx_mat A);
 double euclidean_norm(const std::vector<int> &x);
 void process_qr(arma::mat &Q, arma::mat &R);
+// arma::mat pseudo_inverse(arma::mat A);
 arma::cx_mat create_generator_matrix(const std::vector<arma::cx_mat> &bases);
 arma::mat create_real_generator_matrix(const std::vector<arma::cx_mat> &bases);
 arma::vec to_real_vector(arma::cx_mat A);
@@ -32,6 +33,7 @@ std::vector<std::pair<std::vector<int>,arma::cx_mat>> create_codebook(const std:
                                                                       const std::vector<int> &symbolset);
 // std::pair<double,double> code_energy(const std::vector<arma::cx_mat> X);
 std::pair<double,double> code_energy(const std::vector<std::pair<std::vector<int>,arma::cx_mat>> &X);
+bool coset_check(const arma::cx_mat &Gb, const arma::cx_mat &invGe, const arma::Col<int> diff);
 
 
 #endif /* ALGORITHMS_HPP */

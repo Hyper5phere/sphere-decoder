@@ -33,6 +33,21 @@ double nearest_symbol(double x, const vector<int> &S){
     return nearest;
 }
 
+int pick_uniform(const vector<int> S){
+    uniform_int_distribution<int> dist(0, S.size()-1);
+    return S[dist(mersenne_twister)];
+}
+
+vector<int> slice_symbset(const vector<int> &S, double lb, double ub){
+    vector<int> retval;
+    for (const int q : S){
+        if (lb <= q && q <= ub) {
+            retval.push_back(q);
+        }
+    }
+    return retval;
+}
+
 /* Takes the squared Frobenius norm from a complex matrix A */
 double frob_norm_squared(cx_mat A){
     double sum = 0;
@@ -60,6 +75,10 @@ void process_qr(mat &Q, mat &R){
         }
     }
 }
+
+// mat pseudo_inverse(mat A){
+//     return inv(A.t()*A)*A.t();
+// }
 
 /* Create the lattice generator matrix G out of basis matrices */
 cx_mat create_generator_matrix(const vector<cx_mat> &bases){
@@ -182,7 +201,7 @@ pair<vector<int>, cx_mat> create_random_codeword(const vector<cx_mat> &bases, co
     vector<int> coeffs(k);
     X.zeros();
 
-    uniform_int_distribution<int> dist(0,q-1);
+    uniform_int_distribution<int> dist(0, q-1);
 
     for (int i = 0; i < k; i++) {
         random_index = dist(mersenne_twister);
@@ -213,15 +232,22 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
     while (i >= 0){
         lb = -(sqrt(radius - ener[i]) + curr[i])/R(i,i);
         ub = (sqrt(radius - ener[i]) - curr[i])/R(i,i);
-        uniform_real_distribution<double> xirange(lb, ub);
-        xt[i] = nearest_symbol(xirange(mersenne_twister), S);
+        // uniform_real_distribution<double> xirange(lb, ub);
+        // xt[i] = nearest_symbol(xirange(mersenne_twister), S); // probability fix this
+        vector<int> subset = slice_symbset(S, lb, ub);
+        if (subset.empty()){
+            i = k-1;
+            xt.zeros(); curr.zeros(); ener.zeros();
+            continue;
+        }
+        xt[i] = pick_uniform(subset);
         xiener = pow(R(i,i)*xt[i] + curr[i], 2);
 
         if (xiener + ener[i] < radius + 1e-6) {  
-            if (i > 0){                     
+            if (i > 0) {                     
                 for (int j = i; j < k; j++)
                     curr[i-1] += xt[j]*R(i-1,j);
-                ener[i-1] = ener[i] + xiener;       
+                ener[i-1] = ener[i] + xiener;      
             }  
             i--;
         } else {
@@ -327,3 +353,24 @@ pair<double,double> code_energy(const vector<pair<vector<int>,cx_mat>> &X){
     average = sum / cs;
     return make_pair(average, max);
 }
+
+/* Check if x belongs to the right coset (when using coset encoding)
+ * i.e. check if the difference vector sent_x - decoded_x belongs in 
+ * the given sublattice of the codebook carved out of lattice G_b
+ */
+bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
+    cx_vec x = Gb*diff;
+    cx_vec lambda = invGe*x;
+
+    // cout << vec2
+
+    vec lambda_real = to_real_vector(cx_mat(lambda));
+    
+    /* check if lambda_real has only integer entries */
+    for (const auto &l : lambda_real)
+        if (fabs(l - round(l)) > 10e-5) // tolerance
+            return false;
+
+    return true;
+}
+    
