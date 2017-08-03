@@ -362,9 +362,9 @@ bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
     cx_vec x = Gb*diff;
     cx_vec lambda = invGe*x;
 
-    // cout << vec2
-
     vec lambda_real = to_real_vector(cx_mat(lambda));
+
+    // cout << vec2str(lambda_real, lambda_real.size()) << endl;
     
     /* check if lambda_real has only integer entries */
     for (const auto &l : lambda_real)
@@ -373,4 +373,27 @@ bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
 
     return true;
 }
-    
+
+
+int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int dim, double dist){
+
+    int k = params["no_of_matrices"];
+    int i = dim - 1;
+
+    double counter = 0.0;
+    double xidist  = 0.0;
+
+    for (const int q : S){
+        xt[i] = q;
+        xidist = pow(dot(R.row(i).subvec(i, k-1), xt.subvec(i, k-1)), 2) + dist;
+        if (xidist <= radius){
+            if (i > 0){
+                counter += count_points(R, S, radius, xt, dim-1, xidist);
+            } else {
+                // cout << vec2str(xt, xt.size()) << endl;
+                counter++;
+            }
+        }
+    }
+    return counter;
+}

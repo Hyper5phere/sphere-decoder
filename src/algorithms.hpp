@@ -34,6 +34,7 @@ std::vector<std::pair<std::vector<int>,arma::cx_mat>> create_codebook(const std:
 // std::pair<double,double> code_energy(const std::vector<arma::cx_mat> X);
 std::pair<double,double> code_energy(const std::vector<std::pair<std::vector<int>,arma::cx_mat>> &X);
 bool coset_check(const arma::cx_mat &Gb, const arma::cx_mat &invGe, const arma::Col<int> diff);
+int count_points(const arma::mat &R, const std::vector<int> &S, double radius, arma::vec xt, int dim, double dist);
 
 
 #endif /* ALGORITHMS_HPP */

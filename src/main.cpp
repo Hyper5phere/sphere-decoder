@@ -131,10 +131,10 @@ int main(int argc, char** argv)
     cx_mat invGe;
 
     if (coset_encoding)
-        invGe = pinv(create_generator_matrix(coset_bases));
+        invGe = pinv(2*create_generator_matrix(coset_bases));
 
-    cout << "Orthogonality check:" << endl;
-    cout << G.t()*G << endl;
+    // cout << "Orthogonality check:" << endl;
+    // cout << G.t()*G << endl;
 
     mat Q, Rorig;
     qr_econ(Q, Rorig, create_real_generator_matrix(bases));  // QR-decomposition of G (omits zero rows in Rorig)
@@ -142,8 +142,6 @@ int main(int argc, char** argv)
 
     vector<int> symbset = create_symbolset(q);
 
-    log_msg("Number of basis matrices (code length): " + to_string(k));
-    log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
     
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
@@ -151,11 +149,28 @@ int main(int argc, char** argv)
 
     // e.first = 46.210487;
     
-    log_msg("Code Energy");
-    log_msg("-----------");
-    log_msg("Average: " + to_string(e.first));
-    log_msg("Max: " + to_string(e.second));
-    log_msg("-----------");
+    log_msg("Simulation info");
+    log_msg("---------------");
+    log_msg("Number of basis matrices (code length): " + to_string(k));
+    log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q)); 
+    log_msg("Average code energy: " + to_string(e.first));
+    log_msg("Max code energy: " + to_string(e.second));
+    if (P > 0){
+        log_msg("Codebook spherical shaping radius: " + to_string(P));
+        log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
+    }
+    log_msg("---------------");
+
+    /* Ask the user whether he/she actually wants to run the simulations after precalculations */
+    string answer;
+    cout << "Continue to simulation (y/n)? " << endl;
+    getline(cin, answer);
+    // cout << "'" << answer << "'" << endl;
+    if (!(answer.compare("y") == 0 || answer.compare("yes") == 0)) {
+        log_msg("Program exited successfully!");
+        return 0;
+    }
+
     log_msg("Starting simulations... (Press CTRL-C to abort)");
 
     map<int, int> required_errors;
@@ -314,7 +329,7 @@ int main(int argc, char** argv)
                     // orig[j] = 0.5*(codebook[a].first[j] + q - 1);
 
                 // if (codebook[a].first != x){
-                if(coset_encoding) {
+                if (coset_encoding) {
                     if (!coset_check(G, invGe, Col<int>(orig) - Col<int>(x))) {
                         errors++;
                     }
@@ -323,9 +338,9 @@ int main(int argc, char** argv)
                         errors++;
                     }
                 }
-                // cout << endl << vec2str(orig, orig.size()) << endl;
+                // cout << endl << "x = " << vec2str(orig, orig.size()) << endl;
                 
-                // cout << "x = "<< vec2str(x, x.size()) << endl << endl;
+                // cout << "x_hat = "<< vec2str(x, x.size()) << endl << endl;
 
                 // log_msg("Found point: " + vec2str(x, k) + ", sent point: " + vec2str(codebook[a].first, k));
 
