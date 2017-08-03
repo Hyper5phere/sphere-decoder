@@ -5,6 +5,8 @@
 #include <string>
 #include <set>
 #include <random>
+#include <omp.h>
+
 
 #include "algorithms.hpp"
 #include "misc.hpp"
@@ -375,25 +377,27 @@ bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
 }
 
 
+/* algorithm for counting the lattice points inside a _dim_ dimensional hypersphere of radius _radius_ */
 int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int dim, double dist){
 
     int k = params["no_of_matrices"];
     int i = dim - 1;
 
-    double counter = 0.0;
-    double xidist  = 0.0;
+    vector<int> counters(omp_get_max_threads());
 
-    for (const int q : S){
-        xt[i] = q;
-        xidist = pow(dot(R.row(i).subvec(i, k-1), xt.subvec(i, k-1)), 2) + dist;
+    #pragma omp parallel for
+    for (auto j = 0u; j < S.size(); j++){
+        vec tmp = xt;
+        tmp[i] = S[j];
+        double xidist = pow(dot(R.row(i).subvec(i, k-1), tmp.subvec(i, k-1)), 2) + dist;
         if (xidist <= radius){
             if (i > 0){
-                counter += count_points(R, S, radius, xt, dim-1, xidist);
+                counters[omp_get_thread_num()] += count_points(R, S, radius, tmp, dim-1, xidist);
             } else {
                 // cout << vec2str(xt, xt.size()) << endl;
-                counter++;
+                counters[omp_get_thread_num()]++;
             }
         }
     }
-    return counter;
+    return accumulate(counters.begin(), counters.end(), 0);
 }

@@ -14,25 +14,25 @@ using namespace arma;
 
 /* Decision feedback equalization on xt[i] */
 inline void step2(int i, int q, vec &xt, const vec &y, vec &delta, const vec &ksi, const mat &R, const vector<int> &S) {
-    int spacing = abs(S[0] - S[1]);
+    // int spacing = abs(S[0] - S[1]);
     // xt[i] = round((y[i]-ksi[i])/R(i,i));
     xt[i] = nearest_symbol((y[i]-ksi[i])/R(i,i), S);
     if (xt[i] < S[0]) {
         xt[i] = S[0];
-        delta[i] = spacing;
+        delta[i] = 2;
     } else if (xt[i] > S[q - 1]) {
         xt[i] = S[q - 1];
-        delta[i] = -1*spacing;
+        delta[i] = -2;
     } else {
-        delta[i] = spacing*sesd_sign(y[i]-ksi[i]-R(i,i)*xt[i]);
+        delta[i] = 2*sesd_sign(y[i]-ksi[i]-R(i,i)*xt[i]);
     }
 }
 
 /* Schnorr-Euchner enumeration step for the sphere decoder */
-inline void step6(int i, vec &xt, vec &delta, const vector<int> &S){
-    int spacing = abs(S[0] - S[1]);
+inline void step6(int i, vec &xt, vec &delta){
+    // int spacing = abs(S[0] - S[1]);
 	xt[i] = xt[i] + delta[i];
-	delta[i] = -delta[i] - spacing*sesd_sign(delta[i]);
+	delta[i] = -delta[i] - 2*sesd_sign(delta[i]);
 }
 
 /* Perform some basic checks to ensure that the sphere decoder works as intended */
@@ -98,7 +98,7 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
         	} else {
         		// Step 6.
                 i++;
-        		step6(i, xt, delta, S);
+        		step6(i, xt, delta);
         	}
         } else { // we are inside the sphere
         	if (xt[i] < S[0] || xt[i] > S[q - 1]){ // we are outside the signal set boundaries
@@ -108,11 +108,11 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
                         break;
                     } else {
                         i++;
-                        step6(i, xt, delta, S);
+                        step6(i, xt, delta);
                     }
                 } else {
                     // cout << "delta = " << delta[i] << endl;
-        	        step6(i, xt, delta, S);
+        	        step6(i, xt, delta);
                 }
             } else {
         		if (i > 0) {
@@ -127,7 +127,7 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
                     found = true;
         			x = conv_to<vector<int>>::from(xt);
                     i++;
-        			step6(i, xt, delta, S);
+        			step6(i, xt, delta);
         		}
         	}
         }
@@ -181,7 +181,7 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
             } else {
                 // Step 6.
                 i++;
-                step6(i, xt, delta, S);
+                step6(i, xt, delta);
             }
         } else { // we are inside the sphere
 
@@ -196,10 +196,10 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
                         break;
                     } else {
                         i++;
-                        step6(i, xt, delta, S);
+                        step6(i, xt, delta);
                     }
                 } else 
-                    step6(i, xt, delta, S);
+                    step6(i, xt, delta);
             } else {
                 if (i > 0) {
                     ksi[i-1] = 0;
@@ -218,7 +218,7 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
                     found = true;
                     x = conv_to<vector<int>>::from(xt);
                     i++;
-                    step6(i, xt, delta, S);
+                    step6(i, xt, delta);
                 }
             }
         }
