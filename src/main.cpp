@@ -4,7 +4,7 @@
  Author      : Pasi Pyrrö
  Version     : 1.0
  Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis
- Date        : 18.7.2017
+ Date        : 3.8.2017
  Description : Sphere Decoder in C++14
  ===================================================================================================
  */
@@ -157,6 +157,7 @@ int main(int argc, char** argv)
     log_msg("Max code energy: " + to_string(e.second));
     if (P > 0){
         log_msg("Codebook spherical shaping radius: " + to_string(P));
+        log_msg("Suggested radius for 2^2 codewords: " + to_string(estimate_radius(Rorig, 2)));
         log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
     }
     log_msg("---------------");

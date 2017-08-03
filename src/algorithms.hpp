@@ -12,6 +12,7 @@ extern std::mt19937_64 mersenne_twister;
 
 int sesd_sign(double x);
 double nearest_symbol(double x, const std::vector<int> &S);
+double estimate_radius(arma::mat G, int s);
 double frob_norm_squared(arma::cx_mat A);
 double euclidean_norm(const std::vector<int> &x);
 void process_qr(arma::mat &Q, arma::mat &R);
