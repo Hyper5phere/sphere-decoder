@@ -5,6 +5,7 @@
 #include <map>
 #include <fstream>
 #include <algorithm>
+#include <armadillo>
 
 #include "misc.hpp"
 #ifdef PLOTTING
@@ -12,6 +13,7 @@
 #endif
 
 using namespace std;
+using namespace arma;
 
 /* object for parallel computing synchronazation */
 std::mutex log_mutex;
@@ -100,6 +102,7 @@ void plot_csv(int xcol, int ycol, const string &xlabel, const string &ylabel, bo
     #endif
 }
 
+/* Prints simulation results in a file and optionally plots the results */
 void output_data(parallel_vector<string> &output){
     if (output.size() > 1){
         sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
@@ -113,4 +116,44 @@ void output_data(parallel_vector<string> &output){
         }
         #endif
     }
+}
+
+
+/* outputs real matrix into a file in mathematica format */
+void output_real_matrix(const string &filepath, const mat &A){
+    ofstream mfile(filepath);
+    mfile << "{";
+    for (auto i = 0u; i < A.n_rows; i++){
+        mfile << "{";
+        for (auto j = 0u; j < A.n_cols; j++){
+            mfile << float2str(A(i, j), 16);
+            if (j < A.n_cols - 1)
+                mfile << ", ";
+        }
+        mfile << "}";
+        if (i < A.n_rows - 1)
+            mfile << "," << endl;
+    }
+    mfile << "}";
+    mfile.close();
+}
+
+
+/* outputs complex matrix into a file in mathematica format */
+void output_complex_matrix(const string &filepath, const cx_mat &A){
+    ofstream mfile(filepath);
+    mfile << "{";
+    for (auto i = 0u; i < A.n_rows; i++){
+        mfile << "{";
+        for (auto j = 0u; j < A.n_cols; j++){
+            mfile << float2str(A(i, j).real(), 16) << " + " << float2str(A(i, j).imag(), 16) << " *I";
+            if (j < A.n_cols - 1)
+                mfile << ", ";
+        }
+        mfile << "}";
+        if (i < A.n_rows - 1)
+            mfile << "," << endl;
+    }
+    mfile << "}";
+    mfile.close();
 }

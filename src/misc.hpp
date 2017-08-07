@@ -10,6 +10,9 @@
 #include <vector>
 #include <mutex>
 #include <set>
+#include <armadillo>
+#include <iomanip>
+#include <sstream>
 
 /* storage for filenames */
 extern std::map<std::string, std::string> filenames;
@@ -61,6 +64,8 @@ void output_csv(const parallel_vector<std::string> &line);
 bool snr_ordering(std::string &a, std::string &b);
 void plot_csv(int xcol, int ycol, const std::string &xlabel, const std::string &ylabel, bool logscale);
 void output_data(parallel_vector<std::string> &output);
+void output_real_matrix(const std::string &filepath, const arma::mat &A);
+void output_complex_matrix(const std::string &filepath, const arma::cx_mat &A);
 
 /* Makes a string representation out of any basic vector type */
 template <typename T>
@@ -70,5 +75,16 @@ inline std::string vec2str(T vec, size_t size){
 		str += std::to_string(vec[i]) + ", ";
 	return str + std::to_string(vec[size-1]) + "}";
 }
+
+/* converts a floating point value to a string with custom precision
+ * credits go to: https://stackoverflow.com/a/16606128 
+ */
+template <typename T>
+inline std::string float2str(const T value, int precision = 6){
+	std::ostringstream out;
+    out << std::setprecision(precision) << value;
+    return out.str();
+}
+
 
 #endif /* MISC_HPP */

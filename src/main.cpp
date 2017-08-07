@@ -136,8 +136,12 @@ int main(int argc, char** argv)
     // cout << "Orthogonality check:" << endl;
     // cout << G.t()*G << endl;
 
+    mat G_real = create_real_generator_matrix(bases);
+    // output_complex_matrix("MIDO_basis.txt", G);
+    // exit(0);
+
     mat Q, Rorig;
-    qr_econ(Q, Rorig, create_real_generator_matrix(bases));  // QR-decomposition of G (omits zero rows in Rorig)
+    qr_econ(Q, Rorig, G_real);  // QR-decomposition of G (omits zero rows in Rorig)
     process_qr(Q, Rorig);
 
     vector<int> symbset = create_symbolset(q);

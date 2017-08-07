@@ -1,5 +1,6 @@
 #include <iostream>
 #include <armadillo> // linear algebra library
+#include <algorithm>
 #include <complex>
 #include <vector>
 #include <string>
@@ -39,7 +40,7 @@ double estimate_radius(mat G, int s){
     int n = params["no_of_matrices"];
     double pi = 3.1415926535897;
     // return pow((pow(2.0, s)*tgamma((double)n/2.0 + 1.0)*sqrt(det(G.t()*G)))/pow(pi, n/2.0), 2.0/n);
-    return pow((pow(2.0, s)*tgamma((double)n/2.0 + 1.0)*det(G))/pow(pi, n/2.0), 2.0/n);
+    return pow((pow(2.0, s)*tgamma(n/2.0 + 1.0)*det(G))/pow(pi, n/2.0), 2.0/n);
     // return pow(2.0, s)*tgamma(n/2.0 + 1)*sqrt(det(G.t()*G))/pow(pi, n/2.0);
 }
 
