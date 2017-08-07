@@ -131,6 +131,8 @@ int main(int argc, char** argv)
     cx_mat invGe;
 
     if (coset_encoding)
+        // as q-PAM is already a subset of translated 2Z^n lattice, 
+        // need to multiply the sublattice basis with 2 to make the lattice points comparable
         invGe = pinv(2*create_generator_matrix(coset_bases));
 
     // cout << "Orthogonality check:" << endl;
@@ -161,7 +163,7 @@ int main(int argc, char** argv)
     log_msg("Max code energy: " + to_string(e.second));
     if (P > 0){
         log_msg("Codebook spherical shaping radius: " + to_string(P));
-        log_msg("Suggested radius for 2^2 codewords: " + to_string(estimate_radius(Rorig, 2)));
+        log_msg("Suggested squared radius for 2^2 codewords: " + to_string(estimate_squared_radius(Rorig, 2)));
         log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
     }
     log_msg("---------------");
