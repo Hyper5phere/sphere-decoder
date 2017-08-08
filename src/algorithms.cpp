@@ -106,7 +106,7 @@ cx_mat create_generator_matrix(const vector<cx_mat> &bases){
     int k = params["no_of_matrices"];
     cx_mat G(m*t,k);
     for(int i = 0; i < k; i++){
-        G.col(i) = vectorise(bases[i]);  
+        G.col(i) = vectorise(bases[i]); 
     }
     return G;
 }
@@ -118,22 +118,56 @@ mat create_real_generator_matrix(const vector<cx_mat> &bases){
     int k = params["no_of_matrices"];
     mat G(2*m*t,k);
     for(int i = 0; i < k; i++){    
-        G.col(i) = to_real_vector(bases[i]);
+        G.col(i) = to_real_vector(bases[i], 1);
     }
     return G;
 }
 
+vector<cx_mat> generator_to_bases(const cx_mat &G){
+    int m = params["no_of_transmit_antennas"];
+    int t = params["time_slots"];
+    int idx = 0;
+
+    vector<cx_mat> bases;
+    cx_mat X(m, t);
+    cx_vec col(m*t);
+
+    for (auto i = 0u; i < G.n_cols; i++){
+        X.zeros();
+        col = G.col(i);
+        for (int j = 0; j < m; j++){
+            for (int s = 0; s < t; s++){
+                X(j,s) = col[idx];
+                idx++;
+            }
+        }
+        idx = 0;
+        bases.push_back(X);
+    }
+    return bases;
+}
+
 /* Vectorizes a complex matrix A to real vector (each row is concatenated) */
-vec to_real_vector(cx_mat A){
+vec to_real_vector(const cx_mat &A, bool row_wise){
     vec a(2*A.n_elem); 
     // as the imaginary parts are now independent real elements in the vector,
     // we need to double the number of elements in the returned vector
     int index = 0;
-    for (auto i = 0u; i < A.n_rows; i++){
-        for (auto j = 0u; j < A.n_cols; j++){
-            auto z = A(i,j);
-            a[index++] = z.real();
-            a[index++] = z.imag();
+    if (row_wise){
+        for (auto i = 0u; i < A.n_rows; i++){
+            for (auto j = 0u; j < A.n_cols; j++){
+                auto z = A(i,j);
+                a[index++] = z.real();
+                a[index++] = z.imag();
+            }
+        }
+    } else {
+        for (auto i = 0u; i < A.n_cols; i++){
+            for (auto j = 0u; j < A.n_rows; j++){
+                auto z = A(j,i);
+                a[index++] = z.real();
+                a[index++] = z.imag();
+            }
         }
     }
     return a;
@@ -418,3 +452,5 @@ int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int 
     }
     return accumulate(counters.begin(), counters.end(), 0);
 }
+
+

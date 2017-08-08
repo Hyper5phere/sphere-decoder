@@ -42,7 +42,8 @@ void create_config(){
     defconf << "plot_results=-1                 // Draw plots? (1 = yes, -1 = no)" << endl;
     defconf << "stat_display_interval=-1        // Defines after each how many rounds to display the current simulation stats (-1 = disabled)" << endl;
     defconf << "spherical_shaping_max_power=-1  // Defines the maximum distance from origin for codebook elements (-1 = unbounded)" << endl;
-    defconf.close();     
+    defconf << "codebook_size_exponent=-1       // The codebook will have 2^s codewords where s is this parameter (overrides above parameter)" << endl;
+    defconf.close(); 
 }
 
 /* Read simulation parameters from a settings file */
@@ -71,6 +72,7 @@ void configure() {
     vector<string> accept_empty_names = {"output_file", "error_file", "coset_file"};
     
     string line;
+    char *endptr; // used for parsing error checking
     int lines = 0;
     while (getline(config_file, line))
     {
@@ -97,23 +99,22 @@ void configure() {
                 } else if (key.compare("error_file") == 0) {
                     filenames["error"] = "settings/" + value;
                 } else if (find(dparam_names.begin(), dparam_names.end(), key) != dparam_names.end()) {
-                    if ((dparams[key] = strtod(value.c_str(), NULL)) == 0) {
+                    dparams[key] = strtod(value.c_str(), &endptr);
+                    if (*endptr != 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
-                        // log_msg();
                         exit(1);
                     }
                 } else if (find(sparam_names.begin(), sparam_names.end(), key) != sparam_names.end()) {
                     sparams[key] = value;
                 } else {
-                    if ((params[key] = strtol(value.c_str(), NULL, 10)) == 0) {
+                    params[key] = strtol(value.c_str(), &endptr, 10); 
+                    if (*endptr != 0) {
                         log_msg("Invalid value for option '" + key + "'", "Error");
-                        // log_msg();
                         exit(1);
                     }
                 }
             } else if (find(accept_empty_names.begin(), accept_empty_names.end(), key) == accept_empty_names.end()){
                 log_msg("[Error] Value for option '" + key + "' not spesified!");
-                // log_msg();
                 exit(1);
             }
         }
@@ -121,13 +122,11 @@ void configure() {
     if (lines < NUM_OPTIONS){
         log_msg("Too few options spesified in the '" + filepath + "'!", "Error");
         log_msg("Consider deleting the default settings file which will reset the program settings.");
-        // log_msg();
         exit(1);
     } 
     if ((params["x-PAM"] <= 0) || (params["x-PAM"] % 2 == 1)){
         log_msg("Invalid x-PAM signal set spesified!", "Error");
         log_msg("x-PAM option accepts positive even integers.");
-        // log_msg();
         exit(1);
     }
 

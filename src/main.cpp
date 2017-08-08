@@ -94,6 +94,7 @@ int main(int argc, char** argv)
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
+    int s = params["codebook_size_exponent"];
 
     int min = params["snr_min"];
     int max = params["snr_max"];
@@ -104,6 +105,7 @@ int main(int argc, char** argv)
     int stat_interval = params["stat_display_interval"];
 
     double P = dparams["spherical_shaping_max_power"];
+
 
     string channel_model = sparams["channel_model"];
 
@@ -129,6 +131,12 @@ int main(int argc, char** argv)
 
     cx_mat G = create_generator_matrix(bases);
     cx_mat invGe;
+    // cout << "-------------" << endl;
+    // bases = generator_to_bases(G);
+    // for (auto const &basis : bases){
+    //     cout << basis << endl;
+    // }
+    // exit(0);
 
     if (coset_encoding)
         // as q-PAM is already a subset of translated 2Z^n lattice, 
@@ -139,7 +147,8 @@ int main(int argc, char** argv)
     // cout << G.t()*G << endl;
 
     mat G_real = create_real_generator_matrix(bases);
-    // output_complex_matrix("MIDO_basis.txt", G);
+    // cout << G << endl;
+    // output_real_matrix("MIDO_basis.txt", G_real);
     // exit(0);
 
     mat Q, Rorig;
@@ -162,8 +171,9 @@ int main(int argc, char** argv)
     log_msg("Average code energy: " + to_string(e.first));
     log_msg("Max code energy: " + to_string(e.second));
     if (P > 0){
-        log_msg("Codebook spherical shaping radius: " + to_string(P));
-        log_msg("Suggested squared radius for 2^2 codewords: " + to_string(estimate_squared_radius(Rorig, 2)));
+        log_msg("Used codebook spherical shaping squared radius: " + to_string(P));
+        log_msg("Suggested squared radius (max power) for 2^" + to_string(s) + \
+            " (" + to_string((int)pow(2,s)) + ") codewords: " + to_string(estimate_squared_radius(Rorig, s)));
         log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
     }
     log_msg("---------------");
