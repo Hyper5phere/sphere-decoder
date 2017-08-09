@@ -86,5 +86,12 @@ inline std::string float2str(const T value, int precision = 6){
     return out.str();
 }
 
+/* returns a string representation of an Armadillo matrix object */
+template <typename T>
+inline std::string mat2str(const T A){
+	std::ostringstream out;
+    out << std::endl << A;
+    return out.str();
+}
 
 #endif /* MISC_HPP */

@@ -122,9 +122,10 @@ int main(int argc, char** argv)
 
     // cx_mat basis_sum(m, t);
 
-    cout << "Read basis matrices: " << endl;
+    log_msg("Read basis matrices:");
     for (auto const &basis : bases){
-        cout << basis << endl;
+        // cout << basis << endl;
+        log_msg(mat2str(basis), "Raw");
         // basis_sum += basis;
     }
     // exit(0);
@@ -147,11 +148,11 @@ int main(int argc, char** argv)
 
     // cout << "Orthogonality check:" << endl;
     // cout << G.t()*G << endl;
-    
-    // mat coset_multiplier("4 0 0 0;"
-    //                      "0 2 0 0;"
-    //                      "0 0 2 0;"
-    //                      "0 0 0 2");
+
+    mat coset_multiplier("4 0 0 0;"
+                         "0 2 0 0;"
+                         "0 0 2 0;"
+                         "0 0 0 2");
 
     // mat coset_multiplier("-2 -2  0  0;"
     //                       "0  0 -2 -1;"
@@ -169,8 +170,10 @@ int main(int argc, char** argv)
     // cout << G_real << endl;
     // cout << G_real2 << endl;
     // cout << to_complex_matrix(G_real) << endl;
+    cx_mat Ge = coset_multiplier*G;
+    invGe = pinv(Ge);
 
-    // invGe = pinv(coset_multiplier*G);
+    
     // cout << "determinant: " << det(G_real.t()*G_real) << endl;
     // cout << G.t()*G << endl;
     output_real_matrix("MIDO_basis.txt", G_real);
@@ -186,6 +189,8 @@ int main(int argc, char** argv)
 
     auto e = code_energy(codebook);
 
+    // log_msg(mat2str(G));
+
     // e.first = 46.210487;
     
     log_msg("Simulation info");
@@ -194,11 +199,17 @@ int main(int argc, char** argv)
     log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q)); 
     log_msg("Average code energy: " + to_string(e.first));
     log_msg("Max code energy: " + to_string(e.second));
-    if (P > 0){
+    if (P > 0) {
         log_msg("Used codebook spherical shaping squared radius: " + to_string(P));
         log_msg("Suggested squared radius (max power) for 2^" + to_string(s) + \
             " (" + to_string((int)pow(2, s)) + ") codewords: " + to_string(estimate_squared_radius(Rorig, s)));
         log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
+    }
+    if (coset_encoding) {
+        auto rates = code_rates(G, Ge);
+        log_msg("Code overall rate: "      + to_string(get<0>(rates)));
+        log_msg("Code transmission rate: " + to_string(get<1>(rates)));
+        log_msg("Code confusion rate: "    + to_string(get<2>(rates)));
     }
     log_msg("---------------");
 

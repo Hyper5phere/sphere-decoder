@@ -31,17 +31,20 @@ string time_str(){
 
 /* function used for logging, should be thread safe */
 void log_msg(const string msg, const string lvl){
-        string prefix = time_str();
+    string prefix;
+    if (lvl.compare("Raw") != 0) {
+        prefix = time_str();
         prefix += " | [" + lvl + "]\t";
-        lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
-        ofstream logfile(filenames["log"], ios_base::app);
-        if (msg.compare("-start-") == 0)
-            logfile << endl;
-        else {
-            logfile << prefix << msg << endl;
-            cout << prefix << msg << endl;
-        }
-        logfile.close();
+    }
+    lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
+    ofstream logfile(filenames["log"], ios_base::app);
+    if (msg.compare("-start-") == 0)
+        logfile << endl;
+    else {
+        logfile << prefix << msg << endl;
+        cout << prefix << msg << endl;
+    }
+    logfile.close();
 }
 
 /* Makes the user input somewhat more readable */
