@@ -143,12 +143,37 @@ int main(int argc, char** argv)
         // need to multiply the sublattice basis with 2 to make the lattice points comparable
         invGe = pinv(2*create_generator_matrix(coset_bases));
 
+
+
     // cout << "Orthogonality check:" << endl;
     // cout << G.t()*G << endl;
+    
+    // mat coset_multiplier("4 0 0 0;"
+    //                      "0 2 0 0;"
+    //                      "0 0 2 0;"
+    //                      "0 0 0 2");
 
-    mat G_real = create_real_generator_matrix(bases);
-    // cout << G << endl;
-    // output_real_matrix("MIDO_basis.txt", G_real);
+    // mat coset_multiplier("-2 -2  0  0;"
+    //                       "0  0 -2 -1;"
+    //                      "-1  1  1 -2;"
+    //                       "1 -1  1 -1");
+
+    // mat coset_multiplier("4 2 2 2;"
+    //                      "0 2 0 0;"
+    //                      "0 0 2 0;"
+    //                      "0 0 0 2");
+
+    // mat G_real = create_real_generator_matrix(bases);
+    mat G_real = to_real_matrix(G);
+
+    // cout << G_real << endl;
+    // cout << G_real2 << endl;
+    // cout << to_complex_matrix(G_real) << endl;
+
+    // invGe = pinv(coset_multiplier*G);
+    // cout << "determinant: " << det(G_real.t()*G_real) << endl;
+    // cout << G.t()*G << endl;
+    output_real_matrix("MIDO_basis.txt", G_real);
     // exit(0);
 
     mat Q, Rorig;
@@ -156,8 +181,7 @@ int main(int argc, char** argv)
     process_qr(Q, Rorig);
 
     vector<int> symbset = create_symbolset(q);
-
-    
+  
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
     auto e = code_energy(codebook);
@@ -173,7 +197,7 @@ int main(int argc, char** argv)
     if (P > 0){
         log_msg("Used codebook spherical shaping squared radius: " + to_string(P));
         log_msg("Suggested squared radius (max power) for 2^" + to_string(s) + \
-            " (" + to_string((int)pow(2,s)) + ") codewords: " + to_string(estimate_squared_radius(Rorig, s)));
+            " (" + to_string((int)pow(2, s)) + ") codewords: " + to_string(estimate_squared_radius(Rorig, s)));
         log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
     }
     log_msg("---------------");
@@ -248,7 +272,7 @@ int main(int argc, char** argv)
 
                 // a = random_code(mersenne_twister);
                 // X = codebook[a].second;                     
-                if (P < 0)
+                if (P <= 0)
                     codeword = create_random_codeword(bases, symbset); 
                 else
                     codeword = create_random_spherical_codeword(bases, Rorig, symbset, P);

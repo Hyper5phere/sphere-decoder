@@ -7,7 +7,8 @@
 #include <set>
 #include <random>
 #include <omp.h>
-
+#include <tuple>
+// #include <fplll.h>  // requires libgmpv4-dev and 
 
 #include "algorithms.hpp"
 #include "misc.hpp"
@@ -45,9 +46,10 @@ double estimate_squared_radius(mat G, int s){
     int n = params["no_of_matrices"];
     double pi = 3.1415926535897;
     // cout << "gamma: " << to_string(tgamma((double)n/2.0 + 1.0)) << endl;
-    // cout << "lattice constant: " << to_string(2*sqrt(det(G.t()*G))) << endl;
+    // cout << "gamma: " << to_string(tgamma(5.0)) << endl;
+    // cout << "lattice constant: " << to_string(sqrt(det(4*G.t()*G))) << endl;
     // cout << "volume of the sphere: " << to_string(pow(pi, n/2.0)*pow(dparams["spherical_shaping_max_power"], n/2)/tgamma(n/2.0 + 1.0)) << endl;
-    return pow(pow(2.0, s)*tgamma(n/2.0 + 1.0)*sqrt(det(2*G.t()*G))*pow(pi, n/-2.0), 2.0/n);
+    return pow(pow(2.0, s)*tgamma(n/2.0 + 1.0)*sqrt(det(4*G.t()*G))*pow(pi, n/-2.0), 2.0/n);
     // return pow((pow(2.0, s)*tgamma(n/2.0 + 1.0)*det(G))/pow(pi, n/2.0), 2.0/n);
     // return pow(2.0, s)*tgamma(n/2.0 + 1)*sqrt(det(G.t()*G))/pow(pi, n/2.0);
 }
@@ -104,24 +106,24 @@ cx_mat create_generator_matrix(const vector<cx_mat> &bases){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
-    cx_mat G(m*t,k);
+    cx_mat G(k, m*t);
     for(int i = 0; i < k; i++){
-        G.col(i) = vectorise(bases[i]); 
+        G.row(i) = vectorise(bases[i], 1);
     }
-    return G;
+    return G.st();
 }
 
 /* Create the real valued lattice generator matrix G out of basis matrices */
-mat create_real_generator_matrix(const vector<cx_mat> &bases){
-    int m = params["no_of_transmit_antennas"];
-    int t = params["time_slots"];
-    int k = params["no_of_matrices"];
-    mat G(2*m*t,k);
-    for(int i = 0; i < k; i++){    
-        G.col(i) = to_real_vector(bases[i], 1);
-    }
-    return G;
-}
+// mat create_real_generator_matrix(const vector<cx_mat> &bases){
+//     int m = params["no_of_transmit_antennas"];
+//     int t = params["time_slots"];
+//     int k = params["no_of_matrices"];
+//     mat G(2*m*t,k);
+//     for(int i = 0; i < k; i++){    
+//         G.col(i) = to_real_vector(bases[i]);
+//     }
+//     return G;
+// }
 
 vector<cx_mat> generator_to_bases(const cx_mat &G){
     int m = params["no_of_transmit_antennas"];
@@ -171,6 +173,33 @@ vec to_real_vector(const cx_mat &A, bool row_wise){
         }
     }
     return a;
+}
+
+/* Converts a complex matrix A to its real representation */
+mat to_real_matrix(const cx_mat &A){
+    mat B(2*A.n_rows, A.n_cols);
+    for(auto i = 0u; i < A.n_cols; i++){   
+        B.col(i) = to_real_vector(A.col(i));
+    }
+    return B;
+}
+
+/* Converts a real matrix constructed out of a complex matrix back to complex */
+cx_mat to_complex_matrix(const mat &A){
+    if (A.n_rows % 2 != 0){
+        log_msg("to_complex_matrix: the input matrix needs to have an even number of rows!", "Error");
+        exit(1);
+    }
+
+    cx_mat B(A.n_rows/2, A.n_cols);
+    int index = 0;
+    for (auto j = 0u; j < A.n_cols; j++){
+        for (auto i = 0u; i < A.n_rows-2; i += 2){
+            B(index++,j) = complex<double>(A(i,j), A(i+1,j));
+        }
+        index = 0;
+    }
+    return B;
 }
 
 /* generates a random n x m complex matrix from uniform distribution */
@@ -427,6 +456,15 @@ bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
     return true;
 }
 
+/* calculates different rates related to the coset encoded block code */
+tuple<double, double, double> code_rates(const cx_mat &Gb, const cx_mat &Ge){
+    mat RGb = to_real_matrix(Gb);
+    mat RGe = to_real_matrix(Ge);
+    double r = log2(params["codebook_size"]);                      // overall rate
+    double rt = log2(sqrt(det(RGe.t()*RGe))/sqrt(det(RGb.t()*RGb)));   // transmission rate
+    double rc = r - rt;                                            // confusion rate
+    return make_tuple(r, rt, rc); 
+}
 
 /* algorithm for counting the lattice points inside a _dim_ dimensional hypersphere of radius _radius_ */
 int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int dim, double dist){
@@ -454,3 +492,40 @@ int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int 
 }
 
 
+/* algorithm for counting the lattice points inside a _dim_ dimensional hypersphere of radius _radius_ */
+vector<int> count_points_many_radiuses(const mat &R, const vector<int> &S, vector<double> radiuses, vec xt, int dim, double dist){
+
+    int k = params["no_of_matrices"];
+    int i = dim - 1;
+
+    vector<int> counters(radiuses.size());
+
+    for (auto j = 0u; j < S.size(); j++){
+        vec tmp = xt;
+        tmp[i] = S[j];
+        double xidist = pow(dot(R.row(i).subvec(i, k-1), tmp.subvec(i, k-1)), 2) + dist;
+        
+        if (xidist <= radiuses[0]){
+            if (i > 0){
+                vector<int> counts = count_points_many_radiuses(R, S, radiuses, tmp, dim-1, xidist);
+                for (auto s = 0u; s < radiuses.size(); s++)
+                    counters[s] += counts[s];
+            } else {
+                // cout << vec2str(xt, xt.size()) << endl;
+                for (auto k = 0u; k < radiuses.size(); k++){
+                    if (xidist <= radiuses[k])
+                        counters[k]++;
+                }
+            }
+        }
+            
+        
+    }
+    // return accumulate(counters.begin(), counters.end(), 0);
+    return counters;
+}
+
+
+// cx_mat LLL_reduction(cx_mat G){
+
+// }

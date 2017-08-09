@@ -274,7 +274,7 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const mat Rorig, const c
     y2 = Q.st()*y;     // Map y to same basis as R
     // cout << "check 4" << endl;
 
-    if (P < 0)
+    if (P <= 0)
         x = sphdec(y2, R, symbset, visited_nodes, radius); // Call the actual sphere decoder algorithm
     else
         x = sphdec_spherical_shaping(y2, R, Rorig, symbset, visited_nodes, P, radius);

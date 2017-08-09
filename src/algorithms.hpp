@@ -5,6 +5,7 @@
 #include <vector>
 #include <random>
 #include <set>
+#include <tuple>
 
 #include "misc.hpp"
 
@@ -18,9 +19,11 @@ double euclidean_norm(const std::vector<int> &x);
 void process_qr(arma::mat &Q, arma::mat &R);
 // arma::mat pseudo_inverse(arma::mat A);
 arma::cx_mat create_generator_matrix(const std::vector<arma::cx_mat> &bases);
-arma::mat create_real_generator_matrix(const std::vector<arma::cx_mat> &bases);
+// arma::mat create_real_generator_matrix(const std::vector<arma::cx_mat> &bases);
 std::vector<arma::cx_mat> generator_to_bases(const arma::cx_mat &G);
 arma::vec to_real_vector(const arma::cx_mat &A, bool row_wise = true);
+arma::mat to_real_matrix(const arma::cx_mat &A);
+arma::cx_mat to_complex_matrix(const arma::mat &A);
 arma::cx_mat create_random_matrix(int n, int m, double mean, double variance);
 arma::cx_mat create_random_diag_matrix(int n, double mean, double variance);
 // int* create_symbolset(int q);
@@ -36,6 +39,7 @@ std::vector<std::pair<std::vector<int>,arma::cx_mat>> create_codebook(const std:
 // std::pair<double,double> code_energy(const std::vector<arma::cx_mat> X);
 std::pair<double,double> code_energy(const std::vector<std::pair<std::vector<int>,arma::cx_mat>> &X);
 bool coset_check(const arma::cx_mat &Gb, const arma::cx_mat &invGe, const arma::Col<int> diff);
+std::tuple<double, double, double> code_rates(const arma::cx_mat &Gb, const arma::cx_mat &Ge);
 int count_points(const arma::mat &R, const std::vector<int> &S, double radius, arma::vec xt, int dim, double dist);
 
 
