@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "misc.hpp"
 
-#define NUM_OPTIONS 20
+#define NUM_OPTIONS 22
 
 using namespace std;
 using namespace arma;
@@ -43,6 +43,7 @@ void create_config(){
     defconf << "stat_display_interval=-1        // Defines after each how many rounds to display the current simulation stats (-1 = disabled)" << endl;
     defconf << "spherical_shaping_max_power=-1  // Defines the maximum distance from origin for codebook elements (-1 = unbounded)" << endl;
     defconf << "codebook_size_exponent=-1       // The codebook will have 2^s codewords where s is this parameter (overrides above parameter)" << endl;
+    defconf << "radius_search_density=-1        // Defines how accurate the codebook squared radius estimation will be" << endl;
     defconf.close(); 
 }
 

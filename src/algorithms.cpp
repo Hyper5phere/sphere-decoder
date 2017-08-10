@@ -54,11 +54,13 @@ double estimate_squared_radius(mat G, int s){
     // return pow(2.0, s)*tgamma(n/2.0 + 1)*sqrt(det(G.t()*G))/pow(pi, n/2.0);
 }
 
+/* Picks a random element from vector uniformly */
 int pick_uniform(const vector<int> S){
     uniform_int_distribution<int> dist(0, S.size()-1);
     return S[dist(mersenne_twister)];
 }
 
+/* Generates a new symbolset where elements are between given lower and upper bounds */
 vector<int> slice_symbset(const vector<int> &S, double lb, double ub){
     vector<int> retval;
     for (const int q : S){
@@ -78,12 +80,12 @@ double frob_norm_squared(cx_mat A){
     return sum;
 }
 
-double euclidean_norm(const vector<int> &x){
-    double sum = 0;
-    for (const int &elem : x)
-        sum += pow(elem, 2);
-    return sum;
-}
+// double euclidean_norm(const vector<int> &x){
+//     double sum = 0;
+//     for (const int &elem : x)
+//         sum += pow(elem, 2);
+//     return sum;
+// }
 
 /* Makes sure the upper triangular matrix R has only positive diagonal elements */
 void process_qr(mat &Q, mat &R){
@@ -436,6 +438,19 @@ pair<double,double> code_energy(const vector<pair<vector<int>,cx_mat>> &X){
     return make_pair(average, max);
 }
 
+/* Returns the shortest lattice basis vector from the lattice generator matrix G*/
+cx_vec shortest_basis_vector(const cx_mat &G){
+    cx_vec shortest(G.n_rows, fill::zeros);
+    double len = 10e9;
+    for (auto i = 0u; i < G.n_cols; i++){
+        if (len > norm(G.col(i), 2)) {
+            shortest = G.col(i);
+            len = norm(shortest, 2);
+        }
+    }
+    return shortest;
+}
+
 /* Check if x belongs to the right coset (when using coset encoding)
  * i.e. check if the difference vector sent_x - decoded_x belongs in 
  * the given sublattice of the codebook carved out of lattice G_b
@@ -444,7 +459,7 @@ bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
     cx_vec x = Gb*diff;
     cx_vec lambda = invGe*x;
 
-    vec lambda_real = to_real_vector(cx_mat(lambda));
+    vec lambda_real = to_real_vector(lambda);
 
     // cout << vec2str(lambda_real, lambda_real.size()) << endl;
     
@@ -460,9 +475,11 @@ bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
 tuple<double, double, double> code_rates(const cx_mat &Gb, const cx_mat &Ge){
     mat RGb = to_real_matrix(Gb);
     mat RGe = to_real_matrix(Ge);
-    double r = log2(params["codebook_size"]);                      // overall rate
+    // cout << "Vol(Ge): " << sqrt(det(RGe.t()*RGe)) << endl;
+    // cout << "Vol(Gb): " << sqrt(det(RGb.t()*RGb)) << endl;
+    double r = log2(params["codebook_size"]);                          // overall rate
     double rt = log2(sqrt(det(RGe.t()*RGe))/sqrt(det(RGb.t()*RGb)));   // transmission rate
-    double rc = r - rt;                                            // confusion rate
+    double rc = r - rt;                                                // confusion rate
     return make_tuple(r, rt, rc); 
 }
 
@@ -475,12 +492,12 @@ int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int 
     vector<int> counters(omp_get_max_threads());
 
     #pragma omp parallel for
-    for (auto j = 0u; j < S.size(); j++){
+    for (auto j = 0u; j < S.size(); j++) {
         vec tmp = xt;
         tmp[i] = S[j];
         double xidist = pow(dot(R.row(i).subvec(i, k-1), tmp.subvec(i, k-1)), 2) + dist;
-        if (xidist <= radius){
-            if (i > 0){
+        if (xidist <= radius) {
+            if (i > 0) {
                 counters[omp_get_thread_num()] += count_points(R, S, radius, tmp, dim-1, xidist);
             } else {
                 // cout << vec2str(xt, xt.size()) << endl;

@@ -15,7 +15,7 @@ int sesd_sign(double x);
 double nearest_symbol(double x, const std::vector<int> &S);
 double estimate_squared_radius(arma::mat G, int s);
 double frob_norm_squared(arma::cx_mat A);
-double euclidean_norm(const std::vector<int> &x);
+// double euclidean_norm(const std::vector<int> &x);
 void process_qr(arma::mat &Q, arma::mat &R);
 // arma::mat pseudo_inverse(arma::mat A);
 arma::cx_mat create_generator_matrix(const std::vector<arma::cx_mat> &bases);
@@ -38,9 +38,11 @@ std::vector<std::pair<std::vector<int>,arma::cx_mat>> create_codebook(const std:
                                                                       const std::vector<int> &symbolset);
 // std::pair<double,double> code_energy(const std::vector<arma::cx_mat> X);
 std::pair<double,double> code_energy(const std::vector<std::pair<std::vector<int>,arma::cx_mat>> &X);
+arma::cx_vec shortest_basis_vector(const arma::cx_mat &G);
 bool coset_check(const arma::cx_mat &Gb, const arma::cx_mat &invGe, const arma::Col<int> diff);
 std::tuple<double, double, double> code_rates(const arma::cx_mat &Gb, const arma::cx_mat &Ge);
 int count_points(const arma::mat &R, const std::vector<int> &S, double radius, arma::vec xt, int dim, double dist);
+std::vector<int> count_points_many_radiuses(const arma::mat &R, const std::vector<int> &S, std::vector<double> radiuses, arma::vec xt, int dim, double dist);
 
 
 #endif /* ALGORITHMS_HPP */

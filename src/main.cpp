@@ -100,9 +100,12 @@ int main(int argc, char** argv)
     int max = params["snr_max"];
     int step = params["snr_step"];
 
+    int num_points = 0;
+
     int min_runs = params["simulation_rounds"];
 
     int stat_interval = params["stat_display_interval"];
+    int search_density = params["radius_search_density"];
 
     double P = dparams["spherical_shaping_max_power"];
 
@@ -131,7 +134,7 @@ int main(int argc, char** argv)
     // exit(0);
 
     cx_mat G = create_generator_matrix(bases);
-    cx_mat invGe;
+    cx_mat invGe, Ge;
     // cout << "-------------" << endl;
     // bases = generator_to_bases(G);
     // for (auto const &basis : bases){
@@ -139,30 +142,40 @@ int main(int argc, char** argv)
     // }
     // exit(0);
 
-    if (coset_encoding)
-        // as q-PAM is already a subset of translated 2Z^n lattice, 
-        // need to multiply the sublattice basis with 2 to make the lattice points comparable
-        invGe = pinv(2*create_generator_matrix(coset_bases));
-
-
 
     // cout << "Orthogonality check:" << endl;
     // cout << G.t()*G << endl;
 
-    mat coset_multiplier("4 0 0 0;"
-                         "0 2 0 0;"
-                         "0 0 2 0;"
-                         "0 0 0 2");
+    // mat coset_multiplier("4 0 0 0;"
+    //                      "0 2 0 0;"
+    //                      "0 0 2 0;"
+    //                      "0 0 0 2");
 
     // mat coset_multiplier("-2 -2  0  0;"
     //                       "0  0 -2 -1;"
     //                      "-1  1  1 -2;"
     //                       "1 -1  1 -1");
 
-    // mat coset_multiplier("4 2 2 2;"
-    //                      "0 2 0 0;"
-    //                      "0 0 2 0;"
-    //                      "0 0 0 2");
+    mat coset_multiplier("4 2 2 2;"
+                         "0 2 0 0;"
+                         "0 0 2 0;"
+                         "0 0 0 2");
+
+    // mat coset_multiplier("4 0 0 0;"
+    //                      "0 4 0 0;"
+    //                      "0 0 4 0;"
+    //                      "0 0 0 4");
+
+    // mat coset_multiplier("-2 -3  4 -1;"
+    //                      " 0 -1  0  3;"
+    //                      " 0 -3 -2 -3;"
+    //                      "-4 -1  0 -1");
+
+    if (coset_encoding)
+        // as q-PAM is already a subset of translated 2Z^n lattice, 
+        // need to multiply the sublattice basis with 2 to make the lattice points comparable
+        invGe = pinv(2*create_generator_matrix(coset_bases));
+        // Ge = 2*G*coset_multiplier;
 
     // mat G_real = create_real_generator_matrix(bases);
     mat G_real = to_real_matrix(G);
@@ -170,9 +183,8 @@ int main(int argc, char** argv)
     // cout << G_real << endl;
     // cout << G_real2 << endl;
     // cout << to_complex_matrix(G_real) << endl;
-    cx_mat Ge = coset_multiplier*G;
-    invGe = pinv(Ge);
-
+    // cx_mat Ge = G*coset_multiplier;
+    // invGe = pinv(Ge);
     
     // cout << "determinant: " << det(G_real.t()*G_real) << endl;
     // cout << G.t()*G << endl;
@@ -184,32 +196,69 @@ int main(int argc, char** argv)
     process_qr(Q, Rorig);
 
     vector<int> symbset = create_symbolset(q);
+    
+    // try to find radius for the codebook that has atleast 2^s codewords
+    if (s > 0) {
+        log_msg("Attempting to estimate squared radius (max power) for codebook of 2^" + to_string(s) + " codewords...");
+        double P_estimate = estimate_squared_radius(Rorig, s);
+        cx_vec lambda_min = shortest_basis_vector(G);
+        double lambda_min_len = frob_norm_squared(lambda_min)/search_density;
+        double rcurr = P_estimate + 4*lambda_min_len;
+        log_msg("Initial guesstimate for codebook squared radius: " + to_string(P_estimate));
+        log_msg("Radius search step: " + to_string(lambda_min_len));
+        vector<double> rvec;
+        for (int i = 0; i < search_density*2 + 1 && rcurr > 0.0; i++) {
+            rvec.push_back(rcurr);
+            rcurr -= lambda_min_len;
+        }
+        vector<int> pvec = count_points_many_radiuses(Rorig, symbset, rvec, vec(k, fill::zeros), k, 0);
+        // cout << vec2str(rvec, rvec.size()) << endl;
+        // cout << vec2str(pvec, pvec.size()) << endl;
+        for (auto j = pvec.size()-1; j >= 0; j--) {
+            // cout << j << endl;
+            if (pvec[j] >= (int)pow(2, s) && pvec[j] < (int)pow(2, s+1)) {
+                P = rvec[j];
+                num_points = pvec[j];
+                break;
+            }
+        }
+        if (P < 0) {
+            log_msg("Estimation failed, using non-spherical shaping...", "Alert");
+        } else if (P == dparams["spherical_shaping_max_power"]) {
+            log_msg("Estimation failed, using the configured value for squared radius...", "Alert");
+        } else {
+            dparams["spherical_shaping_max_power"] = P;
+        }
+    }
+
   
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
     auto e = code_energy(codebook);
 
-    // log_msg(mat2str(G));
-
     // e.first = 46.210487;
     
+    log_msg("", "Raw");
     log_msg("Simulation info");
     log_msg("---------------");
     log_msg("Number of basis matrices (code length): " + to_string(k));
-    log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q)); 
+    log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
     log_msg("Average code energy: " + to_string(e.first));
     log_msg("Max code energy: " + to_string(e.second));
     if (P > 0) {
-        log_msg("Used codebook spherical shaping squared radius: " + to_string(P));
-        log_msg("Suggested squared radius (max power) for 2^" + to_string(s) + \
-            " (" + to_string((int)pow(2, s)) + ") codewords: " + to_string(estimate_squared_radius(Rorig, s)));
-        log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
+        log_msg("Using codebook spherical shaping squared radius: " + to_string(P));
+        // log_msg("Suggested squared radius (max power) for 2^" + to_string(s) +
+        //     " (" + to_string((int)pow(2, s)) + ") codewords: " + to_string(P_estimate));
+        // log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
+        if (num_points == 0)
+            num_points = count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0);
+        log_msg("Number of codewords inside the hypersphere: " + to_string(num_points));
     }
     if (coset_encoding) {
         auto rates = code_rates(G, Ge);
-        log_msg("Code overall rate: "      + to_string(get<0>(rates)));
-        log_msg("Code transmission rate: " + to_string(get<1>(rates)));
-        log_msg("Code confusion rate: "    + to_string(get<2>(rates)));
+        log_msg("Code overall rate: "      + to_string(get<0>(rates)/t) + " bpcu");
+        log_msg("Code transmission rate: " + to_string(get<1>(rates)/t) + " bpcu");
+        log_msg("Code confusion rate: "    + to_string(get<2>(rates)/t) + " bpcu");
     }
     log_msg("---------------");
 
