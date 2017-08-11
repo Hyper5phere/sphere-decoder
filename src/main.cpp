@@ -4,8 +4,8 @@
  Author      : Pasi Pyrrö
  Version     : 1.0
  Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis
- Date        : 3.8.2017
- Description : Sphere Decoder in C++14
+ Date        : 9.8.2017
+ Description : Sphere Decoder in C++11
  ===================================================================================================
  */
 
@@ -134,7 +134,9 @@ int main(int argc, char** argv)
     // exit(0);
 
     cx_mat G = create_generator_matrix(bases);
+    // G = LLL_reduction(G);
     cx_mat invGe, Ge;
+
     // cout << "-------------" << endl;
     // bases = generator_to_bases(G);
     // for (auto const &basis : bases){
@@ -156,26 +158,27 @@ int main(int argc, char** argv)
     //                      "-1  1  1 -2;"
     //                       "1 -1  1 -1");
 
-    mat coset_multiplier("4 2 2 2;"
-                         "0 2 0 0;"
-                         "0 0 2 0;"
-                         "0 0 0 2");
+    // mat coset_multiplier("4 2 2 2;"
+    //                      "0 2 0 0;"
+    //                      "0 0 2 0;"
+    //                      "0 0 0 2");
 
     // mat coset_multiplier("4 0 0 0;"
     //                      "0 4 0 0;"
     //                      "0 0 4 0;"
     //                      "0 0 0 4");
 
-    // mat coset_multiplier("-2 -3  4 -1;"
-    //                      " 0 -1  0  3;"
-    //                      " 0 -3 -2 -3;"
-    //                      "-4 -1  0 -1");
+    mat coset_multiplier("-2 -3  4 -1;"
+                         " 0 -1  0  3;"
+                         " 0 -3 -2 -3;"
+                         "-4 -1  0 -1");
 
-    if (coset_encoding)
+    if (coset_encoding) {
         // as q-PAM is already a subset of translated 2Z^n lattice, 
         // need to multiply the sublattice basis with 2 to make the lattice points comparable
         invGe = pinv(2*create_generator_matrix(coset_bases));
-        // Ge = 2*G*coset_multiplier;
+        Ge = 2*G*coset_multiplier;
+    }
 
     // mat G_real = create_real_generator_matrix(bases);
     mat G_real = to_real_matrix(G);
@@ -255,7 +258,7 @@ int main(int argc, char** argv)
         log_msg("Number of codewords inside the hypersphere: " + to_string(num_points));
     }
     if (coset_encoding) {
-        auto rates = code_rates(G, Ge);
+        auto rates = code_rates(2*G, Ge);
         log_msg("Code overall rate: "      + to_string(get<0>(rates)/t) + " bpcu");
         log_msg("Code transmission rate: " + to_string(get<1>(rates)/t) + " bpcu");
         log_msg("Code confusion rate: "    + to_string(get<2>(rates)/t) + " bpcu");

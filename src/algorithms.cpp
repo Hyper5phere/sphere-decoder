@@ -8,13 +8,18 @@
 #include <random>
 #include <omp.h>
 #include <tuple>
-// #include <fplll.h>  // requires libgmpv4-dev and 
+// #include <fplll.h>
+// aptdcon -i libfplll-dev
+// aptdcon -i libmpfr-dev
 
 #include "algorithms.hpp"
 #include "misc.hpp"
 
 using namespace std;
 using namespace arma;
+// using namespace fplll;
+
+// #define FPLLL_WITH_ZDOUBLE
 
 /* signum function */
 int sesd_sign(double x){
@@ -543,6 +548,27 @@ vector<int> count_points_many_radiuses(const mat &R, const vector<int> &S, vecto
 }
 
 
-// cx_mat LLL_reduction(cx_mat G){
 
-// }
+
+cx_mat LLL_reduction(cx_mat G){
+	// mat G_real = to_real_matrix(G);
+	// FP_mat<double> fpG(G_real.n_rows, G_real.n_cols);
+	// for (auto i = 0u; i < G_real.n_rows; i++) {
+	// 	for (auto j = 0u; j < G_real.n_cols; j++) {
+	// 		fpG(i, j) = G_real(i, j);
+	// 	}
+	// }
+	// int status = lll_reduction(fpG, LLL_DEF_DELTA, LLL_DEF_ETA, LM_PROVED, FT_DEFAULT, 0, LLL_DEFAULT);
+	// if (status != RED_SUCCESS) {
+	//     log_msg("LLL reduction failed with error '" + get_red_status_str(status) + "'", "Error");
+	//     exit(1);
+	// }
+
+	// for (auto i = 0u; i < G_real.n_rows; i++) {
+	// 	for (auto j = 0u; j < G_real.n_cols; j++) {
+	// 		G_real(i, j) = (double)fpG(i, j);
+	// 	}
+	// }
+	// return to_complex_matrix(G_real);
+	return G;
+}
