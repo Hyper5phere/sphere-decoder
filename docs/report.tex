@@ -124,7 +124,7 @@
 %% For B.Sc. thesis use the date when you present your thesis. 
 %% 
 %% Kandidaatintyön päivämäärä on sen esityspäivämäärä! 
-\date{10.7.2017}
+\date{14.8.2017}
 
 %% B.Sc. or M.Sc. thesis supervisor 
 %% Note the "\" after the comma. This forces the following space to be 
@@ -218,6 +218,7 @@ $\mathbf{X}$  & Matrix \\
 
 \begin{tabular}{ll}
 $\| \cdot \| $     & Euclidean norm \\
+$\left\lceil\cdot\right\rfloor$ & Round to nearest integer \\
 det$(\mathbf{X})$  & Determinant of matrix $\mathbf{X}$
 \end{tabular}
 
@@ -227,7 +228,8 @@ det$(\mathbf{X})$  & Determinant of matrix $\mathbf{X}$
 SNR & Signal to noise ratio \\
 CVP & Closest vector problem \\
 MIMO & Multiple input multiple output \\
-PAM & Pulse amplitude modulation
+PAM & Pulse amplitude modulation \\
+i.i.d. & independent and identically distributed
 \end{tabular}
 
 
@@ -274,7 +276,7 @@ Before we go into communications applications of lattices such as lattice codes,
 \begin{equation}
 \Lambda = \{\mathbf{x}\mid\mathbf{x} = \mathbf{B}\mathbf{a} \} \label{eq:matrix}
 \end{equation}
-where $\mathbf{B} = [\mathbf{b}_1, ... , \mathbf{b}_n]$ is an $m \times n$ matrix called the generator matrix of the lattice $\Lambda$ and $\mathbf{a}$ is an $n$-dimensional integer column vector. Note that $\mathbf{B}$ is not uniquely determined by the lattice as in fact there exists infinitely many bases for the same lattice \cite{cassels}. If $\mathbf{B}$ is a basis for lattice $\Lambda$ then $\mathbf{B}'$ is also a basis for the same lattice if the following holds
+where $\mathbf{B} = [\mathbf{b}_1, ... , \mathbf{b}_n]$ is an $m \times n$ matrix called the generator matrix of the lattice $\Lambda$ and $\mathbf{a}$ is an $n$-dimensional integer column vector. Note that $\mathbf{B}$ is not uniquely determined by the lattice as in fact there exists infinitely many bases for the same lattice \cite{cassels}. Also the origin is part of every lattice regardless of the choice of $\mathbf{B}$. If $\mathbf{B}$ is a basis for lattice $\Lambda$ then $\mathbf{B}'$ is also a basis for the same lattice if the following holds
 \begin{align}
 \mathbf{B}' &= \mathbf{W}\mathbf{B}, \\
 \text{det}(\mathbf{W}) &= \pm 1
@@ -328,20 +330,45 @@ CVP is trivial for orthogonal lattices as one could just round every coordinate 
 
 \subsection{Space--time lattice codes}
 
-Space--time lattice codes are a robust way of encoding the data on a  wireless channel that uses multiple transmit and receiver antennas, i.e. a MIMO-system. Wireless channels are usually very error prone due to interference and fading caused by the surrounding electrical devices, obstacles and nature. This method helps to improve the reliability of the data transmission on such channel, meaning we get decoding errors less likely. A single codeword from certain space--time lattice code constellation can be represented as a matrix that is defined like so
+Space--time lattice codes are a robust way of encoding the data on a  wireless channel that uses multiple transmit and receiver antennas, i.e. a MIMO-system. Wireless channels are usually very error prone due to interference and fading caused by the surrounding electrical devices, obstacles and nature. This method helps to improve the reliability of the data transmission on such channel, meaning we get decoding errors less likely. Codewords from certain space--time lattice code constellation can be represented as a matrix that is defined like so
 
 \begin{equation}
 \mathcal{L} = \Bigg\{\sum_{i=1}^k a_i\mathbf{X}_i \ \Big| \ \mathbf{X}_i \in \mathcal{M}_{m \times l}(\mathbb{C}), \ a_i \in S \subset \mathbb{Z} \Bigg\}.
 \label{eq:codeword}
 \end{equation}
-The $\mathbf{X}_i, i = 1,...,k$ denote the constant basis matrices of the lattice code and the coefficients $a_i, i = 1,...,k$ are integers from a finite signal set $S$ which represent the data we want to send. In this thesis we consider the pulse amplitude modulation ($q$-PAM) signal set of size $q$. It is defined like
+The $\mathbf{X}_i, i = 1,...,k$ denote the constant basis matrices of the lattice code and the coefficients $a_i, i = 1,...,k$ are integers from a finite signal set $S$ which represent the data we want to send. We call $\mathcal{L}$ our codebook as it contains all possible codewords for a certain finite signal set. In this thesis we consider the pulse amplitude modulation ($q$-PAM) signal set of size $q$. It is defined like
 
 \begin{equation}
 S = \{a = 2u-q+1\mid u \in \mathbb{Z_q}\}
 \label{eq:pam}
 \end{equation}
-with $\mathbb{Z_q} = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,1,3\}$ i.e. all the odd integers which absolute value is smaller than 4.
+with $\mathbb{Z_q} = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,1,3\}$ i.e. all the odd integers which absolute value is smaller than 4. The size of the signal set is usually chosen to be some power of two, i.e. $q = 2^b$. This way $b$ information bits are mapped to each codeword we send. \cite{mia} 
+%Note that the origin i.e. the zero vector is never part of the $q$-PAM codebook $\mathcal{L}$ as it maps to origin in every lattice we choose for our lattice code.
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{mimo}
+  \caption{The MIMO-channel model with quasi-static Rayleigh fading \cite{mia}.}
+  \label{fig:mimo}
+\end{figure}
+
+\par Consider a multiple antenna system as in figure \ref{fig:mimo} of $m$ transmit and $n$ receive antennas. We choose a $m\times l$ complex matrix $\mathbf{X} \in \mathcal{L}$ constructed from \eqref{eq:codeword} as the codeword which we send through this wireless channel, where $l$ denotes the number of channel uses (time slots) required to send the codeword. In this thesis we consider quasi-static channel model i.e. path gains $h_{i,j}$ in figure \ref{fig:mimo} are assumed to stay constant during the sending of single codeword i.e. during $l$ channel uses and then change. 
+%To simulate noise we must add a matrix whose entries are identically distributed complex Gaussian random variables to the codeword we receive. 
+\par The simulated received noisy $m\times l$ codeword matrix can be obtained like this
+
+\begin{equation}
+\mathbf{Y} = \mathbf{HX} + \mathbf{N}
+\label{eq:system}
+\end{equation}
+
+where $\mathbf{H}$ is $n \times m$ channel matrix that simulates the path gains in figure \ref{fig:mimo} and $\mathbf{N}$ is a $n\times l$ noise matrix. $\mathbf{H}$ and $\mathbf{N}$ is generated from independent and identically distributed  (i.i.d.) complex gaussian random entries with zero mean for each simulation round. Their distributions use different variance though. 
+\par The component $y_{i,j}$ of the received matrix corresponds to the $j$-th signal received by antenna $i$, which is a superposition of faded versions of all $m$ transmitted signals with additive noise, i.e. it can be obtained like
+\begin{equation}
+y_{i,j} = h_{i,1}x_{1,j}+h_{i,2}x_{2,j}+...+h_{i,m}x_{m,j}+n_{i,j}   
+\label{eq:component}
+\end{equation}
+for all $1 \leq i \leq n, \ 1 \leq j \leq m$. The $n_{i,j}$ is the corresponding noise matrix component.
+\par The problem of decoding is now: Given $\mathbf{Y}$, which $\mathbf{X} \in \mathcal{L}$ was sent? This can be viewed as CVP and is discussed in the next chapter with more detail.
 
 \clearpage
 
@@ -376,7 +403,7 @@ where $\mathbf{G}'$ is a $m \times (n-1)$ matrix and the last column vector can 
 \end{equation}
 
 \noindent Equation \eqref{eq:decom} basically describes a stack of $(n-1)$-dimensional translated sublattices, where $u_n$ is the index of each sublattice of an $n$-dimensional lattice $\Lambda$. The hyperplanes over which the sublattices are spanned are called \textit{layers}. For example you can think of the horizontal lines in figure \ref{fig:sphdec} as one dimensional layers and the discrete points in them as a sublattice of the whole two dimensional lattice. 
-\par To better understand the the given expression in equation \eqref{eq:decom} let's consider the sublattice in the base layer $u_n = 0$, which is just all the points in the sublattice generated by $\mathbf{G}'$. Similarly we can get all other sublattices from this base sublattice by offsetting all the points in it by linear combination $u_n\mathbf{v}_{\parallel}+u_n\mathbf{v}_{\bot}$, where $\mathbf{v}_{\parallel}$ denotes a translation of all points in that same hyperplane and $\|\mathbf{v}_{\bot}\|$ is the orthogonal distance between two adjacent layers in the $n$th dimension. By taking the union of all these sublattices we get the whole $n$-dimensional lattice. In figure \ref{fig:sphdec} for example you can think of the middle horizontal line as the base layer.
+\par To better understand the the given expression in equation \eqref{eq:decom} let's consider the sublattice in the base layer $u_n = 0$, which is just all the points in the sublattice generated by $\mathbf{G}'$. Similarly we can get all other sublattices from this base sublattice by offsetting all the points in it by linear combination $u_n\mathbf{v}_{\parallel}+u_n\mathbf{v}_{\bot}$, where $\mathbf{v}_{\parallel}$ denotes a translation of all points in that same hyperplane and $\|\mathbf{v}_{\bot}\|$ is the orthogonal distance between two adjacent layers in the $n$-th dimension. By taking the union of all these sublattices we get the whole $n$-dimensional lattice. In figure \ref{fig:sphdec} for example you can think of the middle horizontal line as the base layer.
 \par If $\mathbf{G}$ is an upper triangular matrix, we can easily express $\mathbf{v}_{\bot}$ as $\mathbf{v}_{\bot} = (0, 0, ..., v_{nn})^T$ and thus we can write simply $\|\mathbf{v}_{\bot}\| = |v_{nn}|$. In fact any generator matrix $\mathbf{G}$ can be rotated to upper triangular form \cite{agrell} with $v_{nn} > 0$ so we can simply denote the distance between $(k-1)$-dimensional layers with $v_{kk}$ later on.
 \par With the consept of recursive sublattice decomposition a search algorithm in $n$-dimensional lattice $\Lambda(\mathbf{G})$ can be described recursively as a finite number of ($n-1$)-dimensional search operations. If $\mathbf{x} \in \mathbb{R}^m$ is a vector to decode in the lattice $\Lambda(\mathbf{G})$, which is decomposed as in \eqref{eq:decom}, the orthogonal distance from $\mathbf{x}$ to the $(n-1)$-dimensional layer with index $u_n$ is given by the formula
 \begin{equation}
@@ -401,11 +428,13 @@ This can be thought as traversing the search tree of depth $m$ from root node to
 \begin{figure}[ht] 
   \centering
   \includegraphics[width=0.5\linewidth]{search-tree}
-  \caption{Travelsal of a lattice search algorithm in a four dimensional lattice.}
+  \caption{Travelsal of a lattice search algorithm in a four dimensional lattice \cite{mia}.}
   \label{fig:tree}
 \end{figure}
-The node values on each level $k$ of the search tree represent candidate value for the $(m-k+1)$th component of the solution vector selected from some finite signal set. Here $m = 4$.
-\par So how do we select the layer, which is closest to $\mathbf{\hat{x}}$ in each dimension $n$? As the layer indices $u_n$ take values from $\mathbb{Z}$, clearly selecting $u_n = \left\lceil\hat{u}_n\right\rfloor$ in equation \eqref{eq:dist} gives you the smallest $y_n$ in that dimension. The operation $\left\lceil\cdot\right\rfloor$ denotes rounding to the nearest integer. Considering only this option in each dimension yields the Babai nearest plane algorithm, which is only a $(m-1)$-dimensional problem. It is a quick way to find a nearby lattice point, but it is not necessarily the closest one \cite{agrell}. The point given by this algorithm is called the Babai point.
+The node values on each level $k$ of the search tree represent candidate value for the $(m-k+1)$-th component of the solution vector selected from some finite signal set. Here $m = 4$.
+\par So how do we select the layer, which is closest to $\mathbf{\hat{x}}$ in each dimension $n$? As the layer indices $u_n$ take values from $\mathbb{Z}$, clearly selecting $u_n = \left\lceil\hat{u}_n\right\rfloor$ in equation \eqref{eq:dist} gives you the smallest $y_n$ in that dimension. 
+%The operation $\left\lceil\cdot\right\rfloor$ denotes rounding to the nearest integer. 
+Considering only this option in each dimension yields the Babai nearest plane algorithm, which is only a $(m-1)$-dimensional problem. It is a quick way to find a nearby lattice point, but it is not necessarily the closest one \cite{agrell}. The point given by this algorithm is called the Babai point.
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial we need to consider all possible code vectors
 
 
@@ -454,15 +483,15 @@ August 2002.
 
 \section{Program User Guide}
 
-\subsection{Abbreviations}
-\begin{tabular}{ll}
-SNR & Signal to noise ratio \\
-CPU & Central processing unit \\
-RAM & Random access memory \\
-GPU & Graphical processing unit \\
-C++ & C++ programming language \\
-OS & Operating system \\
-\end{tabular}
+%\subsection{Abbreviations}
+%\begin{tabular}{ll}
+%SNR & Signal to noise ratio \\
+%CPU & Central processing unit \\
+%RAM & Random access memory \\
+%GPU & Graphical processing unit \\
+%C++ & C++ programming language \\
+%OS & Operating system \\
+%\end{tabular}
 
 \subsection{Preface}
 The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. It is a command line application that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here. In the following chapters we will go through the installation and usage of the program in detail. 
