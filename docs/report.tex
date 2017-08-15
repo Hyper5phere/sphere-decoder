@@ -308,7 +308,7 @@ In other words we convert each column of $\mathbf{B}$ to real vector by separati
 
 \subsection{Closest vector problem}
 
-One relevant mathematical problem related to sphere decoding, a communications application of interest in this paper, is the closest vector problem (CVP). Given a lattice $\Lambda \subset J$ and an input point $\mathbf{y} \in J$ the problem is to find a lattice point $\hat{\mathbf{x}} \in \Lambda$ that is closest to $\mathbf{y}$. More precisely $\hat{\mathbf{x}} \in \Lambda$ has to meet the following condition
+The most relevant mathematical problem related to sphere decoding, a communications application of interest in this paper, is the closest vector problem (CVP). Given a lattice $\Lambda \subset J$ and an input point $\mathbf{y} \in J$ the problem is to find a lattice point $\hat{\mathbf{x}} \in \Lambda$ that is closest to $\mathbf{y}$. More precisely $\hat{\mathbf{x}} \in \Lambda$ has to meet the following condition
 
 \begin{equation}
 \|\mathbf{y}-\hat{\mathbf{x}}\| \leq \|\mathbf{y}-\mathbf{x}\|, \ \ \ \forall \mathbf{x} \in \Lambda.
@@ -316,7 +316,7 @@ One relevant mathematical problem related to sphere decoding, a communications a
 \end{equation}
 
 \noindent$J$ is the vector space, in which $\Lambda$ belongs in. In this thesis we mostly consider $J=\mathbb{C}^n$. 
-\par For a fixed point $\mathbf{x}' \in \Lambda$ the set of vectors $\mathbf{y}_i \in J$ that satisfy the inequality \eqref{eq:cvp} is called the Voronoi region (see figure \ref{fig:voronoi}) of lattice point $\mathbf{x}'$, $\mathcal{V}_{\mathbf{x}'} \subset J$. This means that if $\mathbf{y} \in \mathcal{V}_{\mathbf{x}'}$ then the solution to CVP is $\mathbf{x}'$ as can be clearly seen from figure \ref{fig:voronoi}. If $\mathbf{y} \in \partial\mathcal{V}_{\mathbf{x}'}$ the solution to CVP is a random choice between points whose Voronoi region contains that boundary. The volume of the $\mathcal{V}_{\mathbf{x}'}$, also know as the lattice constant as it is independent of the choice of basis, is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$. 
+\par For a fixed point $\mathbf{x}' \in \Lambda$ the set of vectors $\mathbf{y}_i \in J$ that satisfy the inequality \eqref{eq:cvp} is called the Voronoi region $\mathcal{V}_{\mathbf{x}'} \subset J$ (see figure \ref{fig:voronoi}) of lattice point $\mathbf{x}'$ \cite{zamir}. This means that if $\mathbf{y} \in \mathcal{V}_{\mathbf{x}'}$ then the solution to CVP is $\mathbf{x}'$. An example of lattice's Voronoi cells is illustrated in figure \ref{fig:voronoi}. If $\mathbf{y} \in \partial\mathcal{V}_{\mathbf{x}'}$ the solution to CVP is a random choice between points whose Voronoi region contains that boundary. The volume of the $\mathcal{V}_{\mathbf{x}'}$, also know as the lattice constant as it is independent of the choice of basis, is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$. 
 
 \begin{figure}[ht]
 % source: http://www.gregegan.net/APPLETS/12/deBruijnNotes.html
@@ -326,7 +326,7 @@ One relevant mathematical problem related to sphere decoding, a communications a
   \label{fig:voronoi}
 \end{figure}
 
-CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for a lattice codes sent via channel that induces fading. Such decoding process can be reduced to CVP and it's later explained in further detail.
+CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for a lattice codes sent via channel that induces fading. Such decoding process can be thought as a CVP and it's later explained in further detail.
 
 \subsection{Space--time lattice codes}
 
@@ -368,7 +368,7 @@ y_{i,j} = h_{i,1}x_{1,j}+h_{i,2}x_{2,j}+...+h_{i,m}x_{m,j}+n_{i,j}
 \label{eq:component}
 \end{equation}
 for all $1 \leq i \leq n, \ 1 \leq j \leq m$. The $n_{i,j}$ is the corresponding noise matrix component.
-\par The problem of decoding is now: Given $\mathbf{Y}$, which $\mathbf{X} \in \mathcal{L}$ was sent? This can be viewed as CVP and is discussed in the next chapter with more detail.
+\par The problem of decoding is now: Given $\mathbf{Y}$, which $\mathbf{X} \in \mathcal{L}$ was sent? According to maximum likehood principle this can be viewed as CVP \cite{mia} and is discussed in the next chapter in further detail.
 
 \clearpage
 
@@ -384,7 +384,8 @@ In this chapter we will discuss an efficient decoding algorithm for the space--t
   \label{fig:sphdec}
 \end{figure}
 
-\par One question remains though, so how do we choose the radius? If it's too small, no lattice points lie within the sphere or if it's too large, the complexity will increase and slow down the algorithm. The answer to that question is, with our Schnorr-Euchnerr implementation of the algorithm, we can simply set it to infinity. It uses by definition the Babai nearest plane algorithm, which requires no upper bound for the distance to the closest point to find a nearby point which we can use to dynamically update the upper bound of the search algorithm to the distance to that point.  Clearly the closest point is either that point we just found, also known as the Babai point, or another one within that radius.
+\par One question remains though, so how do we choose the radius? If it's too small, no lattice points lie within the sphere or if it's too large, the complexity will increase and slow down the algorithm. In ideal case the answer to that question is, with our Schnorr-Euchnerr implementation of the algorithm, we can simply set it to infinity. It uses by definition the Babai nearest plane algorithm, which requires no upper bound for the distance to the closest point to find a nearby point which we can use to dynamically update the upper bound of the search algorithm to the distance to that point.  Clearly the closest point is either that point we just found, also known as the Babai point, or another one within that radius. 
+\par However since in practise we consider finite subsets of the lattice, there is a possibility that the Babai point lies outside of the codebook region, which causes the algorithm to loop infinitely \cite{agrell}. To avoid this, it is good practise to give an initial radius for the Schnorr-Euchnerr algorithm as well. Some modules for estimating the radius for a codebook of given size have been also implemented in the program itself. The real benefit of the integrated Babai algorithm in Schnorr-Euchnerr strategy comes from the increased probability of finding the closest lattice point early at the cost of slightly increased computational complexity compared to Pohst strategy.
 
 \subsection{Recursive sublattice decomposition}
 
@@ -435,10 +436,11 @@ The node values on each level $k$ of the search tree represent candidate value f
 \par So how do we select the layer, which is closest to $\mathbf{\hat{x}}$ in each dimension $n$? As the layer indices $u_n$ take values from $\mathbb{Z}$, clearly selecting $u_n = \left\lceil\hat{u}_n\right\rfloor$ in equation \eqref{eq:dist} gives you the smallest $y_n$ in that dimension. 
 %The operation $\left\lceil\cdot\right\rfloor$ denotes rounding to the nearest integer. 
 Considering only this option in each dimension yields the Babai nearest plane algorithm, which is only a $(m-1)$-dimensional problem. It is a quick way to find a nearby lattice point, but it is not necessarily the closest one \cite{agrell}. The point given by this algorithm is called the Babai point.
-\par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial we need to consider all possible code vectors
+\par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play. 
 
 
 \subsection{Program implementation}
+The program is written in C++11 standard and uses the linear algebra library called Armadillo for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 
 \clearpage
 
@@ -463,14 +465,15 @@ Considering only this option in each dimension yields the Babai nearest plane al
 
 \bibitem{mia} Mäki,\ M. \textit{Space-time block codes and the complexity of sphere decoding.} Doria, Referenced 10.7.2017. Available:
   \url{https://www.doria.fi/bitstream/handle/10024/54404/gradu2008maki-miia.pdf}
-  
-  
+   
 \bibitem{cassels} Cassels, J.W.S. \textit{An introduction to the Geometry of Numbers}, New York, Springer--Verlag, 1971.
 
 \bibitem{agrell} Agrell, E., Eriksson, T. and Zeger, K. \textit{Closest point search in lattices} IEEE Transactions on Information Theory, Vol. 48, pp.2201-2214,
 August 2002.
 
 \bibitem{conway} Conway,\ J.H. and Sloane,\ N.J.A. \textit{Sphere packings, lattices and groups.} Third edition, New York, Springer--Verlag, 1998.
+
+\bibitem{zamir} Zamir,\ R. \textit{Lattices are Everywhere.} EE - Systems, Referenced 15.8.2017. Available: \url{http://ita.ucsd.edu/workshop/09/files/paper/paper_312.pdf}
 
 
 \end{thebibliography}
