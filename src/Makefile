@@ -4,6 +4,7 @@ FLAGS=-std=c++11 -larmadillo -llapack -lblas -Wall -fopenmp -D_GLIBCXX_USE_CXX11
 MODE=-O3
 # debug: MODE=-g
 # production: MODE=-O3
+# use GPU: -lnvblas
 
 $(PROGRAM): $(OBJS)
 	g++ -o $(PROGRAM) $(OBJS) $(FLAGS)

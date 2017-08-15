@@ -182,7 +182,7 @@ vector<cx_mat> read_matrices(const string &filepath){
         //     cout << i << ": " << match[i].str() << endl;
 
         string z = match[1].str();
-        // cout << z << endl;
+        cout << z << endl;
         //if (count(z.begin(), z.end(), '.') > 1){
 
         // do the split between "whole" complex numbers and partial ones

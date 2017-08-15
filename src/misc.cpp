@@ -123,8 +123,12 @@ void output_data(parallel_vector<string> &output){
 
 
 /* outputs real matrix into a file in mathematica format */
-void output_real_matrix(const string &filepath, const mat &A){
-    ofstream mfile(filepath);
+void output_real_matrix(const string &filepath, const mat &A, bool append){
+    ofstream mfile;
+    if (!append)
+        mfile = ofstream(filepath);
+    else
+        mfile = ofstream(filepath, ios_base::app);
     mfile << "{";
     for (auto i = 0u; i < A.n_rows; i++){
         mfile << "{";
@@ -138,13 +142,18 @@ void output_real_matrix(const string &filepath, const mat &A){
             mfile << "," << endl;
     }
     mfile << "}";
+    if (append) mfile << endl << endl;
     mfile.close();
 }
 
 
 /* outputs complex matrix into a file in mathematica format */
-void output_complex_matrix(const string &filepath, const cx_mat &A){
-    ofstream mfile(filepath);
+void output_complex_matrix(const string &filepath, const cx_mat &A, bool append){
+    ofstream mfile;
+    if (!append)
+        mfile = ofstream(filepath);
+    else
+        mfile = ofstream(filepath, ios_base::app);
     mfile << "{";
     for (auto i = 0u; i < A.n_rows; i++){
         mfile << "{";
@@ -158,5 +167,6 @@ void output_complex_matrix(const string &filepath, const cx_mat &A){
             mfile << "," << endl;
     }
     mfile << "}";
+    if (append) mfile << endl << endl;
     mfile.close();
 }

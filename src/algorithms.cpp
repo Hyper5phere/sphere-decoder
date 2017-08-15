@@ -47,7 +47,7 @@ double nearest_symbol(double x, const vector<int> &S){
  * i.e. this function estimates the squared radius required for the hypersphere in order to have 2^s codewords (lattice points) inside it
  * (for q-PAM we need to multiply the generator matrix by 2 to get the correct volume for the fundamental region)
  */
-double estimate_squared_radius(mat G, int s){
+double estimate_squared_radius(const mat &G, int s){
     int n = params["no_of_matrices"];
     double pi = 3.1415926535897;
     // cout << "gamma: " << to_string(tgamma((double)n/2.0 + 1.0)) << endl;
@@ -77,7 +77,7 @@ vector<int> slice_symbset(const vector<int> &S, double lb, double ub){
 }
 
 /* Takes the squared Frobenius norm from a complex matrix A */
-double frob_norm_squared(cx_mat A){
+double frob_norm_squared(const cx_mat &A){
     double sum = 0;
     for (auto i = 0u; i < A.n_rows; i++)
         for (auto j = 0u; j < A.n_cols; j++)
@@ -322,7 +322,7 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
         lb = -(sqrt(radius - ener[i]) + curr[i])/R(i,i);
         ub = (sqrt(radius - ener[i]) - curr[i])/R(i,i);
         // uniform_real_distribution<double> xirange(lb, ub);
-        // xt[i] = nearest_symbol(xirange(mersenne_twister), S); // probability fix this
+        // xt[i] = nearest_symbol(xirange(mersenne_twister), S); // probability bias fix this
         vector<int> subset = slice_symbset(S, lb, ub);
         if (subset.empty()){
             i = k-1;
@@ -358,16 +358,9 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
-    // int q = params["x-PAM"];
     int cs = params["codebook_size"];
     int samples = params["energy_estimation_samples"];
     double P = dparams["spherical_shaping_max_power"];
-
-    /* lattice generator matrix G (alternative approach) */
-    // cx_mat G(m*n,k);
-    // for(int i = 0; i < k; i++){
-    //     G.col(i) = vectorise(bases[i]);
-    // }
 
     vector<pair<vector<int>,cx_mat>> codebook;
     pair<vector<int>,cx_mat> code;
@@ -376,28 +369,13 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     X.zeros();
     
     if(samples > 0){
-        // int random_index = 0;
-        // uniform_int_distribution<int> dist(0,q-1);
-        // log_msg("Random sampled data vector combinations:");
         for (int j = 0; j < samples; j++){
-            // for (int i = 0; i < k; i++) {
-            //     random_index = dist(mersenne_twister);
-            //     tmp.push_back(symbolset[random_index]);
-            //     X = X + symbolset[random_index]*bases[i];
-            // }
-            // // log_msg(vec2str(tmp, tmp.size()));
-            // tmp.clear();
-            // do {
-            //     code = create_random_codeword(bases, symbolset);
-            // } while (/*euclidean_norm(code.first)*/ frob_norm_squared(code.second) > P + 1e-6 && P > 0); // do until we're inside spherical constellation
             if (P > 0)
                 code = create_random_spherical_codeword(bases, R, symbolset, P);
             else
                 code = create_random_codeword(bases, symbolset);
             codebook.push_back(code);
-            // X.zeros();
         }
-        // cout << endl;
     } else {
         if (cs > 1e6)
             log_msg("create_codebook: Generating a codebook of size " + to_string(cs) + "!", "Warning");
@@ -407,18 +385,13 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
 
         // log_msg("All possible data vector combinations:");
         for (const auto &symbols : c){
-            // if (euclidean_norm(symbols) > P + 1e-6 && P > 0) continue; // We're outside the spherical constellation
             X.zeros();
             for (int i = 0; i < k; i++)
                 X = X + symbols[i]*bases[i];
 
-            // cout << "------------" << endl;
-            // cout << X << endl;
             // log_msg(vec2str(symbols, symbols.size()));
             if (frob_norm_squared(X) > P + 1e-6 && P > 0) continue;
             codebook.push_back(make_pair(symbols, X));
-            // cout << "added to codebook!" << endl;
-    
         }
     }
     return codebook;
@@ -430,12 +403,8 @@ pair<double,double> code_energy(const vector<pair<vector<int>,cx_mat>> &X){
     int cs = (int) X.size();
 
     for (int i = 0; i < cs; i++){
-        //tmp = pow(norm(X[i], "fro"), 2);
         tmp = frob_norm_squared(X[i].second);
         sum += tmp;
-        // cout << X[i] << endl;
-        // cout << tmp << endl;
-        // cout << sum << endl;
         if (tmp > max)
             max = tmp;
     }

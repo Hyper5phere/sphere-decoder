@@ -64,8 +64,8 @@ void output_csv(const parallel_vector<std::string> &line);
 bool snr_ordering(std::string &a, std::string &b);
 void plot_csv(int xcol, int ycol, const std::string &xlabel, const std::string &ylabel, bool logscale);
 void output_data(parallel_vector<std::string> &output);
-void output_real_matrix(const std::string &filepath, const arma::mat &A);
-void output_complex_matrix(const std::string &filepath, const arma::cx_mat &A);
+void output_real_matrix(const std::string &filepath, const arma::mat &A, bool append = false);
+void output_complex_matrix(const std::string &filepath, const arma::cx_mat &A, bool append = false);
 
 /* Makes a string representation out of any basic vector type */
 template <typename T>

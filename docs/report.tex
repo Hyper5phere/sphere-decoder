@@ -377,7 +377,6 @@ for all $1 \leq i \leq n, \ 1 \leq j \leq m$. The $n_{i,j}$ is the corresponding
 In this chapter we will discuss an efficient decoding algorithm for the space--time block codes known as the sphere decoder. This thesis is particularly interested in the Schnorr-Euchnerr implementation of the algorithm which combines the Pohst strategy and the Babai nearest plane algorithm \cite{agrell}. The problem of decoding the correct codeword from the set of all possible codewords from the received noisy codeword can be reduced to CVP that was discussed earlier. What the sphere decoder basicly does is that instead of searching through all lattice points within the finite signal set boundaries it only considers lattice points within a hypersphere around the received vector of certain radius. This significantly reduces the complexity of the search algorithm. 
 
 \begin{figure}[ht]
-% source: http://www.gregegan.net/APPLETS/12/deBruijnNotes.html
   \centering
   \includegraphics[width=0.8\linewidth]{sphere_decoder}
   \caption{The CVP with sphere decoding in two dimensional lattice. The search complexity can be reduced by giving an upper bound for the closest point distance \cite{mia}.}
@@ -436,11 +435,11 @@ The node values on each level $k$ of the search tree represent candidate value f
 \par So how do we select the layer, which is closest to $\mathbf{\hat{x}}$ in each dimension $n$? As the layer indices $u_n$ take values from $\mathbb{Z}$, clearly selecting $u_n = \left\lceil\hat{u}_n\right\rfloor$ in equation \eqref{eq:dist} gives you the smallest $y_n$ in that dimension. 
 %The operation $\left\lceil\cdot\right\rfloor$ denotes rounding to the nearest integer. 
 Considering only this option in each dimension yields the Babai nearest plane algorithm, which is only a $(m-1)$-dimensional problem. It is a quick way to find a nearby lattice point, but it is not necessarily the closest one \cite{agrell}. The point given by this algorithm is called the Babai point.
-\par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play. 
+\par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
 
 \subsection{Program implementation}
-The program is written in C++11 standard and uses the linear algebra library called Armadillo for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
+The program is written in C++11 standard and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 
 \clearpage
 
@@ -474,6 +473,11 @@ August 2002.
 \bibitem{conway} Conway,\ J.H. and Sloane,\ N.J.A. \textit{Sphere packings, lattices and groups.} Third edition, New York, Springer--Verlag, 1998.
 
 \bibitem{zamir} Zamir,\ R. \textit{Lattices are Everywhere.} EE - Systems, Referenced 15.8.2017. Available: \url{http://ita.ucsd.edu/workshop/09/files/paper/paper_312.pdf}
+
+\bibitem{arma} Conrad Sanderson and Ryan Curtin.
+\textit{Armadillo: a template-based C++ library for linear algebra.}
+Journal of Open Source Software, Vol. 1, pp. 26, 2016.
+\url{http://dx.doi.org/10.21105/joss.00026}
 
 
 \end{thebibliography}

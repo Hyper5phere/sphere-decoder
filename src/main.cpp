@@ -109,10 +109,10 @@ int main(int argc, char** argv)
 
     double P = dparams["spherical_shaping_max_power"];
 
-
     string channel_model = sparams["channel_model"];
 
     vector<cx_mat> bases = read_matrices(filenames["bases"]);
+    cout << "-------" << endl;
     vector<cx_mat> coset_bases;
 
     bool coset_encoding = false;
@@ -123,15 +123,12 @@ int main(int argc, char** argv)
     if (coset_encoding)
         coset_bases = read_matrices(filenames["cosets"]);
 
-    // cx_mat basis_sum(m, t);
-
     log_msg("Read basis matrices:");
-    for (auto const &basis : bases){
+    for (auto const &basis : coset_bases){
         // cout << basis << endl;
+        // log_msg(mat2str(basis), "Raw");
         log_msg(mat2str(basis), "Raw");
-        // basis_sum += basis;
     }
-    // exit(0);
 
     cx_mat G = create_generator_matrix(bases);
     // G = LLL_reduction(G);
@@ -168,16 +165,22 @@ int main(int argc, char** argv)
     //                      "0 0 4 0;"
     //                      "0 0 0 4");
 
-    mat coset_multiplier("-2 -3  4 -1;"
-                         " 0 -1  0  3;"
-                         " 0 -3 -2 -3;"
-                         "-4 -1  0 -1");
+    // mat coset_multiplier("-2 -3  4 -1;"
+    //                      " 0 -1  0  3;"
+    //                      " 0 -3 -2 -3;"
+    //                      "-4 -1  0 -1");
 
     if (coset_encoding) {
         // as q-PAM is already a subset of translated 2Z^n lattice, 
         // need to multiply the sublattice basis with 2 to make the lattice points comparable
-        invGe = pinv(2*create_generator_matrix(coset_bases));
-        Ge = 2*G*coset_multiplier;
+        Ge = 2*create_generator_matrix(coset_bases);
+        invGe = pinv(Ge);
+        // Ge = 2*G*coset_multiplier;
+    }
+
+    auto cos_bases = generator_to_bases(0.5*Ge);
+    for (auto b : cos_bases){
+        output_complex_matrix("lambda5.txt", b, true);
     }
 
     // mat G_real = create_real_generator_matrix(bases);
@@ -206,17 +209,18 @@ int main(int argc, char** argv)
         double P_estimate = estimate_squared_radius(Rorig, s);
         cx_vec lambda_min = shortest_basis_vector(G);
         double lambda_min_len = frob_norm_squared(lambda_min)/search_density;
-        double rcurr = P_estimate + 4*lambda_min_len;
+        double rcurr = P_estimate + search_density*lambda_min_len/2;
         log_msg("Initial guesstimate for codebook squared radius: " + to_string(P_estimate));
         log_msg("Radius search step: " + to_string(lambda_min_len));
         vector<double> rvec;
-        for (int i = 0; i < search_density*2 + 1 && rcurr > 0.0; i++) {
+        for (int i = 0; i < search_density + 1 && rcurr > 0.0; i++) {
             rvec.push_back(rcurr);
             rcurr -= lambda_min_len;
         }
         vector<int> pvec = count_points_many_radiuses(Rorig, symbset, rvec, vec(k, fill::zeros), k, 0);
         // cout << vec2str(rvec, rvec.size()) << endl;
         // cout << vec2str(pvec, pvec.size()) << endl;
+        // cout << P << endl;
         for (auto j = pvec.size()-1; j >= 0; j--) {
             // cout << j << endl;
             if (pvec[j] >= (int)pow(2, s) && pvec[j] < (int)pow(2, s+1)) {
@@ -328,7 +332,8 @@ int main(int argc, char** argv)
         for (int snr = min; snr <= max; snr += step) {
             // Hvar = e.first/pow(10, snr/10)*t; 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
-            // cout << Hvar << endl; 
+            #pragma omp critical
+            cout << snr << " | " << Hvar << endl; 
             while (errors < required_errors[snr] || runs < min_runs) {
 
                 if (exit_flag) break; // terminate simulations
@@ -453,11 +458,11 @@ int main(int argc, char** argv)
 
                 if (runs % stat_interval == 0 && stat_interval > 0){
                     SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
-                    bler = 100.0*(double)errors/runs;
+                    bler = (double)errors/runs;
                     avg_complex = (double)total_nodes/runs;
                     log_msg("SNR-simulation " + to_string(snr) + \
                     "\tReal SNR: " + to_string(SNRreal) + \
-                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + " %)" + \
+                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + ")" + \
                     ", Avg Complexity: " + to_string(avg_complex));
                     
                     // for (const string &s : stats)
@@ -471,14 +476,14 @@ int main(int argc, char** argv)
             }
             
             SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
-            bler = 100.0*(double)errors/runs;
+            bler = (double)errors/runs;
             avg_complex = (double)total_nodes/runs;
             
             output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler) + "," + to_string(avg_complex));
             
             log_msg("SNR-simulation " + to_string(snr) + \
                     "\t[Finished] Real SNR: " + to_string(SNRreal) + \
-                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + " %)" + \
+                    ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + ")" + \
                     ", Avg Complexity: " + to_string(avg_complex));
 
             // reset counters after simulation round
