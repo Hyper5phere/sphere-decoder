@@ -1,3 +1,5 @@
+#define ARMA_NO_DEBUG // for speed
+
 #include <iostream>
 #include <mutex>
 #include <ctime>
@@ -55,6 +57,10 @@ void clean_input(string &input){
         input = input.substr(0, start);
     // remove white spaces
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end());
+}
+
+void remove_from_string(string &input, const char c){
+    input.erase(remove(input.begin(), input.end(), c), input.end());
 }
 
 /* Generates the output filename from current time and the used bases file name */

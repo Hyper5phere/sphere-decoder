@@ -1,3 +1,5 @@
+#define ARMA_NO_DEBUG // for speed
+
 #include <iostream>
 #include <armadillo> // linear algebra library
 #include <algorithm>
@@ -55,8 +57,6 @@ double estimate_squared_radius(const mat &G, int s){
     // cout << "lattice constant: " << to_string(sqrt(det(4*G.t()*G))) << endl;
     // cout << "volume of the sphere: " << to_string(pow(pi, n/2.0)*pow(dparams["spherical_shaping_max_power"], n/2)/tgamma(n/2.0 + 1.0)) << endl;
     return pow(pow(2.0, s)*tgamma(n/2.0 + 1.0)*sqrt(det(4*G.t()*G))*pow(pi, n/-2.0), 2.0/n);
-    // return pow((pow(2.0, s)*tgamma(n/2.0 + 1.0)*det(G))/pow(pi, n/2.0), 2.0/n);
-    // return pow(2.0, s)*tgamma(n/2.0 + 1)*sqrt(det(G.t()*G))/pow(pi, n/2.0);
 }
 
 /* Picks a random element from vector uniformly */

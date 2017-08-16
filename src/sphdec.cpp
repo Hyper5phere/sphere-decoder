@@ -1,3 +1,5 @@
+#define ARMA_NO_DEBUG // for speed
+
 #include <iostream>
 #include <armadillo> // linear algebra library
 #include <vector>

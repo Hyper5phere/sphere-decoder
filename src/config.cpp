@@ -1,3 +1,5 @@
+#define ARMA_NO_DEBUG // for speed
+
 #include <iostream>
 #include <armadillo> // linear algebra library
 #include <complex>
@@ -143,14 +145,34 @@ vector<cx_mat> read_matrices(const string &filepath){
      * - ignores most white spaces and supports asterisk in front of 'I'
      * - pattern is also case insensitive
      */
+    // regex elem_regex(
+    //     //"(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?\\s*[,)};\\]\n]{1})|"
+    //     "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\s*\\*?[Ii]?)|"
+    //     "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
+    //     "\\s*" // white space
+    //     "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
+    //     "\\s*\\*?[Ii]{1})\\s*([,)};\\]\n]{1})" // element ends in comma, semicolon, newline or closing bracket
+    // );
+
     regex elem_regex(
-        //"(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?\\s*[,)};\\]\n]{1})|"
-        "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\s*\\*?[Ii]?)|"
-        "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "\\s*" // white space
-        "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-        "\\s*\\*?[Ii]{1})\\s*([,)};\\]\n]{1})" // element ends in comma, semicolon, newline or closing bracket
+        "(" // three basic types for matrix element
+            "([+-]?\\s*[^\\d\\.]+[Ii]{1})" // plain letter 'i' --> (0, 1) complex number
+            "|" 
+            "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)\\s*\\*?[Ii]?)" // real or pure complex number
+            "|"
+             "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // real part
+            "\\s*"   // [+-]?\\s* white spaces and +/- between components 
+            "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*|[+-]?\\s*[^\\d\\.]+)\\s*\\*?[Ii]{1})" // imaginary part
+        ")" 
+        "\\s*[,)};\\]\n]{1}" // element ends in comma, semicolon, newline or closing bracket
     );
+
+    // regex real_regex("([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)");
+    // regex imag_regex("([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)\\s*\\*?[Ii]?");
+
+    // regex elem_regex(
+    //     "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" //?\\s*[+-]?\\s*(\1)+\\s*\\*?[Ii]?\\s*[,)};\\]\n]{1}"
+    // );
 
     /* Some supported formats for the matrix elements:
      * 1) "re ,"
@@ -160,7 +182,7 @@ vector<cx_mat> read_matrices(const string &filepath){
      */
 
     // Used to determine whether the element has both real and complex part
-    regex complex_split("\\d+\\.?\\s*[+-]{1}");
+    // regex complex_split("\\d+\\.?\\s*[+-]{1}");
 
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
@@ -169,11 +191,19 @@ vector<cx_mat> read_matrices(const string &filepath){
 
     ifstream matrix_file(filepath);
     vector<cx_mat> output;
-    smatch match, dummy;
+    smatch match; //, dummy;
     vector< complex<double> > numbers;
     
     string content((istreambuf_iterator<char>(matrix_file)), 
         istreambuf_iterator<char>());
+
+    // cout << content << endl;
+
+    string  m2,  // plain i
+            m3,  // real or pure complex number
+            m5,  // real part
+            m6,  // imaginary part with i
+            m7;  // imaginary part without i
     
     // Search the configured basis_file for basis matrix elements
     while(regex_search(content, match, elem_regex)){
@@ -181,30 +211,60 @@ vector<cx_mat> read_matrices(const string &filepath){
         // for(auto i = 0u; i < match.size(); ++i)
         //     cout << i << ": " << match[i].str() << endl;
 
-        string z = match[1].str();
-        cout << z << endl;
-        //if (count(z.begin(), z.end(), '.') > 1){
+        m2 = match[2].str();
+        m3 = match[3].str();
+        m5 = match[5].str();
+        m6 = match[6].str();
+        m7 = match[7].str();
 
-        // do the split between "whole" complex numbers and partial ones
-        if (regex_search(z, dummy, complex_split)) {
-            string a = match[3].str(), b = match[4].str();
-            clean_input(a); clean_input(b);
+        clean_input(m2);
+        clean_input(m3);
+        clean_input(m5);
+        clean_input(m6);
+        clean_input(m7);
+
+        // string z = match[1].str();
+        // // cout << z << endl;
+        // //if (count(z.begin(), z.end(), '.') > 1){
+
+        // // do the split between "whole" complex numbers and partial ones
+        // // if (regex_search(z, dummy, complex_split)) {
+        if (!m5.empty() && !m6.empty()) {
+            // string a = match[3].str(), b = match[4].str();
+            // clean_input(a); clean_input(b);
             // cout << stod(a) << "+" << stod(b) << "i" << endl;
-            numbers.push_back(complex<double>(stod(a),stod(b)));
+            // if (b.empty()) {
+            //     numbers.push_back(complex<double>(stod(a),1.0));
+            // } else {
+            // if (!m7.empty()) {
+            if (isdigit(m7.back()) || (m7.back() == '.')) 
+                numbers.push_back(complex<double>(stod(m5), stod(m7)));
+            else {
+                numbers.push_back(complex<double>(stod(m5), stod(m7 + string("1.0"))));
+            }
+            // } else {
+            //     numbers.push_back(complex<double>(stod(m5), 1.0));
+            // }
+            // }
+        } else if (!m2.empty()) {
+            remove_from_string(m2, 'i');
+            remove_from_string(m2, 'I');
+            numbers.push_back(complex<double>(0.0, stod(m2 + string("1.0"))));
         } else {
-            clean_input(z);
+            // clean_input(z);
             // if (isdigit(z[z.length()-1]) || (z[z.length()-1] == '.')) {
-            if (isdigit(z[z.length()-1]) || (z[z.length()-1] == '.')) {
+            if (isdigit(m3.back()) || (m3.back() == '.')) {
                 // cout << stod(z) << endl;
-                numbers.push_back(complex<double>(stod(z), 0.0)); 
+                numbers.push_back(complex<double>(stod(m3), 0.0)); 
             } else {
                 // cout << stod(z) << "i" << endl;
-                numbers.push_back(complex<double>(0.0, stod(z)));
+                numbers.push_back(complex<double>(0.0, stod(m3)));
             }
         }
         content = match.suffix().str();
         idx++;
     }
+    // exit(0);
 
     if (m*t*k != (int)numbers.size()){
         log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements (read " + to_string(numbers.size()) + \

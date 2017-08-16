@@ -9,6 +9,8 @@
  ===================================================================================================
  */
 
+#define ARMA_NO_DEBUG // for speed
+
 #include <iostream>
 #include <armadillo> // linear algebra library
 #include <complex>
@@ -107,6 +109,8 @@ int main(int argc, char** argv)
     int stat_interval = params["stat_display_interval"];
     int search_density = params["radius_search_density"];
 
+    search_density = (search_density <= 0) ? 3 : search_density;
+
     double P = dparams["spherical_shaping_max_power"];
 
     string channel_model = sparams["channel_model"];
@@ -124,11 +128,21 @@ int main(int argc, char** argv)
         coset_bases = read_matrices(filenames["cosets"]);
 
     log_msg("Read basis matrices:");
-    for (auto const &basis : coset_bases){
+    for (auto const &basis : bases){
         // cout << basis << endl;
-        // log_msg(mat2str(basis), "Raw");
         log_msg(mat2str(basis), "Raw");
+        // log_msg(mat2str(basis), "Raw");
     }
+
+    if (coset_encoding) {
+        log_msg("Read coset basis matrices:");
+        for (auto const &basis : coset_bases){
+            // cout << basis << endl;
+            log_msg(mat2str(basis), "Raw");
+            // log_msg(mat2str(basis), "Raw");
+        }
+    }
+    // exit(0);
 
     cx_mat G = create_generator_matrix(bases);
     // G = LLL_reduction(G);
@@ -328,12 +342,12 @@ int main(int argc, char** argv)
         // uniform_int_distribution<int> random_code(0, codebook.size()-1);
 
         /* simulation main loop */
-        #pragma omp for
+        #pragma omp for schedule(static,1)
         for (int snr = min; snr <= max; snr += step) {
             // Hvar = e.first/pow(10, snr/10)*t; 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
-            #pragma omp critical
-            cout << snr << " | " << Hvar << endl; 
+            // #pragma omp critical
+            // cout << snr << " | " << Hvar << endl; 
             while (errors < required_errors[snr] || runs < min_runs) {
 
                 if (exit_flag) break; // terminate simulations

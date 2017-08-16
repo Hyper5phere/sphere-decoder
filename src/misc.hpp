@@ -2,7 +2,6 @@
 #define MISC_HPP
 
 #define _GLIBCXX_USE_CXX11_ABI 0 // fixes some string related errors
-#define ARMA_NO_DEBUG // for speed
 // #define PLOTTING // enable plotting (requires boost C++ library)
 
 #include <string>
@@ -59,6 +58,7 @@ class parallel_set : public std::set<T> {
 std::string time_str(void);
 void log_msg(const std::string msg = "-start-", const std::string lvl = "Info");
 void clean_input(std::string &input);
+void remove_from_string(std::string &input, const char c);
 void create_output_filename(void);
 void output_csv(const parallel_vector<std::string> &line);
 bool snr_ordering(std::string &a, std::string &b);
