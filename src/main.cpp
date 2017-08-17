@@ -1,18 +1,18 @@
-/*
- ===================================================================================================
- Name        : main.cpp
- Author      : Pasi Pyrrö
- Version     : 1.0
- Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis
- Date        : 9.8.2017
- Description : Sphere Decoder in C++11
- ===================================================================================================
- */
 
-#define ARMA_NO_DEBUG // for speed
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Name        : main.cpp                                                                              *
+ * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
+ * Version     : 1.0                                                                                   *
+ * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
+ * Date        : 17.8.2017                                                                             *
+ * Language    : C++11                                                                                 *
+ * Description : main program file of the sphere decoder, contains the simulation main loop            *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ 
+#define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
 
 #include <iostream>
-#include <armadillo> // linear algebra library
+#include <armadillo> /* linear algebra library */
 #include <complex>
 #include <vector>
 #include <string>
@@ -43,10 +43,10 @@ map<string, double> dparams;
 /* storage for simulation string parameters */
 map<string, string> sparams;
 
-/* random number generator */
-mt19937_64 mersenne_twister{
+/* 64-bit standard random number generator */
+mt19937_64 mersenne_twister {
     static_cast<long unsigned int>(
-        chrono::high_resolution_clock::now().time_since_epoch().count()
+        chrono::high_resolution_clock::now().time_since_epoch().count() /* seed for rng */
     )
 };
 
@@ -58,19 +58,21 @@ bool exit_flag;
 
 /* Handles task kills (CTRL-C) */
 void signal_handler(int signum) {
-    exit_flag = true;
-    this_thread::sleep_for(chrono::milliseconds(1000));
+    exit_flag = true; /* Terminates simulations */
+    this_thread::sleep_for(chrono::milliseconds(1000)); /* Give some time for the simulation to end 
+                                                           before attempting to output data */
     log_msg("Simulations terminated by user!", "Alert");
-    output_data(output); // output current simulation data
-    exit(signum);
+    output_data(output); /* output current simulation data */
+    exit(signum); /* exit program */
 }
 
 /* The program starts here */
 int main(int argc, char** argv)
 {
-    // assign signal SIGINT (when CTRL-C is pressed) to signal handler
+    /* assign signal SIGINT (when CTRL-C is pressed) to signal handler */
     signal(SIGINT, signal_handler);
-    exit_flag = false;
+    /* if this flag is true, the program will exit from simulation loops */
+    exit_flag = false; 
 
     /* define default filenames */
     filenames["settings"]         = "settings/settings.ini";
@@ -78,86 +80,101 @@ int main(int argc, char** argv)
     filenames["bases"]            = "bases/bases.txt";
     filenames["log"]              = "logs/log.txt";
 
-    if (argc == 2){ // a parameter was given
-        filenames["settings"] = "settings/" + string(argv[1]); // use alternative settings file
-    } else if (argc > 2) { // too many parameters were given
+    /* settings filename parameter was given */
+    if (argc == 2){ 
+        filenames["settings"] = "settings/" + string(argv[1]); 
+    }
+    /* too many parameters were given */
+    else if (argc > 2) { 
         cout << "Usage: " << argv[0] << " [settings_file*]" << endl;
         exit(0);
     }
 
+    /* Configure program parameters i.e. occupy the maps listed above 
+     * with values read from the settings file.
+     * Implemented in config.cpp file
+     */
     configure();
 
+    /* This program uses custom logging function which prints info
+       in stdout (console output) and also in a log file.
+       It can be found from the misc.cpp file */
     log_msg();
     log_msg("Starting program...");
 
     /* initialize simulation parameters */
-    int m = params["no_of_transmit_antennas"];
+    int m = params["no_of_transmit_antennas"]; 
     int n = params["no_of_receiver_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
-    int s = params["codebook_size_exponent"];
-
+    int s = params["codebook_size_exponent"]; /* if spesified, the program will 
+                                                 try to look for a spherical shaping radius 
+                                                 so that the codebook has size of 2^s */
+    
+    /* Spesify SNR range for the simulation */
     int min = params["snr_min"];
     int max = params["snr_max"];
     int step = params["snr_step"];
 
-    int num_points = 0;
+    int min_runs = params["simulation_rounds"]; /* run at least this many rounds for each SNR simulation */
 
-    int min_runs = params["simulation_rounds"];
+    int stat_interval = params["stat_display_interval"]; /* Display intermediate simulation stats every this many rounds */
+    int search_density = params["radius_search_density"]; /* Spesifies how many radiuses around the initial guess we try
+                                                             to get the codebook size to 2^s */
 
-    int stat_interval = params["stat_display_interval"];
-    int search_density = params["radius_search_density"];
+    search_density = (search_density <= 0) ? 10 : search_density; /* default to 10 */
 
-    search_density = (search_density <= 0) ? 3 : search_density;
+    double P = dparams["spherical_shaping_max_power"]; /* User can also manually spesify the spherical shaping radius */
 
-    double P = dparams["spherical_shaping_max_power"];
+    string channel_model = sparams["channel_model"]; /* Decides how channel matrix H is generated */
 
-    string channel_model = sparams["channel_model"];
-
+    /* Read the complex basis vectors for the lattice we want to decode in */
     vector<cx_mat> bases = read_matrices(filenames["bases"]);
-    cout << "-------" << endl;
     vector<cx_mat> coset_bases;
 
+    /* flag that spesifies if we're doing the so called 'wiretap' simulation 
+       i.e. all codewords that belong to the same coset have the same meaning 
+       for this simulation we need another lattice, which is a sublattice of the previous one */
     bool coset_encoding = false;
 
+    /* If the user has spesified a coset basis file, assume 'wiretap' simulation */
     if (filenames.count("cosets") != 0)
         coset_encoding = true;
 
+    /* Conditionally read the coset basis matrices from a different basis file */
     if (coset_encoding)
         coset_bases = read_matrices(filenames["cosets"]);
 
+    /***** Sanity check: Print all read matrices! *****/
+
     log_msg("Read basis matrices:");
     for (auto const &basis : bases){
-        // cout << basis << endl;
         log_msg(mat2str(basis), "Raw");
-        // log_msg(mat2str(basis), "Raw");
     }
 
     if (coset_encoding) {
         log_msg("Read coset basis matrices:");
         for (auto const &basis : coset_bases){
-            // cout << basis << endl;
             log_msg(mat2str(basis), "Raw");
-            // log_msg(mat2str(basis), "Raw");
         }
     }
-    // exit(0);
 
+    /* Generator matrix of the lattice code */
     cx_mat G = create_generator_matrix(bases);
+    /* TODO: implement LLL_reduction (stub can be found in algorithms.cpp) */
     // G = LLL_reduction(G);
+
+    /* sublattice generator matrices for coset encoding (e stands for 'Eve') */
     cx_mat invGe, Ge;
 
-    // cout << "-------------" << endl;
-    // bases = generator_to_bases(G);
-    // for (auto const &basis : bases){
-    //     cout << basis << endl;
-    // }
-    // exit(0);
-
+    /***** If the Gram matrix (generator times its own transpose) is diagonal, 
+           the basis for the lattice is orthogonal, Check it like this *****/
 
     // cout << "Orthogonality check:" << endl;
     // cout << G.t()*G << endl;
+
+    /***** Matrices can be hardcoded in the simulation like so *****/
 
     // mat coset_multiplier("4 0 0 0;"
     //                      "0 2 0 0;"
@@ -185,64 +202,65 @@ int main(int argc, char** argv)
     //                      "-4 -1  0 -1");
 
     if (coset_encoding) {
-        // as q-PAM is already a subset of translated 2Z^n lattice, 
-        // need to multiply the sublattice basis with 2 to make the lattice points comparable
-        Ge = 2*create_generator_matrix(coset_bases);
-        invGe = pinv(Ge);
-        // Ge = 2*G*coset_multiplier;
+        /* as q-PAM is already a subset of translated 2Z^n lattice, 
+           we need to multiply the sublattice basis with 2 to make the lattice points comparable */
+        Ge = 2*create_generator_matrix(coset_bases); /* Read cosets from file */
+        // Ge = 2*G*coset_multiplier; /* Generate cosets from basis matrix with hardcoded transformation matrices */
+        invGe = pinv(Ge); /* Coset lattice generator matrix and its (pseudo)inverse */
     }
 
-    auto cos_bases = generator_to_bases(0.5*Ge);
-    for (auto b : cos_bases){
-        output_complex_matrix("lambda5.txt", b, true);
-    }
+    /***** You can generate basis matrix txt files like this *****/
+    // auto cos_bases = generator_to_bases(0.5*Ge);
+    // for (const auto &b : cos_bases) {
+    //     output_complex_matrix("lambda5.txt", b, true);
+    // }
 
-    // mat G_real = create_real_generator_matrix(bases);
-    mat G_real = to_real_matrix(G);
+    /***** Another example of matrix printing: prints the real generator matrix into a txt file *****/
+    // output_real_matrix("MIDO_basis.txt", G_real);
 
-    // cout << G_real << endl;
-    // cout << G_real2 << endl;
-    // cout << to_complex_matrix(G_real) << endl;
-    // cx_mat Ge = G*coset_multiplier;
-    // invGe = pinv(Ge);
-    
+    /* Many helper functions have been implemented for matrix manipulation,
+       Check algorithms.cpp for a complete list */
+    mat G_real = to_real_matrix(G); /* Make a real representation out of G */
+
+    /***** Calculate the lattice constant like this *****/    
     // cout << "determinant: " << det(G_real.t()*G_real) << endl;
-    // cout << G.t()*G << endl;
-    output_real_matrix("MIDO_basis.txt", G_real);
-    // exit(0);
 
-    mat Q, Rorig;
-    qr_econ(Q, Rorig, G_real);  // QR-decomposition of G (omits zero rows in Rorig)
-    process_qr(Q, Rorig);
 
+    mat Q, Rorig; /* Decompose G_real */
+    qr_econ(Q, Rorig, G_real);  /* QR-decomposition of G_real (omits zero rows in Rorig) */
+    process_qr(Q, Rorig); /* Makes sure Rorig only has positive diagonal elements (this is probably optional) */
+
+    /* Creates a q-PAM symbol set,
+       e.g. 4-PAM = {-3, -1, 1, 3} */
     vector<int> symbset = create_symbolset(q);
+
+    int num_points = 0; /* Number of codewords inside the spherical constellation */
     
-    // try to find radius for the codebook that has atleast 2^s codewords
+    /* try to find radius for the codebook that has atleast 2^s codewords if s is spesified */
     if (s > 0) {
         log_msg("Attempting to estimate squared radius (max power) for codebook of 2^" + to_string(s) + " codewords...");
-        double P_estimate = estimate_squared_radius(Rorig, s);
-        cx_vec lambda_min = shortest_basis_vector(G);
-        double lambda_min_len = frob_norm_squared(lambda_min)/search_density;
-        double rcurr = P_estimate + search_density*lambda_min_len/2;
+        double P_estimate = estimate_squared_radius(Rorig, s); /* see algorithms.cpp for details */
+        cx_vec lambda_min = shortest_basis_vector(G); /* pick the shortest column vector of G */
+        double search_step = frob_norm_squared(lambda_min)/search_density; /* radius search step */
+        double rcurr = P_estimate + search_density*search_step/2; /* starting radius */
         log_msg("Initial guesstimate for codebook squared radius: " + to_string(P_estimate));
-        log_msg("Radius search step: " + to_string(lambda_min_len));
-        vector<double> rvec;
+        log_msg("Radius search step: " + to_string(search_step));
+        vector<double> rvec; /* store radius candidates in here (descending order) */
         for (int i = 0; i < search_density + 1 && rcurr > 0.0; i++) {
             rvec.push_back(rcurr);
-            rcurr -= lambda_min_len;
+            rcurr -= search_step;
         }
+        /* Counts corresponding number of points inside hypersphere for each radius in rvec */
         vector<int> pvec = count_points_many_radiuses(Rorig, symbset, rvec, vec(k, fill::zeros), k, 0);
-        // cout << vec2str(rvec, rvec.size()) << endl;
-        // cout << vec2str(pvec, pvec.size()) << endl;
-        // cout << P << endl;
+        /* Pick the smallest radius that maps to number of codewords in range [2^s, 2^(s+1)] */
         for (auto j = pvec.size()-1; j >= 0; j--) {
-            // cout << j << endl;
             if (pvec[j] >= (int)pow(2, s) && pvec[j] < (int)pow(2, s+1)) {
                 P = rvec[j];
                 num_points = pvec[j];
                 break;
             }
         }
+        /* Evaluate estimation result */
         if (P < 0) {
             log_msg("Estimation failed, using non-spherical shaping...", "Alert");
         } else if (P == dparams["spherical_shaping_max_power"]) {
@@ -252,13 +270,14 @@ int main(int argc, char** argv)
         }
     }
 
-  
+    /* Generate the whole codebook or a random sampled subset of it.
+       Used only for code energy calculation for now... */
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
+    /* Calculate the average and maximum energy of the codewords in our lattice code */
     auto e = code_energy(codebook);
 
-    // e.first = 46.210487;
-    
+    /* Print some useful information before starting the actual simulation */
     log_msg("", "Raw");
     log_msg("Simulation info");
     log_msg("---------------");
@@ -270,13 +289,12 @@ int main(int argc, char** argv)
         log_msg("Using codebook spherical shaping squared radius: " + to_string(P));
         // log_msg("Suggested squared radius (max power) for 2^" + to_string(s) +
         //     " (" + to_string((int)pow(2, s)) + ") codewords: " + to_string(P_estimate));
-        // log_msg("Number of codewords inside the hypersphere: " + to_string(count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0)));
         if (num_points == 0)
             num_points = count_points(Rorig, symbset, P, vec(k, fill::zeros), k, 0);
         log_msg("Number of codewords inside the hypersphere: " + to_string(num_points));
     }
     if (coset_encoding) {
-        auto rates = code_rates(2*G, Ge);
+        auto rates = code_rates(2*G, Ge);  /* Calculate code rates, scaling by two needed again because of q-PAM (Ge already scaled) */
         log_msg("Code overall rate: "      + to_string(get<0>(rates)/t) + " bpcu");
         log_msg("Code transmission rate: " + to_string(get<1>(rates)/t) + " bpcu");
         log_msg("Code confusion rate: "    + to_string(get<2>(rates)/t) + " bpcu");
@@ -287,7 +305,7 @@ int main(int argc, char** argv)
     string answer;
     cout << "Continue to simulation (y/n)? " << endl;
     getline(cin, answer);
-    // cout << "'" << answer << "'" << endl;
+    /* Continue only if user types 'y' or 'yes' */
     if (!(answer.compare("y") == 0 || answer.compare("yes") == 0)) {
         log_msg("Program exited successfully!");
         return 0;
@@ -296,36 +314,32 @@ int main(int argc, char** argv)
     log_msg("Starting simulations... (Press CTRL-C to abort)");
 
     map<int, int> required_errors;
+    /* if error file is spesified, fill the required_errors map with it
+       Otherwise use constant error requirement for each SNR simulation */
     if (filenames.count("error") == 0)
         for (int snr = min; snr <= max; snr += step)
             required_errors[snr] = params["required_errors"];
     else
         required_errors = read_error_requirements(filenames["error"]);
 
+    /* If user has not spesified output filename, generate one automatically */
     if (filenames.count("output") == 0)
-        create_output_filename();
+        create_output_filename(); /* see misc.cpp for details */
 
-
-    output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); // add label row
+    /* thread safe output string vector, used for csv output */
+    output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); /* add label row */
     
-    #pragma omp parallel // parallelize SNR simulations
+    #pragma omp parallel /* parallelize SNR simulations */
     {
         double Hvar = 1, Nvar = 1;
  
         /* initialize a bunch of complex matrices used in the simulation */
-        cx_mat H, X(m, t), N(n, t); // Y //, HX, Ynorm;
+        cx_mat H(n, m), X(m, t), N(n, t);
 
-        // mat B(2*t*n, k), Q, R, M;
+        vector<int> x(k), orig(k); /* output and input vectors */
 
-        // vec y;
-        // vec y2;
-
-        vector<int> x(k), orig(k);
-        // vec x(k);
-        // vector<string> stats;
-
+        /* simulation variables */
         int runs = 0;
-        // int a = 0;
         int errors = 0; 
         int visited_nodes = 0;
         int total_nodes = 0;
@@ -337,139 +351,76 @@ int main(int argc, char** argv)
         double SNRreal = 0;
         double C = 0.0; // initial squared radius for the sphere decoder
 
-        pair<vector<int>,cx_mat> codeword;
+        /* pair containing the coefficients and matrix representation of a single codeword */
+        pair<vector<int>,cx_mat> codeword; 
 
-        // uniform_int_distribution<int> random_code(0, codebook.size()-1);
-
-        /* simulation main loop */
+        /* Simulations main loop (iteration shared among parallel threads) 
+           Simulations are indexed by their SNR value */
         #pragma omp for schedule(static,1)
         for (int snr = min; snr <= max; snr += step) {
-            // Hvar = e.first/pow(10, snr/10)*t; 
-            Hvar = pow(10.0, snr/10.0)*(t/e.first); // calculate noise variance from SNR
-            // #pragma omp critical
-            // cout << snr << " | " << Hvar << endl; 
+
+            Hvar = pow(10.0, snr/10.0)*(t/e.first); /* calculate channel matrix variance from SNR */
+            /* (noise variance is constant one) */
+
+            /* Single SNR simulation loop: 
+               run until both conditions are satisfied or the simulation is terminated by user */
             while (errors < required_errors[snr] || runs < min_runs) {
 
-                if (exit_flag) break; // terminate simulations
-
-                // a = random_code(mersenne_twister);
-                // X = codebook[a].second;                     
+                if (exit_flag) break; /* terminate simulations */
+                 
+                /* Simulation starts by generating a random codeword that we want to send */
                 if (P <= 0)
                     codeword = create_random_codeword(bases, symbset); 
                 else
                     codeword = create_random_spherical_codeword(bases, Rorig, symbset, P);
 
-                orig = codeword.first;  // coefficients from the signal set (i.e. data vector)
-                X = codeword.second;    // Code block we want to send
+                orig = codeword.first;  /* coefficients from the signal set (i.e. data vector) */
+                X = codeword.second;    /* Code block we want to send */
 
-                // if (/*euclidean_norm(orig)*/ frob_norm_squared(X) > P + 1e-6 && P > 0) continue;  // We're outside the spherical constellation
-
-                // cout << X << endl;
-                // X = bases[0]*2.9+bases[1]*3;
+                /* Generate random channel matrix according to channel mode */
                 if (channel_model.compare("mimo") == 0)
-                    H = create_random_matrix(n, m, 0, Hvar);    // Channel matrix
+                    H = create_random_matrix(n, m, 0, Hvar);
                 else if (channel_model.compare("siso") == 0)
                     H = create_random_diag_matrix(n, 0, Hvar);
                 else {
                     log_msg("Invalid channel model parameter used!", "Error");
                     exit(1);
                 }
-                // cout << H << endl;
 
-                N = create_random_matrix(n, t, 0, Nvar);    // Noise matrix 
-                // H.eye(2,2);
-                // N.zeros(2,2);
+                N = create_random_matrix(n, t, 0, Nvar); /* Additive complex Gaussian white noise matrix */
 
-                sigpow += frob_norm_squared(H*X);       // Signal power
-                noisepow += frob_norm_squared(N);       // Noise power
-                C = noisepow + 1e-3;                    // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
+                sigpow += frob_norm_squared(H*X);       /* Signal power */
+                noisepow += frob_norm_squared(N);       /* Noise power */
+                C = noisepow + 1e-3;                    /* initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison) */
 
-                // cout << N << endl;
-
+                /* wrapper function for the sphere decoder algorithm, see details in sphdec.cpp 
+                   x is the decoded output vector */
                 x = sphdec_wrapper(bases, Rorig, H, X, N, symbset, visited_nodes, C);
 
-                // HX = H*X;
-                // sigpow += frob_norm_squared(HX);
-                // noisepow += frob_norm_squared(N);
-                // C = noisepow + 1e-2; // initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison)
-                // // log_msg("Signal power: " + to_string(sigpow) + ", Noise power: " + to_string(noisepow));
-                // Y = HX + N; // Simulated code block that we would receive from MIMO-channel
-                // Ynorm = (Y + H*basis_sum*(q - 1))*0.5; // normalize received matrix for the sphere decoder
-                // y = to_real_vector(Ynorm); // convert Y to real vector
-
-                // // B = (HX1 HX2 ... HXk)
-                // for(int i = 0; i < k; i++){
-                //     B.col(i) = to_real_vector(H*bases[i]);
-                // }
-                // // cout << B << endl;
-
-                // qr_econ(Q, R, B); // QR-decomposition of B (omits zero rows in R)
-                // process_qr(Q, R); // Make sure R has positive diagonal elements
-                // // cout << vec2str(y, y.n_elem) << endl;
-                // y2 = Q.st()*y; // Map y to same basis as R
-
-
-                // cout << "Input:" << endl << "C = " << C << endl;
-                // cout << "y = " << vec2str(y2, y2.n_elem) << endl << endl;
-
-                // cout << R << endl;
-                // cout << Q << endl;
-                // cout << "-----" << endl;
-
-                // M.eye(4,4);
-                // M *= 2;
-                // // M(1,3) = 0.5;
-                // // M(1,2) = 0.25;
-                // // M(0,3) = -2.75;
-                // // R(3,0) = 100;
-                // // qr_econ(Q,R,R);
-                // cout << "M = " << endl << M << endl;
-                // // cout << Q << endl;
-                // y2 = vec("0 0 0 0");
-                // cout << "y = " << vec2str(y2, y2.size()) << endl;
-                // for (int j = 0; j < k; j++)     
-                //     y2[j] = 0.5*(y2[j] + q - 1);
-                // cout << "y' = " << vec2str(y2, y2.size()) << endl;
-                // y2 = M*y2;
-                // cout << "M*y' = " << vec2str(y2, y2.size()) << endl;
-                // C = 25;
-
-                // #pragma omp task
-                // x = R*Col<int>(sphdec(C, y2, R)); //, bases); // sphere decoder algorithm
-                // x = sphdec(C, y2, R, visited_nodes);
-                
-
-                // if (x.size() == 0) { // point not found
-                //     errors++;
-                //     runs++;
-                //     // Q.zeros();
-                //     // R.zeros();
-                //     continue;
-                // }
-
-                // for (int j = 0; j < k; j++)     
-                //     x[j] = 2*x[j] - q + 1;
-                    // orig[j] = 0.5*(codebook[a].first[j] + q - 1);
-
-                // if (codebook[a].first != x){
+                /* Check if the decoded vector is the same as what we sent in the simulation. 
+                   If we're doing 'wiretap' simulation the checking is done in different manner */
                 if (coset_encoding) {
+                    /* see details for coset_check in algorithms.cpp 
+                       the last argument is the difference vector between x and orig */
                     if (!coset_check(G, invGe, Col<int>(orig) - Col<int>(x))) {
                         errors++;
                     }
                 } else {
+                    /* simple equality check for normal simulation */
                     if (orig != x) {
                         errors++;
                     }
                 }
-                // cout << endl << "x = " << vec2str(orig, orig.size()) << endl;
-                
-                // cout << "x_hat = "<< vec2str(x, x.size()) << endl << endl;
 
-                // log_msg("Found point: " + vec2str(x, k) + ", sent point: " + vec2str(codebook[a].first, k));
+                /***** the vectors can be printed out nicely like this for debugging reasons *****/
+                // cout << endl << "orig = " << vec2str(orig, orig.size()) << endl;
+                // cout << "x = "<< vec2str(x, x.size()) << endl << endl;
 
+                /* increase counters */
                 total_nodes += visited_nodes;
                 runs++;
 
+                /* print intermediate simulation stats every now and then (if enabled) */
                 if (runs % stat_interval == 0 && stat_interval > 0){
                     SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
                     bler = (double)errors/runs;
@@ -478,19 +429,16 @@ int main(int argc, char** argv)
                     "\tReal SNR: " + to_string(SNRreal) + \
                     ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + ")" + \
                     ", Avg Complexity: " + to_string(avg_complex));
-                    
-                    // for (const string &s : stats)
-                    //     log_msg(s);
                 }
-
-                // Q.zeros();
-                // R.zeros();
-                // x.clear();
-                // orig.clear();
             }
             
-            SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
+            /* SNR simulation finished, calculate results... */
+
+            /* Sanity check for the realized SNR, should roughly equal to the configured SNR */
+            SNRreal = 10 * log(sigpow / noisepow) / log(10.0); 
+            /* Block error rate */
             bler = (double)errors/runs;
+            /* Average complexity (number of visited search tree nodes) of the sphere decoder */
             avg_complex = (double)total_nodes/runs;
             
             output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler) + "," + to_string(avg_complex));
@@ -500,32 +448,18 @@ int main(int argc, char** argv)
                     ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + ")" + \
                     ", Avg Complexity: " + to_string(avg_complex));
 
-            // reset counters after simulation round
+            /* reset counters after simulation round */
             runs = 0;
             errors = 0;
             noisepow = 0;
             sigpow = 0;
             total_nodes = 0;
-            // stats.clear();
         }
 
     }
     /* output the simulation results in a csv file in /output/ folder */
-    // if (output.size() > 1){
-    //     sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
-    //     log_msg("Printing simulation output to '" + filenames["output"] + "'...");
-    //     output_csv(output);
-    //     #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
-    //     if (params["plot_results"] > 0){
-    //         log_msg("Drawing plots...");
-    //         plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
-    //         plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
-    //     }
-    //     #endif
-    // }
     output_data(output);
 
     log_msg("Program exited successfully!");
-    // log_msg();
     return 0;
 }
