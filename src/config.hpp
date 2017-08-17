@@ -1,3 +1,14 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Filename    : config.hpp                                                                            *
+ * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
+ * Version     : 1.0                                                                                   *
+ * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
+ * Date        : 17.8.2017                                                                             *
+ * Language    : C++11                                                                                 *
+ * Description : Function prototypes for config.cpp                                                    *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 

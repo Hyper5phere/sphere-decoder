@@ -1,7 +1,18 @@
-#define ARMA_NO_DEBUG // for speed
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Filename    : sphdec.cpp                                                                            *
+ * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
+ * Version     : 1.0                                                                                   *
+ * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
+ * Date        : 17.8.2017                                                                             *
+ * Language    : C++11                                                                                 *
+ * Description : The core algorithm implementations for the simulation + wrapper function for them     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
 
 #include <iostream>
-#include <armadillo> // linear algebra library
+#include <armadillo> /* linear algebra library */
 #include <vector>
 #include <complex>
 #include <string>
@@ -15,9 +26,7 @@ using namespace arma;
 
 
 /* Decision feedback equalization on xt[i] */
-inline void step2(int i, int q, vec &xt, const vec &y, vec &delta, const vec &ksi, const mat &R, const vector<int> &S) {
-    // int spacing = abs(S[0] - S[1]);
-    // xt[i] = round((y[i]-ksi[i])/R(i,i));
+inline void dfe(int i, int q, vec &xt, const vec &y, vec &delta, const vec &ksi, const mat &R, const vector<int> &S) {
     xt[i] = nearest_symbol((y[i]-ksi[i])/R(i,i), S);
     if (xt[i] < S[0]) {
         xt[i] = S[0];
@@ -31,8 +40,7 @@ inline void step2(int i, int q, vec &xt, const vec &y, vec &delta, const vec &ks
 }
 
 /* Schnorr-Euchner enumeration step for the sphere decoder */
-inline void step6(int i, vec &xt, vec &delta){
-    // int spacing = abs(S[0] - S[1]);
+inline void se_enum(int i, vec &xt, vec &delta){
 	xt[i] = xt[i] + delta[i];
 	delta[i] = -delta[i] - 2*sesd_sign(delta[i]);
 }
@@ -63,32 +71,31 @@ inline bool check(double radius, const mat &R, const vec &y){
 /* Basic sphere decoder algorithm */
 vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counter, double radius){
 
-    // Step 1
+    /* Initialize */
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
     int i = k-1;
 
-    // cout << "sphdec called" << endl;
-
     vector<int> x(k); // candidate for the closest lattice point
 	vec xt(k), ksi(k), delta(k), dist(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros();
-    counter = 0;
+    counter = 0; /* counts how many search tree nodes (loop iterations) we went through */
 	
 	double xidist = 0.0;
     bool found = false;
 
     if (!check(radius, R, y))
-        return x;
+        return vector<int>(0);
 
-    step2(i, q, xt, y, delta, ksi, R, S);
+    dfe(i, q, xt, y, delta, ksi, R, S);
 
     while (!exit_flag) {
 
         counter++;
-        // Step 3.
+        /* Step 3. */
         xidist = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
         
+        /***** Uncomment line below to debug *****/
         // cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
 
         if (radius < dist[i] + xidist) { // current point xt is outside the sphere
@@ -98,7 +105,7 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
         	} else {
         		// Step 6.
                 i++;
-        		step6(i, xt, delta);
+        		se_enum(i, xt, delta);
         	}
         } else { // we are inside the sphere
         	if (xt[i] < S[0] || xt[i] > S[q - 1]){ // we are outside the signal set boundaries
@@ -108,11 +115,10 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
                         break;
                     } else {
                         i++;
-                        step6(i, xt, delta);
+                        se_enum(i, xt, delta);
                     }
                 } else {
-                    // cout << "delta = " << delta[i] << endl;
-        	        step6(i, xt, delta);
+        	        se_enum(i, xt, delta);
                 }
             } else {
         		if (i > 0) {
@@ -121,13 +127,13 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
         				ksi[i-1] += R(i-1, j)*xt[j];
         			dist[i-1] = dist[i] + xidist;
         			i--;
-                    step2(i, q, xt, y, delta, ksi, R, S);
+                    dfe(i, q, xt, y, delta, ksi, R, S);
         		} else { // lattice point is found (Step 5)
         			radius = dist[0] + xidist;
                     found = true;
         			x = conv_to<vector<int>>::from(xt);
                     i++;
-        			step6(i, xt, delta);
+        			se_enum(i, xt, delta);
         		}
         	}
         }
@@ -144,25 +150,23 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
 vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, const vector<int> &S,
                                      int &counter, double P, double radius){
 
-    // Step 1
+    /* Initialize */
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
     int i = k-1;
 
-    // spacing_x = abs(S[0]-S[1]);
-
-    vector<int> x(k); // found point
+    vector<int> x(k); /* point to decode */
     vec xt(k), ksi(k), delta(k), dist(k), curr(k), ener(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros(); curr.zeros(); ener.zeros();
-    counter = 0;
+    counter = 0; /* counts how many search tree nodes (loop iterations) we went through */
     
     double xidist = 0.0, xiener = 0.0;
     bool found = false;
 
     if (!check(radius, HR, y))
-        return x;
+        return vector<int>(0);
 
-    step2(i, q, xt, y, delta, ksi, HR, S);
+    dfe(i, q, xt, y, delta, ksi, HR, S);
 
     while (!exit_flag) {
 
@@ -170,20 +174,20 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
         // Step 3.
         xidist = pow(y[i]-ksi[i]-HR(i,i)*xt[i], 2);
         
+        /***** Uncomment line below to debug *****/
         // cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
 
-        if (radius < dist[i] + xidist) { // current point xt is outside the sphere
+        if (radius < dist[i] + xidist) { /* current point xt is outside the sphere */
             // Step 4.
             if (i == k-1) {
                 break;
             } else {
                 // Step 6.
                 i++;
-                step6(i, xt, delta);
+                se_enum(i, xt, delta);
             }
-        } else { // we are inside the sphere
+        } else { /* we are inside the sphere */
 
-            //xiener = pow((2*xt[i] - q + 1)*R(i,i) + curr[i], 2);
             xiener = pow(xt[i]*R(i,i) + curr[i], 2);
 
             // we are outside the signal set boundaries
@@ -194,29 +198,28 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
                         break;
                     } else {
                         i++;
-                        step6(i, xt, delta);
+                        se_enum(i, xt, delta);
                     }
                 } else 
-                    step6(i, xt, delta);
+                    se_enum(i, xt, delta);
             } else {
                 if (i > 0) {
                     ksi[i-1] = 0;
                     curr[i-1] = 0;
                     for (int j = i; j < k; j++){
                         ksi[i-1] += HR(i-1, j)*xt[j];
-                        // curr[i-1] += (2*xt[j] - q + 1)*R(i-1,j);
                         curr[i-1] += xt[j]*R(i-1,j);
                     }
                     dist[i-1] = dist[i] + xidist;
                     ener[i-1] = ener[i] + xiener;
                     i--;
-                    step2(i, q, xt, y, delta, ksi, HR, S);
+                    dfe(i, q, xt, y, delta, ksi, HR, S);
                 } else { // lattice point is found (Step 5)
                     radius = dist[0] + xidist;
                     found = true;
                     x = conv_to<vector<int>>::from(xt);
                     i++;
-                    step6(i, xt, delta);
+                    se_enum(i, xt, delta);
                 }
             }
         }
@@ -232,60 +235,36 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
 /* Wrapper function for the sphere decoder to handle complex to real matrix conversion, 
    QR-decomposition and other mappings */
 vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const mat Rorig, const cx_mat &H, 
-                           const cx_mat &X, const cx_mat &N, const vector<int> &symbset, int &visited_nodes, double radius){
+                           const cx_mat &X, const cx_mat &N, const vector<int> &symbset, int &visited_nodes, double radius) {
 
+    /* read simulation parameters */
     int n = params["no_of_receiver_antennas"];
-    int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
-    // int q = params["x-PAM"];
     double P = dparams["spherical_shaping_max_power"];
 
-    // cout << "sphdec_wrapper called!" << endl;
-
-    vector<int> x(k);
-    cx_mat Y(n, t); //, Ynorm;                 // Helper complex matrices
-    mat B(2*t*n, k), G(2*t*m,k), Q, R;         // real matrices
-    // vec y(2*t*n), y2;                                // helper and sphdec input vector
-    // cx_mat Y;                                  // Helper complex matrices
-    // mat B, G, Q, R, Rorig;                     // real matrices
-    vec y, y2;                                 // helper and sphdec input vector
+    vector<int> x(k);                          /* decoded point */
+    cx_mat Y(n, t);                            /* received code block */
+    mat B(2*t*n, k), Q, R;                     /* real matrices for QR-decompostion */
+    vec y(2*t*n);                              /* raw input vector for the sphere decoder (unmapped) */
+    vec y2;                                    /* input vector for the sphere decoder (mapped to same space a R) */
     
-    Y = H*X + N;                               // Simulated code block that we would receive from MIMO-channel
-    // cout << "check 0" << endl;                 
-    // Ynorm = (Y + H*basis_sum*(q - 1))*0.5;  // normalize received matrix for the sphere decoder
-    y = to_real_vector(Y);                     // convert Y to real vector
-    // cout << "check 1" << endl;
-    for(int i = 0; i < k; i++){
-        B.col(i) = to_real_vector(H*bases[i]); // B = (HX1 HX2 ... HXk) = generator matrix of faded lattice
-        // if (P > 0) 
-        //     G.col(i) = to_real_vector(bases[i]);   // G = (X1 X2 ... Xk) = generator matrix of original lattice
-    }
+    Y = H*X + N;                               /* Calculate simulated code block that we would receive */          
+    y = to_real_vector(Y);                     /* convert Y to real vector */
 
-    // cout << "check 2" << endl;
+    for (int i = 0; i < k; i++)
+        B.col(i) = to_real_vector(H*bases[i]); /* B = (HX1 HX2 ... HXk) = generator matrix of faded lattice */
+    
+    qr_econ(Q, R, B);                          /* QR-decomposition of B (omits zero rows in R) */
+    process_qr(Q, R);                          /* Make sure R has positive diagonal elements */
 
-    // if (P > 0) {
-    //     qr_econ(Q, Rorig, G);  // QR-decomposition of G (omits zero rows in Rorig)
-    //     process_qr(Q, Rorig);  // Make sure Rorig has positive diagonal elements
-    //     Q.zeros();
-    // }
-    // cout << "check 3" << endl;
-    qr_econ(Q, R, B);  // QR-decomposition of B (omits zero rows in R)
-    process_qr(Q, R);  // Make sure R has positive diagonal elements
+    y2 = Q.st()*y;                             /* Map y to same basis as R */
 
-    y2 = Q.st()*y;     // Map y to same basis as R
-    // cout << "check 4" << endl;
-
+    /* decide which sphere decoder algorithm to use */
     if (P <= 0)
-        x = sphdec(y2, R, symbset, visited_nodes, radius); // Call the actual sphere decoder algorithm
+        x = sphdec(y2, R, symbset, visited_nodes, radius); 
     else
         x = sphdec_spherical_shaping(y2, R, Rorig, symbset, visited_nodes, P, radius);
-
-    // if (x.size() == 0) // point not found
-    //     return vector<int>(0);
-
-    // for (int j = 0; j < k; j++)
-    //     x[j] = 2*x[j] - q + 1;
 
     return x;
 }

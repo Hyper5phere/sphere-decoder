@@ -310,7 +310,7 @@ map<int, int> read_error_requirements(const string &filepath){
     }
 
     /* assert error requirements validity... */
-    /* especially make sure that the data here matches with the settings file */
+    /* especially make sure that the data here matches with the data in the settings file */
 
     if (snrs.empty()){
         log_msg("Error requirements file '" + filepath + "' is empty!", "Error");
