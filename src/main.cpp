@@ -1,4 +1,3 @@
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Filename    : main.cpp                                                                              *
  * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *

@@ -1,7 +1,18 @@
-#define ARMA_NO_DEBUG // for speed
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Filename    : config.cpp                                                                            *
+ * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
+ * Version     : 1.0                                                                                   *
+ * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
+ * Date        : 17.8.2017                                                                             *
+ * Language    : C++11                                                                                 *
+ * Description : Implements functions for handling user input and simulation configuration             *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
 
 #include <iostream>
-#include <armadillo> // linear algebra library
+#include <armadillo> /* linear algebra library */
 #include <complex>
 #include <algorithm>
 #include <vector>
@@ -66,16 +77,16 @@ void configure() {
         create_config();
         log_msg("Make your changes to the settings file and rerun this program.");
         log_msg("Exiting...");
-        // log_msg();
         exit(0);
     }
 
+    /* List special (not integer) parameter names that should be handled differently */
     vector<string> sparam_names = {"channel_model"};
     vector<string> dparam_names = {"spherical_shaping_max_power", "matrix_coefficient"};
     vector<string> accept_empty_names = {"output_file", "error_file", "coset_file"};
     
     string line;
-    char *endptr; // used for parsing error checking
+    char *endptr; /* used for parsing error checking */
     int lines = 0;
     while (getline(config_file, line))
     {
@@ -90,14 +101,13 @@ void configure() {
             string value;
             getline(iss, value);
             clean_input(value); 
-            if (!value.empty()) {
-                // cout << value << endl;
-                if (key.compare("basis_file") == 0) {
+            if (!value.empty()) { /* Valid key-value pair found */
+                /* kinda messy checking but works */
+                if (key.compare("basis_file") == 0) { 
                     filenames["bases"] = "bases/" + value;
                 } else if (key.compare("coset_file") == 0) {
                     filenames["cosets"] = "bases/" + value;
                 } else if (key.compare("output_file") == 0) {
-                    // if (value.compare("auto") != 0)
                     filenames["output"] = "output/" + value;
                 } else if (key.compare("error_file") == 0) {
                     filenames["error"] = "settings/" + value;
@@ -133,46 +143,20 @@ void configure() {
         exit(1);
     }
 
-    // helper variable (size of the code matrix set) calculated from the input parameters
+    // helper variable (size of the codebook) calculated from the input parameters
     params["codebook_size"] = (int)pow(params["x-PAM"], params["no_of_matrices"]);
 }
 
 /* reads k (m x t) matrices from the spesified basis_file */
 vector<cx_mat> read_matrices(const string &filepath){
 
-    /* - regular expression pattern used to search 
-     *   matrix elements in almost any known format (eg. Mathematica, Matlab)
+    /* - uses regular expression pattern to search 
+     *   matrix elements in almost any known format (eg. Mathematica, Matlab (with commas))
      * - ignores most white spaces and supports asterisk in front of 'I'
      * - pattern is also case insensitive
+     * - Caveats: elements can't be separated by spaces alone like in Matlab, 
+     *            only one sign (x/-) is to be inserted between real and imag part of a complex number
      */
-    // regex elem_regex(
-    //     //"(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\*?[Ii]?\\s*[,)};\\]\n]{1})|"
-    //     "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*\\s*\\*?[Ii]?)|"
-    //     "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-    //     "\\s*" // white space
-    //     "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // parse any float
-    //     "\\s*\\*?[Ii]{1})\\s*([,)};\\]\n]{1})" // element ends in comma, semicolon, newline or closing bracket
-    // );
-
-    regex elem_regex(
-        "(" // three basic types for matrix element
-            "([+-]?\\s*[^\\d\\.]+[Ii]{1})" // plain letter 'i' --> (0, 1) complex number
-            "|" 
-            "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)\\s*\\*?[Ii]?)" // real or pure complex number
-            "|"
-             "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" // real part
-            "\\s*"   // [+-]?\\s* white spaces and +/- between components 
-            "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*|[+-]?\\s*[^\\d\\.]+)\\s*\\*?[Ii]{1})" // imaginary part
-        ")" 
-        "\\s*[,)};\\]\n]{1}" // element ends in comma, semicolon, newline or closing bracket
-    );
-
-    // regex real_regex("([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)");
-    // regex imag_regex("([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)\\s*\\*?[Ii]?");
-
-    // regex elem_regex(
-    //     "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)" //?\\s*[+-]?\\s*(\1)+\\s*\\*?[Ii]?\\s*[,)};\\]\n]{1}"
-    // );
 
     /* Some supported formats for the matrix elements:
      * 1) "re ,"
@@ -181,8 +165,19 @@ vector<cx_mat> read_matrices(const string &filepath){
      * 4) "im *I," 
      */
 
-    // Used to determine whether the element has both real and complex part
-    // regex complex_split("\\d+\\.?\\s*[+-]{1}");
+    /* The regex pattern */
+    regex elem_regex(
+        "("                                                                                      // three basic types for matrix element
+            "([+-]?\\s*[^\\d\\.]+[Ii]{1})"                                                       // 1. plain letter 'i' with sign
+            "|" 
+            "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)\\s*\\*?[Ii]?)"                       // 2. pure real or complex number
+            "|"
+             "([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*)"                                     // 3. both real part
+            "\\s*"                                                                               
+            "(([+-]?\\s*\\d*\\.?\\d+|[+-]?\\s*\\d+\\.?\\d*|[+-]?\\s*[^\\d\\.]+)\\s*\\*?[Ii]{1})" // and imaginary part
+        ")" 
+        "\\s*[,)};\\]\n]{1}"       // element ends in comma, semicolon, newline or closing bracket (WHITE SPACE SEPARATION NOT SUPPORTED)
+    );
 
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
@@ -191,26 +186,28 @@ vector<cx_mat> read_matrices(const string &filepath){
 
     ifstream matrix_file(filepath);
     vector<cx_mat> output;
-    smatch match; //, dummy;
-    vector< complex<double> > numbers;
+    smatch match; /* regex match object, contains capture groups */
+    vector< complex<double> > numbers; /* store the parsed elements in here */
     
     string content((istreambuf_iterator<char>(matrix_file)), 
         istreambuf_iterator<char>());
 
-    // cout << content << endl;
-
+    /* capture group substrings */
     string  m2,  // plain i
             m3,  // real or pure complex number
             m5,  // real part
             m6,  // imaginary part with i
             m7;  // imaginary part without i
     
-    // Search the configured basis_file for basis matrix elements
+    /* Search the configured basis_file for basis matrix elements */
     while(regex_search(content, match, elem_regex)){
 
-        // for(auto i = 0u; i < match.size(); ++i)
+        /***** print all capture groups for debugging! *****/
+        // for (auto i = 0u; i < match.size(); ++i)
         //     cout << i << ": " << match[i].str() << endl;
+        // cout << endl;
 
+        /* assign and clean the helper substrings */
         m2 = match[2].str();
         m3 = match[3].str();
         m5 = match[5].str();
@@ -223,57 +220,41 @@ vector<cx_mat> read_matrices(const string &filepath){
         clean_input(m6);
         clean_input(m7);
 
-        // string z = match[1].str();
-        // // cout << z << endl;
-        // //if (count(z.begin(), z.end(), '.') > 1){
-
-        // // do the split between "whole" complex numbers and partial ones
-        // // if (regex_search(z, dummy, complex_split)) {
+        /* both real and imaginary part are present */
         if (!m5.empty() && !m6.empty()) {
-            // string a = match[3].str(), b = match[4].str();
-            // clean_input(a); clean_input(b);
-            // cout << stod(a) << "+" << stod(b) << "i" << endl;
-            // if (b.empty()) {
-            //     numbers.push_back(complex<double>(stod(a),1.0));
-            // } else {
-            // if (!m7.empty()) {
             if (isdigit(m7.back()) || (m7.back() == '.')) 
                 numbers.push_back(complex<double>(stod(m5), stod(m7)));
-            else {
+            else { /* imag element is of type +-i */
                 numbers.push_back(complex<double>(stod(m5), stod(m7 + string("1.0"))));
             }
-            // } else {
-            //     numbers.push_back(complex<double>(stod(m5), 1.0));
-            // }
-            // }
-        } else if (!m2.empty()) {
+        } 
+        /* plain +-i element found */
+        else if (!m2.empty()) {
             remove_from_string(m2, 'i');
             remove_from_string(m2, 'I');
             numbers.push_back(complex<double>(0.0, stod(m2 + string("1.0"))));
-        } else {
-            // clean_input(z);
-            // if (isdigit(z[z.length()-1]) || (z[z.length()-1] == '.')) {
+        }
+        /* pure real or imag element found */
+        else {
             if (isdigit(m3.back()) || (m3.back() == '.')) {
-                // cout << stod(z) << endl;
                 numbers.push_back(complex<double>(stod(m3), 0.0)); 
             } else {
-                // cout << stod(z) << "i" << endl;
                 numbers.push_back(complex<double>(0.0, stod(m3)));
             }
         }
+        /* iterate the content, i.e. remove the part of the string we examined already */
         content = match.suffix().str();
         idx++;
     }
-    // exit(0);
 
+    /* Sanity check */
     if (m*t*k != (int)numbers.size()){
         log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements (read " + to_string(numbers.size()) + \
             ") configured in '" + filepath + "'!", "Error");
-        // log_msg();
         exit(1);
     }
 
-    // store the read matrix elements in a complex matrix datatype from Armadillo library
+    /* store the read matrix elements in a complex matrix datatype from Armadillo library */
     idx = 0;
     cx_mat X(m, t);
     for (int i = 0; i < k; i++){    
@@ -290,6 +271,16 @@ vector<cx_mat> read_matrices(const string &filepath){
     return output;
 }
 
+/* Reads the user spesified error requirements for each SNR simulation from a csv file 
+ * Example: 'settings/errors.csv' file contains two lines:
+ * --------------------
+ * 10,12,14,16,18
+ * 1000,800,600,400,200
+ * --------------------
+ * first line has SNR values separated by commas and 
+ * second line has the corresponding error requirement for each SNR value
+ * this means that SNR 16 simulation will be run until we hit 400 errors etc.
+ */
 map<int, int> read_error_requirements(const string &filepath){
     map<int, int> snr_to_error;
     vector<int> snrs, errors;
@@ -300,13 +291,15 @@ map<int, int> read_error_requirements(const string &filepath){
 
     if (!error_file.good()) {
         log_msg("No error requirements file '" + filepath + "' found!", "Error");
-        exit(0);
+        exit(1);
     }
 
     while(getline(error_file, line)){
+        clean_input(line);
+        if (line.empty()) continue;
         istringstream iss(line);
         while(getline(iss, value, ',')){
-            clean_input(value);
+            // clean_input(value);
             if (line_num == 1){
                 snrs.push_back(strtol(value.c_str(), NULL, 10));
             } else if (line_num == 2){
@@ -316,9 +309,12 @@ map<int, int> read_error_requirements(const string &filepath){
         line_num++;
     }
 
+    /* assert error requirements validity... */
+    /* especially make sure that the data here matches with the settings file */
+
     if (snrs.empty()){
         log_msg("Error requirements file '" + filepath + "' is empty!", "Error");
-        exit(0);
+        exit(1);
     }
 
     int min = params["snr_min"];
@@ -328,21 +324,23 @@ map<int, int> read_error_requirements(const string &filepath){
 
     if (snrs.size() != required_size){
         log_msg("Error requirements file '" + filepath + "' has an incorrect amount of SNR values!", "Error");
-        exit(0);
+        exit(1);
     }
 
     if (snrs.size() != errors.size()){
         log_msg("Error requirements file '" + filepath + "' has an incorrect amount of error values!", "Error");
-        exit(0);
+        exit(1);
     }
 
     for (auto i = 0u; i < snrs.size(); i++){
         if (min + (int)i*step != snrs[i]){
             log_msg("Error requirements file '" + filepath + "' has unspesified SNR value at column " + to_string(i+1) + "!", "Error");
-            exit(0);
+            exit(1);
         }
         snr_to_error[snrs[i]] = errors[i];
     }
+
+    /* All good! */
 
     return snr_to_error;
 }
