@@ -1,8 +1,19 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Filename    : misc.hpp                                                                              *
+ * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
+ * Version     : 1.0                                                                                   *
+ * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
+ * Date        : 17.8.2017                                                                             *
+ * Language    : C++11                                                                                 *
+ * Description : contains custom data structures, function prototypes and inline template functions    *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef MISC_HPP
 #define MISC_HPP
 
-#define _GLIBCXX_USE_CXX11_ABI 0 // fixes some string related errors
-// #define PLOTTING // enable plotting (requires boost C++ library)
+#define _GLIBCXX_USE_CXX11_ABI 0 /* fixes some string related errors */
+// #define PLOTTING /* enables plotting (requires boost C++ library) */
 
 #include <string>
 #include <map>

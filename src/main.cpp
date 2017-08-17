@@ -1,12 +1,13 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Name        : main.cpp                                                                              *
+ * Filename    : main.cpp                                                                              *
+ * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
  * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
  * Version     : 1.0                                                                                   *
  * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
  * Date        : 17.8.2017                                                                             *
  * Language    : C++11                                                                                 *
- * Description : main program file of the sphere decoder, contains the simulation main loop            *
+ * Description : main program file, handles the simulation setup and main loop                         *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
  
 #define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
@@ -349,7 +350,7 @@ int main(int argc, char** argv)
         double avg_complex = 0;
         double noisepow = 0;
         double SNRreal = 0;
-        double C = 0.0; // initial squared radius for the sphere decoder
+        double C = 0.0; /* initial squared radius for the sphere decoder */
 
         /* pair containing the coefficients and matrix representation of a single codeword */
         pair<vector<int>,cx_mat> codeword; 
@@ -398,7 +399,7 @@ int main(int argc, char** argv)
                 x = sphdec_wrapper(bases, Rorig, H, X, N, symbset, visited_nodes, C);
 
                 /* Check if the decoded vector is the same as what we sent in the simulation. 
-                   If we're doing 'wiretap' simulation the checking is done in different manner */
+                   If we're doing 'wiretap' simulation the checking is done in a different manner */
                 if (coset_encoding) {
                     /* see details for coset_check in algorithms.cpp 
                        the last argument is the difference vector between x and orig */

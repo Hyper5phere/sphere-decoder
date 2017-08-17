@@ -1,7 +1,18 @@
-#define ARMA_NO_DEBUG // for speed
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Filename    : algorithms.cpp                                                                        *
+ * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
+ * Version     : 1.0                                                                                   *
+ * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
+ * Date        : 17.8.2017                                                                             *
+ * Language    : C++11                                                                                 *
+ * Description : All custom mathematical algorithms not found in Armadillo or STL are collected here   *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
 
 #include <iostream>
-#include <armadillo> // linear algebra library
+#include <armadillo> /* linear algebra library */
 #include <algorithm>
 #include <complex>
 #include <vector>
@@ -10,9 +21,14 @@
 #include <random>
 #include <omp.h>
 #include <tuple>
+
+/* library for LLL reduction, left out due to compile errors */
 // #include <fplll.h>
-// aptdcon -i libfplll-dev
-// aptdcon -i libmpfr-dev
+ 
+/* required packages to install:
+ *	 libfplll-dev
+ *	 libmpfr-dev
+ */
 
 #include "algorithms.hpp"
 #include "misc.hpp"
@@ -23,12 +39,21 @@ using namespace arma;
 
 // #define FPLLL_WITH_ZDOUBLE
 
-/* signum function */
-int sesd_sign(double x){
+
+/* Signum function for schorr-euchnerr sphere decoder (sesd) 
+ * ---------------------------------------------------------
+ * Note that sesd_sign(0) = -1
+ */
+int sesd_sign(double x) {
     return (x <= 0) ? -1 : 1;
 }
 
-/* Rounds x to nearest integer in S */
+/* Rounds x to nearest integer in S
+ * --------------------------------
+ * E.g. let S = 4-PAM and x = 1.8 then 
+ * nearest_symbol(1.8) = 3
+ * cf round(1.8) = 2
+ */
 double nearest_symbol(double x, const vector<int> &S){
     double min = 10e6;
     double d = 0.0;
@@ -52,14 +77,20 @@ double nearest_symbol(double x, const vector<int> &S){
 double estimate_squared_radius(const mat &G, int s){
     int n = params["no_of_matrices"];
     double pi = 3.1415926535897;
-    // cout << "gamma: " << to_string(tgamma((double)n/2.0 + 1.0)) << endl;
-    // cout << "gamma: " << to_string(tgamma(5.0)) << endl;
     // cout << "lattice constant: " << to_string(sqrt(det(4*G.t()*G))) << endl;
     // cout << "volume of the sphere: " << to_string(pow(pi, n/2.0)*pow(dparams["spherical_shaping_max_power"], n/2)/tgamma(n/2.0 + 1.0)) << endl;
+
+    /* The basic idea: 2^s = vol(Sphere(R))/vol(Lambda) 
+     * --> Solve for R when s and Lambda (G) are given
+     */
+
+    /* This algorithm uses this equation for the volume of the n-ball: 
+     * https://en.wikipedia.org/wiki/Volume_of_an_n-ball
+     */
     return pow(pow(2.0, s)*tgamma(n/2.0 + 1.0)*sqrt(det(4*G.t()*G))*pow(pi, n/-2.0), 2.0/n);
 }
 
-/* Picks a random element from vector uniformly */
+/* Picks a random element from a vector uniformly */
 int pick_uniform(const vector<int> S){
     uniform_int_distribution<int> dist(0, S.size()-1);
     return S[dist(mersenne_twister)];
@@ -85,13 +116,6 @@ double frob_norm_squared(const cx_mat &A){
     return sum;
 }
 
-// double euclidean_norm(const vector<int> &x){
-//     double sum = 0;
-//     for (const int &elem : x)
-//         sum += pow(elem, 2);
-//     return sum;
-// }
-
 /* Makes sure the upper triangular matrix R has only positive diagonal elements */
 void process_qr(mat &Q, mat &R){
     for (auto i = 0u; i < R.n_cols; i++){
@@ -104,11 +128,9 @@ void process_qr(mat &Q, mat &R){
     }
 }
 
-// mat pseudo_inverse(mat A){
-//     return inv(A.t()*A)*A.t();
-// }
-
-/* Create the lattice generator matrix G out of basis matrices */
+/* Create the lattice generator matrix G out of basis matrices B_i
+ * i.e. G = vec(B_i), i = 1,...,k
+ */
 cx_mat create_generator_matrix(const vector<cx_mat> &bases){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
@@ -119,6 +141,13 @@ cx_mat create_generator_matrix(const vector<cx_mat> &bases){
     }
     return G.st();
 }
+
+
+/***** DEPRECATED *****
+ * Use 
+ * G_real = to_real_matrix(create_generator_matrix(bases));
+ * instead 
+ **********************/
 
 /* Create the real valued lattice generator matrix G out of basis matrices */
 // mat create_real_generator_matrix(const vector<cx_mat> &bases){
@@ -132,6 +161,12 @@ cx_mat create_generator_matrix(const vector<cx_mat> &bases){
 //     return G;
 // }
 
+
+/* Inverse of the create_generator_matrix() function 
+ * Useful for generating basis matrix files in conjunction with
+ * output_complex_matrix()
+ * See main.cpp for an example of this use case
+ */
 vector<cx_mat> generator_to_bases(const cx_mat &G){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
@@ -170,7 +205,7 @@ vec to_real_vector(const cx_mat &A, bool row_wise){
                 a[index++] = z.imag();
             }
         }
-    } else {
+    } else { /* concatenate columns instead */
         for (auto i = 0u; i < A.n_cols; i++){
             for (auto j = 0u; j < A.n_rows; j++){
                 auto z = A(j,i);
@@ -209,39 +244,35 @@ cx_mat to_complex_matrix(const mat &A){
     return B;
 }
 
-/* generates a random n x m complex matrix from uniform distribution */
+/* generates a random n x m 'full' complex matrix from normal distribution */
 cx_mat create_random_matrix(int n, int m, double mean, double variance){
     normal_distribution<double> distr(mean, sqrt(variance));
     cx_mat A(n,m);
-    return A.imbue([&]() {
+    return A.imbue([&]() { /* Armadillo magic with lambda function */
         return complex<double>(distr(mersenne_twister), distr(mersenne_twister));
     });
 }
 
-/* generates a random n x n complex matrix from uniform distribution */
+/* generates a random n x n diagonal complex matrix from normal distribution 
+ * Used for generating the SISO channel matrix
+ */
 cx_mat create_random_diag_matrix(int n, double mean, double variance){
     normal_distribution<double> distr(mean, sqrt(variance));
     cx_vec diag(n);
     cx_mat A(n,n);
 
     A.zeros();
-    diag.imbue([&]() {
+    diag.imbue([&]() { /* Armadillo magic with lambda function */
         return complex<double>(distr(mersenne_twister), 0.0);
     });
     A.diag() = diag;
     return A;
 }
 
-// /* Creates a C-style integer array representation of an x-PAM symbolset */
-// int* create_symbolset(int q){
-//     int *symbset = (int*) malloc(q * sizeof(int));
-//     for (int u = 0; u < q; u++) {
-//         symbset[u] = 2*u - q + 1;
-//     }
-//     return symbset; // must be free()'d after use
-// }
-
-/* Creates q-PAM symbolset (integer array) */
+/* Creates q-PAM symbol set (integer vector) 
+ * q is usually some power of two, i.e. q = 2, 4, 8, 16...
+ * Example: 4-PAM = {-3, -1, 1, 3}
+ */
 vector<int> create_symbolset(int q){
     vector<int> symbset(q);
     for (int u = 0; u < q; u++) {
@@ -250,8 +281,9 @@ vector<int> create_symbolset(int q){
     return symbset; 
 }
 
-/* Calculates all combinations of elements for code vector _a_
-   given the set of feasible symbols (element values) */
+/* Calculates all possible combinations of elements for code vector _a_
+   given the set of feasible symbols (element values)
+   Used for generating the whole codebook, rarely needed though */
 void combinations(parallel_set< vector<int> > &comblist, const vector<int> &symbset, vector<int> comb, int dim){
     comblist.par_insert(comb);
     if (dim >= 0){
@@ -271,7 +303,6 @@ void combinations(parallel_set< vector<int> > &comblist, const vector<int> &symb
 set< vector<int> > comb_wrapper(const vector<int> &symbset, int vector_len){
     parallel_set< vector<int> > comblist;
     vector<int> init(vector_len);
-    // vector<int> symbset_v(symbset, symbset + params["x-PAM"]);
     for (int i = 0; i < vector_len; i++)
         init[i] = symbset[0];
     combinations(comblist, symbset, init, vector_len-1);
@@ -308,7 +339,7 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
     int k = params["no_of_matrices"];
 
     cx_mat X(m, t);
-    vector<int> coeffs(k);
+    vector<int> coeffs(k), subset;
     X.zeros();
 
     vec xt(k), curr(k), ener(k);
@@ -318,13 +349,14 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
     double lb = 0.0; // lower bound
     double ub = 0.0; // upper bound
 
+    /* Randomly pick each component of the codeword and check if it's still within the energy bound in each dimension */
     while (i >= 0){
         lb = -(sqrt(radius - ener[i]) + curr[i])/R(i,i);
         ub = (sqrt(radius - ener[i]) - curr[i])/R(i,i);
         // uniform_real_distribution<double> xirange(lb, ub);
         // xt[i] = nearest_symbol(xirange(mersenne_twister), S); // probability bias fix this
-        vector<int> subset = slice_symbset(S, lb, ub);
-        if (subset.empty()){
+        subset = slice_symbset(S, lb, ub);
+        if (subset.empty()) { /* No lattice points are within energy bounds in this dimension */
             i = k-1;
             xt.zeros(); curr.zeros(); ener.zeros();
             continue;
@@ -339,7 +371,7 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
                 ener[i-1] = ener[i] + xiener;      
             }  
             i--;
-        } else {
+        } else { /* we're outside the energy bound, start over */
             i = k-1;
             xt.zeros(); curr.zeros(); ener.zeros();
         }
@@ -348,12 +380,11 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
     for (int i = 0; i < k; i++) {
         X = X + coeffs[i]*bases[i];
     }
-    // cout << vec2str(coeffs, coeffs.size()) << endl;
     return make_pair(coeffs, X);
 }
 
 
-/* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset x-PAM */
+/* Creates a codebook (set of X matrices) from basis matrices B_i and symbolset q-PAM */
 vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, const mat &R, const vector<int> &symbolset){
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
@@ -388,7 +419,6 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
             X.zeros();
             for (int i = 0; i < k; i++)
                 X = X + symbols[i]*bases[i];
-
             // log_msg(vec2str(symbols, symbols.size()));
             if (frob_norm_squared(X) > P + 1e-6 && P > 0) continue;
             codebook.push_back(make_pair(symbols, X));
@@ -434,12 +464,10 @@ bool coset_check(const cx_mat &Gb, const cx_mat &invGe, const Col<int> diff){
     cx_vec lambda = invGe*x;
 
     vec lambda_real = to_real_vector(lambda);
-
-    // cout << vec2str(lambda_real, lambda_real.size()) << endl;
     
     /* check if lambda_real has only integer entries */
     for (const auto &l : lambda_real)
-        if (fabs(l - round(l)) > 10e-5) // tolerance
+        if (fabs(l - round(l)) > 10e-5) /* tolerance */
             return false;
 
     return true;
@@ -457,7 +485,9 @@ tuple<double, double, double> code_rates(const cx_mat &Gb, const cx_mat &Ge){
     return make_tuple(r, rt, rc); 
 }
 
-/* algorithm for counting the lattice points inside a _dim_ dimensional hypersphere of radius _radius_ */
+/* algorithm for counting the lattice points inside a _dim_ dimensional hypersphere of radius _radius_ 
+ * considers only a single radius, but probably faster than the function below thanks to parallelisation
+ */
 int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int dim, double dist){
 
     int k = params["no_of_matrices"];
@@ -474,7 +504,6 @@ int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int 
             if (i > 0) {
                 counters[omp_get_thread_num()] += count_points(R, S, radius, tmp, dim-1, xidist);
             } else {
-                // cout << vec2str(xt, xt.size()) << endl;
                 counters[omp_get_thread_num()]++;
             }
         }
@@ -483,7 +512,7 @@ int count_points(const mat &R, const vector<int> &S, double radius, vec xt, int 
 }
 
 
-/* algorithm for counting the lattice points inside a _dim_ dimensional hypersphere of radius _radius_ */
+/* algorithm for counting the lattice points inside a _dim_ dimensional hypersphere of radiuses r_1, r_2, ..., r_n */
 vector<int> count_points_many_radiuses(const mat &R, const vector<int> &S, vector<double> radiuses, vec xt, int dim, double dist){
 
     int k = params["no_of_matrices"];
@@ -502,23 +531,20 @@ vector<int> count_points_many_radiuses(const mat &R, const vector<int> &S, vecto
                 for (auto s = 0u; s < radiuses.size(); s++)
                     counters[s] += counts[s];
             } else {
-                // cout << vec2str(xt, xt.size()) << endl;
                 for (auto k = 0u; k < radiuses.size(); k++){
                     if (xidist <= radiuses[k])
                         counters[k]++;
                 }
             }
-        }
-            
-        
+        }  
     }
-    // return accumulate(counters.begin(), counters.end(), 0);
     return counters;
 }
 
-
-
-
+/* TODO: make this work somehow
+ * compiler gives 'lll_reduction() not declared' errors even though all libraries should be installed
+ * Should return the LLL reduced (as close to orthogonal as possible) basis for lattice generated by G 
+ */
 cx_mat LLL_reduction(cx_mat G){
 	// mat G_real = to_real_matrix(G);
 	// FP_mat<double> fpG(G_real.n_rows, G_real.n_cols);

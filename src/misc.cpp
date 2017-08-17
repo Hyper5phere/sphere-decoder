@@ -1,4 +1,16 @@
-#define ARMA_NO_DEBUG // for speed
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Filename    : misc.cpp                                                                              *
+ * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
+ * Version     : 1.0                                                                                   *
+ * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
+ * Date        : 17.8.2017                                                                             *
+ * Language    : C++11                                                                                 *
+ * Description : contain miscellaneous utilities for the sphere decoder program, mainly I/O stuff      *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
 
 #include <iostream>
 #include <mutex>
@@ -11,13 +23,13 @@
 
 #include "misc.hpp"
 #ifdef PLOTTING
-#include "gnuplot-iostream.hpp"
+#include "gnuplot-iostream.hpp" /* Stand alone header file for Gnuplot API (requires Boost library though) */
 #endif
 
 using namespace std;
 using namespace arma;
 
-/* object for parallel computing synchronazation */
+/* objects for parallel computing synchronazation */
 std::mutex log_mutex;
 std::mutex output_mutex;
 
@@ -32,33 +44,34 @@ string time_str(){
 }
 
 /* function used for logging, should be thread safe */
-void log_msg(const string msg, const string lvl){
+void log_msg(const string msg, const string lvl) {
     string prefix;
-    if (lvl.compare("Raw") != 0) {
+    if (lvl.compare("Raw") != 0) { /* raw input contains no prefix */
         prefix = time_str();
         prefix += " | [" + lvl + "]\t";
     }
-    lock_guard<mutex> lock(log_mutex); // make sure other threads don't write to log file simultaneosly
+    lock_guard<mutex> lock(log_mutex); /* make sure other threads don't write to log file simultaneosly */
     ofstream logfile(filenames["log"], ios_base::app);
-    if (msg.compare("-start-") == 0)
+    if (msg.compare("-start-") == 0)   /* just writes newline to log file to indicate new program run */
         logfile << endl;
     else {
-        logfile << prefix << msg << endl;
-        cout << prefix << msg << endl;
+        logfile << prefix << msg << endl; /* log txt file */
+        cout << prefix << msg << endl;    /* stdout */
     }
     logfile.close();
 }
 
 /* Makes the user input somewhat more readable */
 void clean_input(string &input){
-    // remove comments
+    /* remove comments from string */
     string::size_type start = input.find("//", 0);
     if (start != string::npos)
         input = input.substr(0, start);
-    // remove white spaces
+    /* remove white spaces from string */
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end());
 }
 
+/* removes all characters c from input string */
 void remove_from_string(string &input, const char c){
     input.erase(remove(input.begin(), input.end(), c), input.end());
 }
@@ -70,7 +83,6 @@ void create_output_filename(){
     size_t b = bf.find(".");
     string name = bf.substr(a, b-a);
     filenames["output"] = string("output/") + time_str() + string(" ") + name + string(" output.csv");
-    // return string("output/") + time_str() + string(" ") + name + string(" output.csv");
 }
 
 /* Writes a vector of strings (lines) in a csv file */
@@ -98,15 +110,16 @@ bool snr_ordering(string &a, string &b){
 
 /* Uses gnuplot stream to plot the columns of the output csv file */
 void plot_csv(int xcol, int ycol, const string &xlabel, const string &ylabel, bool logscale){
-    #ifdef PLOTTING
+    #ifdef PLOTTING /* This function does nothing if PLOTTING is not defined when compiled */
     Gnuplot gp;
-    gp << "set terminal x11\n"; // Open plots in new GUI window
+    gp << "set terminal x11\n"; /* Open plots in a new GUI window by default, can also be saved in png file for example */
     if (logscale)
-        gp << "set logscale y 10\n";  // Set y axis to logscale of base 10 (SNR is already in log10 scale)
+        gp << "set logscale y 10\n";  /* Set y axis to logscale of base 10 (SNR is already in log10 scale) */
     gp << "set datafile separator \",\"\n";
     gp << "set xlabel \"" << xlabel << "\"\n";
     gp << "set ylabel \"" << ylabel << "\"\n";
     gp << "set grid\n";
+    /* plot using the data from output csv file */
     gp << "plot '" << filenames["output"] << "' using " << xcol << ":" << ycol << " with linespoints ls 3\n";
     #endif
 }
@@ -114,10 +127,10 @@ void plot_csv(int xcol, int ycol, const string &xlabel, const string &ylabel, bo
 /* Prints simulation results in a file and optionally plots the results */
 void output_data(parallel_vector<string> &output){
     if (output.size() > 1){
-        sort(output.begin()+1, output.end(), snr_ordering); // sort vector by SNR (ascending order)
+        sort(output.begin()+1, output.end(), snr_ordering); /* sort vector by SNR (ascending order) */
         log_msg("Printing simulation output to '" + filenames["output"] + "'...");
         output_csv(output);
-        #ifdef PLOTTING // Draw plots with Gnuplot if plotting is enabled
+        #ifdef PLOTTING /* Draw plots with Gnuplot if plotting is enabled */
         if (params["plot_results"] > 0){
             log_msg("Drawing plots...");
             plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
@@ -131,6 +144,7 @@ void output_data(parallel_vector<string> &output){
 /* outputs real matrix into a file in mathematica format */
 void output_real_matrix(const string &filepath, const mat &A, bool append){
     ofstream mfile;
+    /* selects write mode: either overwrite the old file or append to it */
     if (!append)
         mfile = ofstream(filepath);
     else
@@ -156,6 +170,7 @@ void output_real_matrix(const string &filepath, const mat &A, bool append){
 /* outputs complex matrix into a file in mathematica format */
 void output_complex_matrix(const string &filepath, const cx_mat &A, bool append){
     ofstream mfile;
+    /* selects write mode: either overwrite the old file or append to it */
     if (!append)
         mfile = ofstream(filepath);
     else
