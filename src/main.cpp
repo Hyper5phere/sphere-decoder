@@ -129,8 +129,9 @@ int main(int argc, char** argv)
 
     string channel_model = sparams["channel_model"]; /* Decides how channel matrix H is generated */
 
-    /* Read the complex basis vectors for the lattice we want to decode in */
+    /* Read the complex basis matrices for the lattice we want to decode in */
     vector<cx_mat> bases = read_matrices(filenames["bases"]);
+    /* Another set of basis matrices in case we want to use coset encoding */
     vector<cx_mat> coset_bases;
 
     /* flag that spesifies if we're doing the so called 'wiretap' simulation 
@@ -146,13 +147,11 @@ int main(int argc, char** argv)
     if (coset_encoding)
         coset_bases = read_matrices(filenames["cosets"]);
 
-    /***** Sanity check: Print all read matrices! *****/
-
+    /* Sanity check: Print all read matrices! */
     log_msg("Read basis matrices:");
     for (auto const &basis : bases){
         log_msg(mat2str(basis), "Raw");
     }
-
     if (coset_encoding) {
         log_msg("Read coset basis matrices:");
         for (auto const &basis : coset_bases){
@@ -170,12 +169,10 @@ int main(int argc, char** argv)
 
     /***** If the Gram matrix (generator times its own transpose) is diagonal, 
            the basis for the lattice is orthogonal, Check it like this *****/
-
     // cout << "Orthogonality check:" << endl;
     // cout << G.t()*G << endl;
 
     /***** Matrices can be hardcoded in the simulation like so *****/
-
     // mat coset_multiplier("4 0 0 0;"
     //                      "0 2 0 0;"
     //                      "0 0 2 0;"
@@ -212,11 +209,11 @@ int main(int argc, char** argv)
     /***** You can generate basis matrix txt files like this *****/
     // auto cos_bases = generator_to_bases(0.5*Ge);
     // for (const auto &b : cos_bases) {
-    //     output_complex_matrix("lambda5.txt", b, true);
+    //     output_complex_matrix("bases/alamouti_L5.txt", b, true);
     // }
 
-    /***** Another example of matrix printing: prints the real generator matrix into a txt file *****/
-    // output_real_matrix("MIDO_basis.txt", G_real);
+    /***** Another example of matrix outputting: prints the real generator matrix into a txt file *****/
+    // output_real_matrix("bases/MIDO_basis.txt", G_real);
 
     /* Many helper functions have been implemented for matrix manipulation,
        Check algorithms.cpp for a complete list */
@@ -225,13 +222,13 @@ int main(int argc, char** argv)
     /***** Calculate the lattice constant like this *****/    
     // cout << "determinant: " << det(G_real.t()*G_real) << endl;
 
-
     mat Q, Rorig; /* Decompose G_real */
     qr_econ(Q, Rorig, G_real);  /* QR-decomposition of G_real (omits zero rows in Rorig) */
     process_qr(Q, Rorig); /* Makes sure Rorig only has positive diagonal elements (this is probably optional) */
 
     /* Creates a q-PAM symbol set,
-       e.g. 4-PAM = {-3, -1, 1, 3} */
+       e.g. 4-PAM = {-3, -1, 1, 3} 
+       Details in algorithms.cpp */
     vector<int> symbset = create_symbolset(q);
 
     int num_points = 0; /* Number of codewords inside the spherical constellation */
@@ -278,7 +275,7 @@ int main(int argc, char** argv)
     auto e = code_energy(codebook);
 
     /* Print some useful information before starting the actual simulation */
-    log_msg("", "Raw");
+    // log_msg("", "Raw");
     log_msg("Simulation info");
     log_msg("---------------");
     log_msg("Number of basis matrices (code length): " + to_string(k));

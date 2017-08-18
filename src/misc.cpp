@@ -169,6 +169,7 @@ void output_real_matrix(const string &filepath, const mat &A, bool append){
 /* outputs complex matrix into a file in mathematica format */
 void output_complex_matrix(const string &filepath, const cx_mat &A, bool append){
     ofstream mfile;
+    string real, imag;
     /* selects write mode: either overwrite the old file or append to it */
     if (!append)
         mfile = ofstream(filepath);
@@ -178,7 +179,12 @@ void output_complex_matrix(const string &filepath, const cx_mat &A, bool append)
     for (auto i = 0u; i < A.n_rows; i++){
         mfile << "{";
         for (auto j = 0u; j < A.n_cols; j++){
-            mfile << float2str(A(i, j).real(), 16) << " + " << float2str(A(i, j).imag(), 16) << " *I";
+            real = float2str(A(i, j).real(), 16);
+            imag = float2str(A(i, j).imag(), 16);
+            if (imag[0] == '-')
+                mfile << real << " - " << imag.substr(1) << " *I";
+            else
+                mfile << real << " + " << imag << " *I";
             if (j < A.n_cols - 1)
                 mfile << ", ";
         }
