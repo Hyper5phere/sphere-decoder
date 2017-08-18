@@ -6,7 +6,7 @@ Key features
 - Basis matrix input
 - Complex matrix support
 - Spherical constellation (codebook shaping) support with radius estimator for desired codebook size
-- Euchner-Schnorr enumeration smart implementation of the algorithm
+- Schnorr-Euchnerr smart implementation of the sphere decoder algorithm with additional optimizations
 - Supports wiretap simulations (coset encoding)
 - Comprehensive console (stdout), log.txt and csv simulation output
 - Direct output plotting utilities via [gnuplot](http://www.gnuplot.info/)
