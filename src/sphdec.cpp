@@ -25,41 +25,45 @@ using namespace std;
 using namespace arma;
 
 
-/* Decision feedback equalization on xt[i] */
+/* Decision feedback equalization on xt[i] 
+   i.e. Use the Babai nearest plane algorithm as a starting point in dimension i */
 inline void dfe(int i, int q, vec &xt, const vec &y, vec &delta, const vec &ksi, const mat &R, const vector<int> &S) {
+    /* calculate the "Babai coeffient" and "round" it to nearest symbol in the symbol set */
     xt[i] = nearest_symbol((y[i]-ksi[i])/R(i,i), S);
-    if (xt[i] < S[0]) {
-        xt[i] = S[0];
+    if (xt[i] <= S[0]) { /* only feasible way is positive direction */
         delta[i] = 2;
-    } else if (xt[i] > S[q - 1]) {
-        xt[i] = S[q - 1];
+    } else if (xt[i] >= S[q - 1]) { /* only feasible way is negative direction */
         delta[i] = -2;
-    } else {
+    } else { /* there's room to enumerate within signal set */
         delta[i] = 2*sesd_sign(y[i]-ksi[i]-R(i,i)*xt[i]);
     }
 }
 
-/* Schnorr-Euchner enumeration step for the sphere decoder */
-inline void se_enum(int i, vec &xt, vec &delta){
+/* Schnorr-Euchner enumeration step for the sphere decoder i.e. zig-zag around the dfe point.
+   Makes sure we loop over the points in dimension i in non descending order.
+   This enables early stopping criteria when we find a point in dimension i outside the radius, 
+   i.e. no points in that sub search tree are inside the sphere because they can only be further away or at the same distance. */
+inline void se_enum(int i, vec &xt, vec &delta) {
+    /* add delta to xt and pick new delta (difference to next symbol in S we want to try) */
 	xt[i] = xt[i] + delta[i];
 	delta[i] = -delta[i] - 2*sesd_sign(delta[i]);
 }
 
 /* Perform some basic checks to ensure that the sphere decoder works as intended */
-inline bool check(double radius, const mat &R, const vec &y){
+inline bool check(double radius, const mat &R, const vec &y) {
     if (radius <= 0){
         log_msg("sphdec: negative squared initial radius given!", "Error");
         log_msg("aborting simulation round...");
         return false;
     }
 
-    if (R.n_rows != R.n_cols){
+    if (R.n_rows != R.n_cols) {
         log_msg("sphdec: R is not a square matrix!", "Error");
         log_msg("aborting simulation round...");
         return false;
     }
 
-    if (y.n_elem != R.n_cols){
+    if (y.n_elem != R.n_cols) {
         log_msg("sphdec: vector y dimension mismatch!", "Error");
         log_msg("aborting simulation round...");
         return false;
@@ -74,9 +78,9 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     /* Initialize */
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
-    int i = k-1;
+    int i = k-1; /* We start from dimension k-1 and iterate all the way down to dimension 0 */
 
-    vector<int> x(k); // candidate for the closest lattice point
+    vector<int> x(k); /* point to decode */
 	vec xt(k), ksi(k), delta(k), dist(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros();
     counter = 0; /* counts how many search tree nodes (loop iterations) we went through */
@@ -87,6 +91,7 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     if (!check(radius, R, y))
         return vector<int>(0);
 
+    /* Initialize xt[k-1] and delta[k-1] */
     dfe(i, q, xt, y, delta, ksi, R, S);
 
     while (!exit_flag) {
@@ -146,14 +151,14 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     }
 }
 
-/* Sphere decoder algorithm that considers spherical shaping of the codebook */
+/* Sphere decoder algorithm that considers the spherical shaping of the codebook */
 vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, const vector<int> &S,
                                      int &counter, double P, double radius){
 
     /* Initialize */
     int k = params["no_of_matrices"];
     int q = params["x-PAM"];
-    int i = k-1;
+    int i = k-1; /* We start from dimension k-1 and iterate all the way down to dimension 0 */
 
     vector<int> x(k); /* point to decode */
     vec xt(k), ksi(k), delta(k), dist(k), curr(k), ener(k);
@@ -166,6 +171,7 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
     if (!check(radius, HR, y))
         return vector<int>(0);
 
+    /* Initialize xt[k-1] and delta[k-1] */
     dfe(i, q, xt, y, delta, ksi, HR, S);
 
     while (!exit_flag) {
