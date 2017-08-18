@@ -16,7 +16,7 @@
 // #define PLOTTING /* enables plotting (requires boost C++ library) */
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <mutex>
 #include <set>
@@ -25,16 +25,16 @@
 #include <sstream>
 
 /* storage for filenames */
-extern std::map<std::string, std::string> filenames;
+extern std::unordered_map<std::string, std::string> filenames;
 
 /* storage for simulation integer parameters */
-extern std::map<std::string, int> params;
+extern std::unordered_map<std::string, int> params;
 
 /* storage for simulation double parameters */
-extern std::map<std::string, double> dparams;
+extern std::unordered_map<std::string, double> dparams;
 
 /* storage for simulation string parameters */
-extern std::map<std::string, std::string> sparams;
+extern std::unordered_map<std::string, std::string> sparams;
 
 /* flag which indicates early stop of the simulation */
 extern bool exit_flag;

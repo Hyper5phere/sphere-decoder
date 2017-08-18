@@ -19,7 +19,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <regex>
 
 #include "config.hpp"
@@ -281,8 +281,8 @@ vector<cx_mat> read_matrices(const string &filepath){
  * second line has the corresponding error requirement for each SNR value
  * this means that SNR 16 simulation will be run until we hit 400 errors etc.
  */
-map<int, int> read_error_requirements(const string &filepath){
-    map<int, int> snr_to_error;
+unordered_map<int, int> read_error_requirements(const string &filepath){
+    unordered_map<int, int> snr_to_error;
     vector<int> snrs, errors;
     int line_num = 1;
     ifstream error_file(filepath);

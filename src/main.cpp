@@ -16,7 +16,7 @@
 #include <complex>
 #include <vector>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <algorithm>
 #include <random>
 #include <chrono>
@@ -32,16 +32,16 @@ using namespace std;
 using namespace arma;
 
 /* storage for filepaths */
-map<string, string> filenames;
+unordered_map<string, string> filenames;
 
 /* Storage for simulation integer parameters */
-map<string, int> params;
+unordered_map<string, int> params;
 
 /* storage for simulation double parameters */
-map<string, double> dparams;
+unordered_map<string, double> dparams;
 
 /* storage for simulation string parameters */
-map<string, string> sparams;
+unordered_map<string, string> sparams;
 
 /* 64-bit standard random number generator */
 mt19937_64 mersenne_twister {
@@ -313,7 +313,7 @@ int main(int argc, char** argv)
 
     log_msg("Starting simulations... (Press CTRL-C to abort)");
 
-    map<int, int> required_errors;
+    unordered_map<int, int> required_errors;
     /* if error file is spesified, fill the required_errors map with it
        Otherwise use constant error requirement for each SNR simulation */
     if (filenames.count("error") == 0)
@@ -321,6 +321,8 @@ int main(int argc, char** argv)
             required_errors[snr] = params["required_errors"];
     else
         required_errors = read_error_requirements(filenames["error"]);
+
+    int snr_to_errorbound = 0;
 
     /* If user has not spesified output filename, generate one automatically */
     if (filenames.count("output") == 0)
@@ -364,7 +366,8 @@ int main(int argc, char** argv)
 
             /* Single SNR simulation loop: 
                run until both conditions are satisfied or the simulation is terminated by user */
-            while (errors < required_errors[snr] || runs < min_runs) {
+            snr_to_errorbound = required_errors[snr];
+            while (errors < snr_to_errorbound || runs < min_runs) {
 
                 if (exit_flag) break; /* terminate simulations */
                  
