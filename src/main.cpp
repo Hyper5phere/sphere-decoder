@@ -280,6 +280,7 @@ int main(int argc, char** argv)
     log_msg("---------------");
     log_msg("Number of basis matrices (code length): " + to_string(k));
     log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
+    log_msg("Codebook size: " + to_string(codebook.size()));
     log_msg("Average code energy: " + to_string(e.first));
     log_msg("Max code energy: " + to_string(e.second));
     if (P > 0) {
