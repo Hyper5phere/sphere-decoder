@@ -23,6 +23,10 @@
 /* rng needs to be in global scope (seen by all source files) */
 extern std::mt19937_64 mersenne_twister;
 
+/* general purpose large uniform integer distribution (use with modulo) */
+extern std::uniform_int_distribution<int> uniform_dist;
+
+/* function prototypes */
 int sesd_sign(double x);
 double nearest_symbol(double x, const std::vector<int> &S);
 double estimate_squared_radius(const arma::mat &G, int s);
@@ -43,7 +47,7 @@ std::pair<std::vector<int>, arma::cx_mat> create_random_codeword(const std::vect
 std::pair<std::vector<int>, arma::cx_mat> create_random_spherical_codeword(const std::vector<arma::cx_mat> &bases, 
                                                                            const arma::mat &R, const std::vector<int> &S, double radius);
 std::vector<std::pair<std::vector<int>, arma::cx_mat>> create_spherical_codebook(const std::vector<arma::cx_mat> &bases, const arma::mat &R, 
-																			const std::vector<int> &S, double radius);
+																			     const std::vector<int> &S, double radius);
 std::vector<std::pair<std::vector<int>,arma::cx_mat>> create_codebook(const std::vector<arma::cx_mat> &bases, const arma::mat &R, 
                                                                       const std::vector<int> &symbolset);
 std::pair<double,double> code_energy(const std::vector<std::pair<std::vector<int>,arma::cx_mat>> &X);
@@ -54,5 +58,12 @@ int count_points(const arma::mat &R, const std::vector<int> &S, double radius, a
 std::vector<int> count_points_many_radiuses(const arma::mat &R, const std::vector<int> &S, std::vector<double> radiuses, arma::vec xt, int dim, double dist);
 arma::cx_mat LLL_reduction(arma::cx_mat G);
 
+/* Picks a random element from a vector uniformly */
+/* Warning: imposes huge overhead if picking repeatedly from same vector */
+template <typename T>
+inline T pick_uniform(const std::vector<T> v){
+    // std::uniform_int_distribution<int> dist(0, v.size()-1);
+    return v[uniform_dist(mersenne_twister) % v.size()];
+}
 
 #endif /* ALGORITHMS_HPP */

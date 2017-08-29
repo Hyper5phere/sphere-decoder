@@ -50,6 +50,9 @@ mt19937_64 mersenne_twister {
     )
 };
 
+/* general purpose large uniform integer distribution (use with modulo) */
+uniform_int_distribution<int> uniform_dist(0, 1000000);
+
 /* Used for writing the csv output file */
 parallel_vector<string> output;
 
@@ -58,12 +61,12 @@ bool exit_flag;
 
 /* Handles task kills (CTRL-C) */
 void signal_handler(int signum) {
-    exit_flag = true; /* Terminates simulations */
+    exit_flag = true;    /* Terminates simulations */
     this_thread::sleep_for(chrono::milliseconds(1000)); /* Give some time for the simulation to end 
                                                            before attempting to output data */
     log_msg("Simulations terminated by user!", "Alert");
     output_data(output); /* output current simulation data */
-    exit(signum); /* exit program */
+    exit(signum);        /* exit program */
 }
 
 /* The program starts here */
@@ -90,17 +93,17 @@ int main(int argc, char** argv)
         exit(0);
     }
 
-    /* Configure program parameters i.e. occupy the maps listed above 
-     * with values read from the settings file.
-     * Implemented in config.cpp file
-     */
-    configure();
-
     /* This program uses custom logging function which prints info
        in stdout (console output) and also in a log file.
        It can be found from the misc.cpp file */
     log_msg();
     log_msg("Starting program...");
+
+    /* Configure program parameters i.e. occupy the maps listed above 
+     * with values read from the settings file.
+     * Implemented in config.cpp file
+     */
+    configure();
 
     /* initialize simulation parameters */
     int m = params["no_of_transmit_antennas"]; 
@@ -119,10 +122,9 @@ int main(int argc, char** argv)
 
     int min_runs = params["simulation_rounds"]; /* run at least this many rounds for each SNR simulation */
 
-    int stat_interval = params["stat_display_interval"]; /* Display intermediate simulation stats every this many rounds */
+    int stat_interval = params["stat_display_interval"];  /* Display intermediate simulation stats every this many rounds */
     int search_density = params["radius_search_density"]; /* Spesifies how many radiuses around the initial guess we try
-                                                             to get the codebook size to 2^s */
-
+                                                             to get the codebook size to 2^s */ 
     search_density = (search_density <= 0) ? 10 : search_density; /* default to 10 */
 
     double P = dparams["spherical_shaping_max_power"]; /* User can also manually spesify the spherical shaping radius */
@@ -267,15 +269,15 @@ int main(int argc, char** argv)
         }
     }
 
-    /* Generate the whole codebook or a random sampled subset of it.
-       Used only for code energy calculation for now... */
+    /* Generate the whole codebook or a random sampled subset of it. */
+    log_msg("Generating codebook...");
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
     /* Calculate the average and maximum energy of the codewords in our lattice code */
     auto e = code_energy(codebook);
 
     /* Print some useful information before starting the actual simulation */
-    // log_msg("", "Raw");
+    log_msg("", "Raw");
     log_msg("Simulation info");
     log_msg("---------------");
     log_msg("Number of basis matrices (code length): " + to_string(k));
@@ -298,6 +300,7 @@ int main(int argc, char** argv)
         log_msg("Code confusion rate: "    + to_string(get<2>(rates)/t) + " bpcu");
     }
     log_msg("---------------");
+    log_msg("", "Raw");
 
     /* Ask the user whether he/she actually wants to run the simulations after precalculations */
     string answer;
@@ -343,6 +346,7 @@ int main(int argc, char** argv)
         int errors = 0; 
         int visited_nodes = 0;
         int total_nodes = 0;
+        int samples = params["energy_estimation_samples"]; /* Take this many random samples from the codebook (negative number means sample all) */
 
         double sigpow = 0;
         double bler = 0;
@@ -352,7 +356,9 @@ int main(int argc, char** argv)
         double C = 0.0; /* initial squared radius for the sphere decoder */
 
         /* pair containing the coefficients and matrix representation of a single codeword */
-        pair<vector<int>,cx_mat> codeword; 
+        pair<vector<int>,cx_mat> codeword;
+        vector<pair<vector<int>,cx_mat>> codebook_instance = codebook;
+        uniform_int_distribution<int> dist(0, codebook.size()-1);
 
         /* Simulations main loop (iteration shared among parallel threads) 
            Simulations are indexed by their SNR value */
@@ -370,10 +376,18 @@ int main(int argc, char** argv)
                 if (exit_flag) break; /* terminate simulations */
                  
                 /* Simulation starts by generating a random codeword that we want to send */
-                if (P <= 0)
-                    codeword = create_random_codeword(bases, symbset); 
-                else
-                    codeword = create_random_spherical_codeword(bases, Rorig, symbset, P);
+                if (samples <= 0) {
+                    codeword = codebook_instance[dist(mersenne_twister)];
+                    // cout << vec2str(codeword.first, codeword.first.size()) << endl;
+                } else {
+                    if (P <= 0){
+                        codeword = create_random_codeword(bases, symbset); 
+                    }
+                    else {
+                        codeword = create_random_spherical_codeword(bases, Rorig, symbset, P);
+                    }
+                }
+
 
                 orig = codeword.first;  /* coefficients from the signal set (i.e. data vector) */
                 X = codeword.second;    /* Code block we want to send */

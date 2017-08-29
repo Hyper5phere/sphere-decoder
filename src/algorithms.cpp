@@ -90,12 +90,6 @@ double estimate_squared_radius(const mat &G, int s){
     return pow(pow(2.0, s)*tgamma(n/2.0 + 1.0)*sqrt(det(4*G.t()*G))*pow(pi, n/-2.0), 2.0/n);
 }
 
-/* Picks a random element from a vector uniformly */
-int pick_uniform(const vector<int> S){
-    uniform_int_distribution<int> dist(0, S.size()-1);
-    return S[dist(mersenne_twister)];
-}
-
 /* Generates a new symbolset where elements are between given lower and upper bounds */
 vector<int> slice_symbset(const vector<int> &S, double lb, double ub){
     vector<int> retval;
@@ -516,7 +510,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
         	return create_spherical_codebook(bases, R, symbolset, P, vec(k, fill::zeros), k, 0);
 
         if (cs > 1e6)
-            log_msg("create_codebook: Generating a codebook of size " + to_string(cs) + "!", "Warning");
+            log_msg("create_codebook: Generating a codebook of size " + to_string(cs) + ", this can be really slow!", "Warning");
 
         /* all possible combinations of code words */
         auto c = comb_wrapper(symbolset, k);
