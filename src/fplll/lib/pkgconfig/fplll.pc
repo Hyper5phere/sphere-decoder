@@ -1,0 +1,9 @@
+prefix=/u/34/pyrrop1/unix/Sphere_Decoder/repo/src/fplll
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: fplll
+Description: lattice algorithms with floating-point computations
+Version: 5.1.0
+Libs: -L${libdir}  -lgmp -lmpfr -lfplll
