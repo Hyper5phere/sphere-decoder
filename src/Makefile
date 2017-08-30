@@ -1,6 +1,5 @@
 PROGRAM=../sphdec
 OBJS=main.o misc.o config.o algorithms.o sphdec.o
-CPPFLAGS=-I./fplll/include -L./fplll/lib$
 FLAGS=-std=c++11 -larmadillo -llapack -lblas -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0 -lboost_iostreams -lboost_system -lboost_filesystem -lgmp -lmpfr -I./fplll/include -L./fplll/lib -lfplll
 MODE=-O3
 # debug: MODE=-g
