@@ -59,7 +59,7 @@ std::vector<int> count_points_many_radiuses(const arma::mat &R, const std::vecto
 arma::cx_mat LLL_reduction(arma::cx_mat G);
 
 /* Picks a random element from a vector uniformly */
-/* Warning: imposes huge overhead if picking repeatedly from same vector */
+/* Imposes negligible bias if v.size() << 10e6 */
 template <typename T>
 inline T pick_uniform(const std::vector<T> v){
     // std::uniform_int_distribution<int> dist(0, v.size()-1);
