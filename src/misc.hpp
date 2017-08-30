@@ -14,6 +14,7 @@
 
 #define _GLIBCXX_USE_CXX11_ABI 0 /* fixes some string related errors */
 // #define PLOTTING /* enables plotting (requires boost C++ library) */
+// #define USE_LLL  /* enables lll reduction but requires additional libraries */
 
 #include <string>
 #include <unordered_map>

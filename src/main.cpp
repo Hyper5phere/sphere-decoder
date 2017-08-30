@@ -163,8 +163,19 @@ int main(int argc, char** argv)
 
     /* Generator matrix of the lattice code */
     cx_mat G = create_generator_matrix(bases);
-    /* TODO: implement LLL_reduction (stub can be found in algorithms.cpp) */
+
+    /* LLL_reduction for G */
+    // cout << G << endl;
     // G = LLL_reduction(G);
+    // cout << G << endl;
+    // bases = generator_to_bases(G);
+
+    /* output LLL reduced basis matrices */
+    // auto lll_bases = generator_to_bases(G);
+    // for (const auto &lll : lll_bases) {
+    //     output_complex_matrix("bases/MIDO_LLL_basis.txt", lll, true);
+    // }
+    // exit(0);
 
     /* sublattice generator matrices for coset encoding (e stands for 'Eve') */
     cx_mat invGe, Ge;

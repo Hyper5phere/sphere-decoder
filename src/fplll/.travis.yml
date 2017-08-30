@@ -1,0 +1,135 @@
+sudo: required
+
+dist: trusty
+
+language: cpp
+
+matrix:
+  include:
+  - os: linux
+    compiler: gcc
+    env: COMPILER=g++-4.8 CLANGFORMAT=clang-format-3.9
+    addons:
+      apt:
+        packages:
+        - g++-4.8
+        - libgmp-dev
+        - libmpfr-dev
+        - libqd-dev
+    before_install:
+      - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+      - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+      - sudo apt-get update -qq 
+      - sudo apt-get install -qq -y clang-format-3.9
+  - os: linux
+    compiler: gcc
+    env: COMPILER=g++-4.9 CLANGFORMAT=clang-format-3.9
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-4.9
+        - libgmp-dev
+        - libmpfr-dev
+        - libqd-dev
+    before_install:
+      - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+      - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+      - sudo apt-get update -qq 
+      - sudo apt-get install -qq -y clang-format-3.9
+  - os: linux
+    compiler: gcc
+    env: COMPILER=g++-5 CLANGFORMAT=clang-format-3.9
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-5
+        - libgmp-dev
+        - libmpfr-dev
+        - libqd-dev
+    before_install:
+      - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+      - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+      - sudo apt-get update -qq 
+      - sudo apt-get install -qq -y clang-format-3.9
+  - os: linux
+    compiler: gcc
+    env: COMPILER=g++-6 CLANGFORMAT=clang-format-3.9 CXXFLAGS="-O3 -ggdb -fprofile-arcs -ftest-coverage" 
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-6
+        - libgmp-dev
+        - libmpfr-dev
+        - libqd-dev
+    before_install:
+      - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+      - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+      - sudo apt-get update -qq 
+      - sudo apt-get install -qq -y clang-format-3.9
+    script:
+      - make
+      - make check
+      - cd fplll && gcov --object-directory .libs *.cpp && cd ..
+      - make distcheck
+    after_success:
+      - bash <(curl -s https://codecov.io/bash)
+  - os: linux
+    compiler: clang
+    env: COMPILER=clang++ CLANGFORMAT=clang-format-3.9
+    addons:
+      apt:
+        packages:
+        - libgmp-dev
+        - libmpfr-dev
+        - libqd-dev
+    before_install:
+      - sudo add-apt-repository 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+      - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+      - sudo apt-get update -qq 
+      - sudo apt-get install -qq -y clang-format-3.9
+  - os: osx
+    compiler: clang
+    env: COMPILER=clang++ CLANGFORMAT=clang-format
+    before_install:
+      - brew reinstall gmp
+      - brew install mpfr qd autoconf libtool clang-format
+
+install:
+  - export CXX="$COMPILER"
+  - $CXX --version
+
+before_script:
+  - "./autogen.sh"
+  - "./configure --disable-static --with-max-enumeration-dimension=64"
+  - bash .travis-check-style.sh # check that clang-format was used
+
+script:
+  - make
+  - make check
+  - make distcheck
+
+notifications:
+  on_success: change
+  on_failure: always
+
+branches:
+  only:
+    - master
+
+deploy:
+  provider: releases
+  file_glob: true
+  skip_cleanup: true
+  api_key:
+    secure: WsT8rFbwkPlsti2VTEsItUgkWyrhL68ybouz5/U0vGhI/KC3xh2CXhzlJes/vKaTli6GI+xLtwLz3gw7hruEGBnQ/bUCpKoljuF087fXjCGs93Vk7V5kPxfWEZ8p4YhuOVi2HVdp9zeiPOW+Nk2UMIjz19Bne2aypOIxcCfyI5c=
+  file: fplll-*.tar.gz
+  on:
+    repo: fplll/fplll
+    tags: true
+    all_branches: true
