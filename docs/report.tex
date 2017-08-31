@@ -558,7 +558,11 @@ $ make with=gpu+plotting
 but keep in mind the requirements for them:
 \begin{enumerate}
 \item \textbf{plotting}: C++ Boost library
-\item \textbf{lll}: GMP, MPFR and you probably need to compile the fplll library \cite{fplll} in {/src/fplll} from source, see \url{https://github.com/fplll/fplll/#compilation} for help.
+\item \textbf{lll}: GMP, MPFR and you probably need to compile the fplll library \cite{fplll} in {/src/fplll} from source, see \url{https://github.com/fplll/fplll/#compilation} for help. Also remember to run the configure command like so
+\begin{verbatim}
+$ ./configure --prefix=$(pwd)/src/fplll/
+\end{verbatim} 
+so the library will be installed in the correct place.
 \item \textbf{gpu}: CUDA Toolkit and NVBLAS, see section \ref{sec:req}
 \end{enumerate}
 %If you didn't install the Boost C++ library you need to do the following in order to compile the program:
