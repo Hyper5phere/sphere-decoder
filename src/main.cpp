@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <ratio>
+#include <ctime>
 #include <csignal>
 #include <thread>
 
@@ -342,6 +344,8 @@ int main(int argc, char** argv)
 
     /* thread safe output string vector, used for csv output */
     output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); /* add label row */
+
+    auto start = chrono::high_resolution_clock::now();
     
     #pragma omp parallel /* parallelize SNR simulations */
     {
@@ -483,6 +487,10 @@ int main(int argc, char** argv)
         }
 
     }
+    auto end = chrono::high_resolution_clock::now();
+    auto simulation_time = chrono::duration_cast<chrono::duration<double>>(end - start);
+    log_msg("Simulations finished in " + to_string(simulation_time.count()) + " seconds.");
+
     /* output the simulation results in a csv file in /output/ folder */
     output_data(output);
 
