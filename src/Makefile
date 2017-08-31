@@ -1,10 +1,31 @@
 PROGRAM=../sphdec
 OBJS=main.o misc.o config.o algorithms.o sphdec.o
-FLAGS=-std=c++11 -larmadillo -llapack -lblas -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0 -lboost_iostreams -lboost_system -lboost_filesystem -lgmp -lmpfr -I./fplll/include -L./fplll/lib -lfplll
+FLAGS=-std=c++11 -larmadillo -llapack -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0
 MODE=-O3
 # debug: MODE=-g
 # production: MODE=-O3
-# use GPU: -lnvblas
+
+# make with=plotting
+ifeq ($(findstring plotting, $(with)), plotting)
+FLAGS+= -lboost_iostreams -lboost_system -lboost_filesystem
+endif
+
+# make with=lll
+ifeq ($(findstring lll, $(with)), lll)
+FLAGS+= -lgmp -lmpfr -I./fplll/include -L./fplll/lib -lfplll
+endif
+
+# make with=gpu
+ifeq ($(findstring gpu, $(with)), gpu)
+FLAGS+= -lnvblas
+endif
+
+# to compile with everything use something like
+# make with=plotting+lll+gpu
+
+# needs to come after -lnvblas flag
+FLAGS+= -lblas
+
 
 $(PROGRAM): $(OBJS)
 	g++ -o $(PROGRAM) $(OBJS) $(FLAGS)
