@@ -7,12 +7,12 @@ MODE=-O3
 
 # make with=plotting
 ifeq ($(findstring plotting, $(with)), plotting)
-FLAGS+= -lboost_iostreams -lboost_system -lboost_filesystem
+FLAGS+= -lboost_iostreams -lboost_system -lboost_filesystem -D PLOTTING
 endif
 
 # make with=lll
 ifeq ($(findstring lll, $(with)), lll)
-FLAGS+= -lgmp -lmpfr -I./fplll/include -L./fplll/lib -lfplll
+FLAGS+= -lgmp -lmpfr -I./fplll/include -L./fplll/lib -lfplll -D USE_LLL
 endif
 
 # make with=gpu

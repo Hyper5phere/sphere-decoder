@@ -13,6 +13,8 @@
 #define MISC_HPP
 
 #define _GLIBCXX_USE_CXX11_ABI 0 /* fixes some string related errors */
+
+/* Thse macros are not required anymore, use the 'with=' argument while using make */
 // #define PLOTTING /* enables plotting (requires boost C++ library) */
 // #define USE_LLL  /* enables lll reduction but requires additional libraries */
 
