@@ -507,8 +507,9 @@ The purpose of this program is to simulate the performance of different space--t
 \par This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here, but references to additional documentation are given. In the following chapters we will go through the installation and usage of the program in detail. 
 
 \subsection{System requirements}
+\label{sec:req}
 Regarding the hardware as the rule of the thumb, the better the performance your computer has the faster the simulations, although nearly all modern computers with a keyboard and a monitor should suffice for small simulations. The program makes use of parallel CPU cores so one does not need to worry too much about single thread performance of the CPU. The program should not be too memory consuming except in some special use cases so no excessive amount of RAM is needed for fast simulations. 
-\par One can optionally make use of the computing power of the GPU which could potentially speed up large matrix operations that the linear algebra library Armadillo does. This requires Cuda toolkit and NVBLAS, see details here: \url{http://docs.nvidia.com/cuda/nvblas/index.html}.
+\par One can optionally make use of the computing power of the GPU which could potentially speed up large matrix operations that the linear algebra library Armadillo does. This requires CUDA toolkit and NVBLAS, see details here: \url{http://docs.nvidia.com/cuda/nvblas/index.html}.
 \par Before trying to install and run the program itself, you need to make sure you have GNU Make and a compatible C++ compiler installed. The recommended GNU C++ compiler (g++) and GNU Make should be preinstalled in most Linux distributions but in case they are not, try installing the \textit{build-essentials} package from the package manager. In Ubuntu you can do this by typing in terminal:
 \begin{verbatim}
 $ sudo apt-get install build-essential
@@ -542,32 +543,51 @@ $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \begin{verbatim}
 $ ll
 \end{verbatim}
-Check if the contents of that folder look similar to those of the gitlab repository. If everything looks all right, you're using Linux and want to do the plain installation (without plotting and LLL), just type the following in terminal
+Check if the contents of that folder look similar to those of the gitlab repository. If everything looks all right, you're using Linux and want to do the plain installation (without plotting or LLL reduction), just type the following in terminal
 \begin{verbatim}
 $ make
 \end{verbatim}
-to compile the program. For other operating systems you likely need to modify the Makefile located in the /src/ directory. If you didn't install the Boost C++ library you need to do the following in order to compile the program:
+to compile the program. For other operating systems you likely need to modify the Makefile located in the /src/ directory. There are a couple of options how to compile the program if you did manage to install required libraries. If you installed everything listed above and want to do the full installation, then type this instead
 \begin{verbatim}
-$ nano src/misc.hpp
+$ make with=plotting+lll+gpu
 \end{verbatim}
-In the text editor locate a line of code saying
+You can choose any combination of those three options, for example
 \begin{verbatim}
-#define PLOTTING // enable plotting (requires boost C++ library)
-\end{verbatim}
-and either remove it or comment it out (type '//' in front of the line). After that save and exit by pressing CTRL+O, ENTER and CTRL+X. After that type the command:
-\begin{verbatim}
-$ nano src/Makefile
-\end{verbatim}
-and remove all the compiler flags that have the word 'lboost' in it. Save changes and exit the text editor as before. Now you should be able to compile the program by typing:
-\begin{verbatim}
-$ make
-\end{verbatim}
+$ make with=gpu+plotting
+\end{verbatim} 
+but keep in mind the requirements for them:
+\begin{enumerate}
+\item \textbf{plotting}: C++ Boost library
+\item \textbf{lll}: GMP, MPFR and you probably need to compile the fplll library \cite{fplll} in {/src/fplll} from source, see \url{https://github.com/fplll/fplll/#compilation} for help.
+\item \textbf{gpu}: CUDA Toolkit and NVBLAS, see section \ref{sec:req}
+\end{enumerate}
+%If you didn't install the Boost C++ library you need to do the following in order to compile the program:
+%\begin{verbatim}
+%$ nano src/misc.hpp
+%\end{verbatim}
+%In the text editor locate a line of code saying
+%\begin{verbatim}
+%#define PLOTTING // enable plotting (requires boost C++ library)
+%\end{verbatim}
+%and either remove it or comment it out (type '//' in front of the line). After that save and exit by pressing CTRL+O, ENTER and CTRL+X. After that type the command:
+%\begin{verbatim}
+%$ nano src/Makefile
+%\end{verbatim}
+%and remove all the compiler flags that have the word 'lboost' in it. Save changes and exit the text editor as before. Now you should be able to compile the program by typing:
+%\begin{verbatim}
+%$ make
+%\end{verbatim}
 
 \noindent If the compiling succeeded, now check if the program runs correctly by typing:
 \begin{verbatim}
 $ make run
 \end{verbatim}
-If there are no errors regarding missing libraries or such then you have just correctly installed the program! If there are such errors during the compilation or program runtime, go back to previous section and double check that you have installed the correct libraries. 
+or by 
+\begin{verbatim}
+$ sh sphdec.sh
+\end{verbatim}
+if you're using the LLL reduction build.
+\par If there are no errors regarding missing libraries or such then you have just correctly installed the program! If there are such errors during the compilation or program runtime, go back to previous section and double check that you have installed the correct libraries. 
 
 \subsection{Setup and Input}
 
@@ -595,15 +615,19 @@ or
 \begin{verbatim}
 $ ./sphdec [settings_file.ini*]
 \end{verbatim}
+or 
+\begin{verbatim}
+$ sh sphdec.sh [settings_file.ini*]
+\end{verbatim}
 
-\noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the two commands are equal.
+\noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
 \par Once the program has started it prints useful data related to the current actions it is taking to the terminal as well as in the log.txt file located in the /logs/ folder. Visiting the log.txt file can be useful for reviewing previous program behaviour in the future. In the log file each program runtime should be separated by an empty line.
-\par If the program gets stuck somewhere or takes too long to finish a large simulation, pressing CTRL+C in the terminal will terminate the execution of the program instantly. Although doing this may result in a loss of data calculated so far. For large simulations one needs to be patient as the simulation complexity is NP-hard as the function of lattice code dimension.
+\par If the program gets stuck somewhere or takes too long to finish a large simulation, pressing CTRL+C in the terminal will terminate the execution of the program almost instantly. The program attempts to output the current simulation data even in this situation but it is not quaranteed to succeed so be careful while stopping the simulations prematurely. For large simulations one needs to be patient as the simulation complexity grows exponentially with the lattice code dimension. It might be required to hit this key combination several times if the program does not terminate within five seconds or so.
 
 \subsection{Output and Plots}
 
-If the program exits without errors its output should be found from /output/ folder in csv format. The filenames are by default named so that they are in chronological order so the latest simulation output should be the last one in the file listing. The csv format is easy to import in other programs like Matlab.
-\par If the program was compiled successfully with the PLOTTING flag enabled and the following settings variable is set to
+If the program exits without errors its output should be found from /output/ folder in csv format. This standard data format is easy to import into Matlab and other programs you might need. The filenames are by default named so that they are in chronological order so the latest simulation output should be the last one in the file listing. The csv format is easy to import in other programs like Matlab.
+\par If the program was compiled successfully with the plotting make option and the following settings variable is set to
 \begin{verbatim}
 plot_results=1 
 \end{verbatim}
