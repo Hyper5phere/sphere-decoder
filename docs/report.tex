@@ -503,14 +503,17 @@ Journal of Open Source Software, Vol. 1, pp. 26, 2016.
 %\end{tabular}
 
 \subsection{Preface}
-The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. It is a command line application that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here. In the following chapters we will go through the installation and usage of the program in detail. 
+The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. Its implementation heavily depends on C++ linear algebra template library called Armadillo \cite{arma}. This program is a console application (i.e. it is operated from command line) that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). In case of compability issues parts of the program can be left uncompiled intentionally like the plotting utility. 
+\par This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here, but references to additional documentation are given. In the following chapters we will go through the installation and usage of the program in detail. 
 
 \subsection{System requirements}
-
 Regarding the hardware as the rule of the thumb, the better the performance your computer has the faster the simulations, although nearly all modern computers with a keyboard and a monitor should suffice for small simulations. The program makes use of parallel CPU cores so one does not need to worry too much about single thread performance of the CPU. The program should not be too memory consuming except in some special use cases so no excessive amount of RAM is needed for fast simulations. 
-\par One can optionally make use of the computing power of the GPU which could potentially speed up large matrix operations that the linear algebra library Armadillo \cite{arma} does. This requires Cuda toolkit and NVBLAS, see details here: \url{http://docs.nvidia.com/cuda/nvblas/index.html}. When using this you also need to add an extra compiler flag in the Makefile before building the program.
-\par Before trying to install and run the program itself, you need to make sure you have all the required libraries and a compatible C++ compiler installed. The recommended GNU C++ compiler (g++) should be preinstalled in most Linux distributions but in case it is not, please refer to installation notes here: \url{https://gcc.gnu.org/wiki/InstallingGCC}. 
-\par The next thing is to gather the required library packages:
+\par One can optionally make use of the computing power of the GPU which could potentially speed up large matrix operations that the linear algebra library Armadillo does. This requires Cuda toolkit and NVBLAS, see details here: \url{http://docs.nvidia.com/cuda/nvblas/index.html}.
+\par Before trying to install and run the program itself, you need to make sure you have GNU Make and a compatible C++ compiler installed. The recommended GNU C++ compiler (g++) and GNU Make should be preinstalled in most Linux distributions but in case they are not, try installing the \textit{build-essentials} package from the package manager. In Ubuntu you can do this by typing in terminal:
+\begin{verbatim}
+$ sudo apt-get install build-essential
+\end{verbatim}
+If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGCC} and \url{https://www.gnu.org/software/make/}. The next thing is to gather the required library packages:
 \begin{enumerate}
 \item OpenBLAS library: \url{https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide}
 \item LAPACK -- Linear Algebra PACKage: \url{http://www.netlib.org/lapack}
@@ -521,8 +524,8 @@ Regarding the hardware as the rule of the thumb, the better the performance your
 \item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}
 \end{enumerate}
 % (libarmadillo-dev)
-You can follow the links for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux OS) but the most straightforward way of doing this is by opening a terminal in Linux (CTRL+ALT+T) and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link. 
-\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev} and \textit{libboost-all-dev}. Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compability reasons, but requires a few modifications in the source code and Makefile for the compilation process. If all the install processes succeed you are now all set up to install the program itself.
+You can follow the links for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of doing this is by opening a terminal in Linux (CTRL+ALT+T) and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link. 
+\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}, \textit{libmpfr-dev} and \textit{libgmp-dev}. Note that there might be some version number before the first dash in those names. The Boost, MPFR and GMP libraries can safely be omitted for compability reasons. If all the install processes succeed you are now all set up to install the program itself.
 
 \subsection{Installing the program}
 
@@ -530,7 +533,7 @@ Open terminal (CTRL+ALT+T) and create a folder for the program
 \begin{verbatim}
 $ mkdir sphere-decoder
 $ cd sphere-decoder
-\end{verbatim}Once you are in that folder copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. This can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command in the terminal:
+\end{verbatim}Once you are in that folder copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. This can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command (requires git to be installed on the system) in the terminal:
 \begin{verbatim}
 $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \end{verbatim}
@@ -539,7 +542,7 @@ $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \begin{verbatim}
 $ ll
 \end{verbatim}
-Check if the contents of that folder look similar to those of the gitlab repository. If everything looks all right and you're using Linux with Boost library, just type the following in terminal
+Check if the contents of that folder look similar to those of the gitlab repository. If everything looks all right, you're using Linux and want to do the plain installation (without plotting and LLL), just type the following in terminal
 \begin{verbatim}
 $ make
 \end{verbatim}
