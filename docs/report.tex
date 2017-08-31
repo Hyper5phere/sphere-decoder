@@ -438,7 +438,7 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
 
-\subsection{Program implementation}
+\subsection{Program modules}
 The program is written in C++11 standard and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 
 \clearpage
@@ -462,7 +462,7 @@ The program is written in C++11 standard and uses a linear algebra library calle
 %\addcontentsline{toc}{section}{References}
 \begin{thebibliography}{99}
 
-\bibitem{mia} Mäki,\ M. \textit{Space-time block codes and the complexity of sphere decoding.} Doria, Referenced 10.7.2017. Available:
+\bibitem{mia} Mäki,\ M. \textit{Space-time block codes and the complexity of sphere decoding.} Doria, Referenced 10.7.2017. Available at
   \url{https://www.doria.fi/bitstream/handle/10024/54404/gradu2008maki-miia.pdf}
    
 \bibitem{cassels} Cassels, J.W.S. \textit{An introduction to the Geometry of Numbers}, New York, Springer--Verlag, 1971.
@@ -478,6 +478,8 @@ August 2002.
 \textit{Armadillo: a template-based C++ library for linear algebra.}
 Journal of Open Source Software, Vol. 1, pp. 26, 2016.
 \url{http://dx.doi.org/10.21105/joss.00026}
+
+\bibitem{fplll} The FPLLL development team, \textit{fplll, a lattice reduction library.} 2016, Available at \url{https://github.com/fplll/fplll}
 
 
 \end{thebibliography}
@@ -505,8 +507,9 @@ The purpose of this program is to simulate the performance of different space--t
 
 \subsection{System requirements}
 
-Regarding the hardware as the rule of the thumb, the better the performance your computer has the faster the simulations, although nearly all modern computers with a keyboard and a monitor should suffice for small simulations. The program makes use of parallel CPU cores so one does not need to worry too much about single thread performance of the CPU. The program should not be too memory consuming except in some special use cases so no excessive amount of RAM is needed for fast simulations. GPU support might also be implemented in the future but for now the choice of GPU is irrelevant regarding the simulations.
-\par Before trying to install and run the program itself, you need to make sure you have the all the required libraries and a compatible C++ compiler installed. The recommended GNU C++ compiler (g++) should be preinstalled in most Linux distributions but in case it is not, please refer to installation notes here: \url{https://gcc.gnu.org/wiki/InstallingGCC}. 
+Regarding the hardware as the rule of the thumb, the better the performance your computer has the faster the simulations, although nearly all modern computers with a keyboard and a monitor should suffice for small simulations. The program makes use of parallel CPU cores so one does not need to worry too much about single thread performance of the CPU. The program should not be too memory consuming except in some special use cases so no excessive amount of RAM is needed for fast simulations. 
+\par One can optionally make use of the computing power of the GPU which could potentially speed up large matrix operations that the linear algebra library Armadillo \cite{arma} does. This requires Cuda toolkit and NVBLAS, see details here: \url{http://docs.nvidia.com/cuda/nvblas/index.html}. When using this you also need to add an extra compiler flag in the Makefile before building the program.
+\par Before trying to install and run the program itself, you need to make sure you have all the required libraries and a compatible C++ compiler installed. The recommended GNU C++ compiler (g++) should be preinstalled in most Linux distributions but in case it is not, please refer to installation notes here: \url{https://gcc.gnu.org/wiki/InstallingGCC}. 
 \par The next thing is to gather the required library packages:
 \begin{enumerate}
 \item OpenBLAS library: \url{https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide}
@@ -514,6 +517,8 @@ Regarding the hardware as the rule of the thumb, the better the performance your
 \item ARPACK library: \url{http://www.caam.rice.edu/software/ARPACK}
 \item Armadillo C++ Linear algebra library: \url{http://arma.sourceforge.net/download.html} 
 \item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
+\item MPFR 2.3.0 or higher (optional, for LLL reduction only) \url{http://www.mpfr.org/}
+\item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}
 \end{enumerate}
 % (libarmadillo-dev)
 You can follow the links for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux OS) but the most straightforward way of doing this is by opening a terminal in Linux (CTRL+ALT+T) and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link. 
