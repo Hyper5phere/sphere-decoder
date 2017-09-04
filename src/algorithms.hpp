@@ -56,7 +56,7 @@ bool coset_check(const arma::cx_mat &Gb, const arma::cx_mat &invGe, const arma::
 std::tuple<double, double, double> code_rates(const arma::cx_mat &Gb, const arma::cx_mat &Ge);
 int count_points(const arma::mat &R, const std::vector<int> &S, double radius, arma::vec xt, int dim, double dist);
 std::vector<int> count_points_many_radiuses(const arma::mat &R, const std::vector<int> &S, std::vector<double> radiuses, arma::vec xt, int dim, double dist);
-arma::cx_mat LLL_reduction(arma::cx_mat G);
+arma::cx_mat LLL_reduction(const arma::cx_mat &G);
 
 /* Picks a random element from a vector uniformly */
 /* Imposes negligible bias if v.size() << 10e6 */

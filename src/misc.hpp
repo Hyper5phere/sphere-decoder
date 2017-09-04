@@ -84,6 +84,7 @@ void output_complex_matrix(const std::string &filepath, const arma::cx_mat &A, b
 /* Makes a string representation out of any basic vector type */
 template <typename T>
 inline std::string vec2str(T vec, size_t size){
+	if (size <= 0) return "{}";
 	std::string str = "{";
 	for (size_t i = 0; i < (size-1); i++)
 		str += std::to_string(vec[i]) + ", ";

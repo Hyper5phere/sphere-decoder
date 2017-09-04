@@ -11,6 +11,7 @@
 
 #define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
 #define FPLLL_WITH_ZDOUBLE
+#define FPLLL_WITH_LONG_DOUBLE
 
 #include <iostream>
 #include <armadillo> /* linear algebra library */
@@ -46,11 +47,19 @@ int sesd_sign(double x) {
     return (x <= 0) ? -1 : 1;
 }
 
+
+/* compute greatest common divisor of a and b
+ * credits go to: https://codereview.stackexchange.com/a/66735
+ */
+int gcd(int a, int b) {
+    return b == 0 ? a : gcd(b, a % b);
+}
+
 /* Rounds x to nearest integer in S
  * --------------------------------
  * E.g. let S = 4-PAM and x = 1.8 then 
  * nearest_symbol(1.8) = 3
- * cf round(1.8) = 2
+ * cf. round(1.8) = 2
  */
 double nearest_symbol(double x, const vector<int> &S){
     double min = 10e6;
@@ -226,12 +235,12 @@ cx_mat to_complex_matrix(const mat &A){
     }
 
     cx_mat B(A.n_rows/2, A.n_cols);
-    int index = 0;
+    // int index = 0;
     for (auto j = 0u; j < A.n_cols; j++){
-        for (auto i = 0u; i < A.n_rows-2; i += 2){
-            B(index++,j) = complex<double>(A(i,j), A(i+1,j));
+        for (auto i = 0u; i < B.n_rows; i++){
+            B(i,j) = complex<double>(A(2*i,j), A(2*i+1,j));
         }
-        index = 0;
+        // index = 0;
     }
     return B;
 }
@@ -324,6 +333,57 @@ pair<vector<int>, cx_mat> create_random_codeword(const vector<cx_mat> &bases, co
     return make_pair(coeffs, X);   
 }
 
+/* Attempts to take account the probability bias when picking vector coefficients uniform randomly 
+   from hyperplane intervals within a hypersphere */
+vector<int> create_unbiased_subset(const mat &R, const vector<int> &subset, vec xt,
+                                   vec ener, vec curr, double radius, int i){
+    if (i <= 0) return subset; /* can't perform lookahead for the lowest dimension */
+
+    vector<int> unbiased_subset; //, delta_vec;
+    unbiased_subset.reserve(4*subset.size());
+
+    double xiener = 0.0;
+    int ub = 0, lb = 0, delta = 0; //, delta_sum = 0, bias_correction_amount = 0;
+    int k = params["no_of_matrices"];
+
+    // cout << i << endl;
+    // cout << vec2str(xt, xt.size()) << endl;
+    // cout << vec2str(ener, ener.size()) << endl;
+    // cout << vec2str(curr, curr.size()) << endl << endl;
+
+    for (const int elem : subset) {
+        xt[i] = elem;
+        xiener = pow(R(i,i)*xt[i] + curr[i], 2);
+
+        for (int j = i; j < k; j++)
+            curr[i-1] += xt[j]*R(i-1,j);
+        ener[i-1] = ener[i] + xiener;
+
+        lb = nearest_symbol(-(sqrt(radius - ener[i-1]) + curr[i-1])/R(i-1,i-1), subset);
+        ub = nearest_symbol((sqrt(radius - ener[i-1]) - curr[i-1])/R(i-1,i-1), subset);
+        delta = (ub - lb)/2;
+
+        // cout << lb << ", " << ub << ", " << delta << endl;
+
+        for (int d = 0; d < delta; d++)
+            unbiased_subset.push_back(elem);
+        // delta_vec.push_back(delta);
+        // delta_sum += delta;
+    }
+    // cout << vec2str(xt, xt.size()) << endl;
+    // cout << vec2str(ener, ener.size()) << endl;
+    // cout << vec2str(curr, curr.size()) << endl << endl;
+    // cout << endl;
+
+    // for (auto j = 0u; j < subset.size(); j++){
+    //     bias_correction_amount = delta_sum/gcd(delta_sum, delta_vec[j]);
+    //     for (int s = 0; s < bias_correction_amount; s++)
+    //         unbiased_subset.push_back(subset[j]);
+    // }
+    // cout << vec2str(unbiased_subset, unbiased_subset.size()) << endl << endl;
+    return unbiased_subset;
+}
+
 /* Creates a random codeword from basis matrices B_i and symbolset x-PAM within given radius (spherical shaping) */
 pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> &bases, const mat &R, const vector<int> &S, double radius){
     int m = params["no_of_transmit_antennas"];
@@ -348,11 +408,15 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
         // uniform_real_distribution<double> xirange(lb, ub);
         // xt[i] = nearest_symbol(xirange(mersenne_twister), S); // probability bias fix this
         subset = slice_symbset(S, lb, ub);
+        // if (i >= 3 /*max(k-13, 3)*/ && !subset.empty())
+        //     subset = create_unbiased_subset(R, subset, xt, ener, curr, radius, i);
+
         if (subset.empty()) { /* No lattice points are within energy bounds in this dimension */
             i = k-1;
             xt.zeros(); curr.zeros(); ener.zeros();
             continue;
         }
+        
         xt[i] = pick_uniform(subset);
         xiener = pow(R(i,i)*xt[i] + curr[i], 2);
 
@@ -375,7 +439,6 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
     }
     return make_pair(coeffs, X);
 }
-
 
 /* Creates a codebook from basis matrices B_i and symbolset x-PAM within given radius (spherical shaping) */
 // vector<pair<vector<int>, cx_mat>> create_spherical_codebook(const vector<cx_mat> &bases, const mat &R, const vector<int> &S, double radius){
@@ -647,25 +710,30 @@ cx_mat LLL_reduction(const cx_mat &G) {
     #ifdef USE_LLL
 
     	mat G_real = to_real_matrix(G);
+
     	// ZZ_mat<double> fpG(G_real.n_rows, G_real.n_cols);
-        ZZ_mat<double> fpG(G_real.n_cols, G_real.n_rows);
+        // ZZ_mat<double> fpG(G_real.n_cols, G_real.n_rows);
+        FP_mat<double> fpG(G_real.n_cols, G_real.n_rows);
     	for (auto i = 0u; i < G_real.n_rows; i++) {
     		for (auto j = 0u; j < G_real.n_cols; j++) {
     			// fpG(i, j) = G_real(i, j);
                 fpG(j, i) = G_real(i, j);
     		}
     	}
+        cout << fpG << endl << endl;
     	int status = lll_reduction(fpG, LLL_DEF_DELTA, LLL_DEF_ETA, LM_PROVED, FT_DEFAULT, 0, LLL_DEFAULT);
     	if (status != RED_SUCCESS) {
     	    log_msg("LLL reduction failed!", "Error"); //with error '" + to_string(get_red_status_str(status)) + "'", "Error");
     	    exit(1);
     	}
+        cout << fpG << endl << endl;
     	for (auto i = 0u; i < G_real.n_rows; i++) {
     		for (auto j = 0u; j < G_real.n_cols; j++) {
     			// G_real(i, j) = fpG(i, j).get_d();
                 G_real(i, j) = fpG(j, i).get_d();
     		}
     	}
+        cout << G_real << endl;
     	return to_complex_matrix(G_real);
 
     #else /* Do nothing */
