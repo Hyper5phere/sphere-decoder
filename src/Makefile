@@ -1,4 +1,5 @@
 PROGRAM=../sphdec
+CXX=g++
 OBJS=main.o misc.o config.o algorithms.o sphdec.o
 FLAGS=-std=c++11 -larmadillo -llapack -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0
 MODE=-O3
@@ -28,22 +29,22 @@ FLAGS+= -lblas
 
 
 $(PROGRAM): $(OBJS)
-	g++ -o $(PROGRAM) $(OBJS) $(FLAGS)
+	$(CXX) -o $(PROGRAM) $(OBJS) $(FLAGS)
 
 main.o: main.cpp
-	g++ -c $(MODE) -o main.o main.cpp $(FLAGS)
+	$(CXX) -c $(MODE) -o main.o main.cpp $(FLAGS)
 
 config.o: config.cpp
-	g++ -c $(MODE) -o config.o config.cpp $(FLAGS)
+	$(CXX) -c $(MODE) -o config.o config.cpp $(FLAGS)
 
 misc.o: misc.cpp
-	g++ -c $(MODE) -o misc.o misc.cpp $(FLAGS)
+	$(CXX) -c $(MODE) -o misc.o misc.cpp $(FLAGS)
 
 algorithms.o: algorithms.cpp
-	g++ -c $(MODE) -o algorithms.o algorithms.cpp $(FLAGS)
+	$(CXX) -c $(MODE) -o algorithms.o algorithms.cpp $(FLAGS)
 
 sphdec.o: sphdec.cpp
-	g++ -c $(MODE) -o sphdec.o sphdec.cpp $(FLAGS)
+	$(CXX) -c $(MODE) -o sphdec.o sphdec.cpp $(FLAGS)
 
 .PHONY: clean
 clean:

@@ -54,6 +54,8 @@ mt19937_64 mersenne_twister {
 
 /* general purpose large uniform integer distribution (use with modulo) */
 uniform_int_distribution<int> uniform_dist(0, 1000000);
+uniform_real_distribution<double> uniform_real_dist(0.0, 1.0);
+// normal_distribution uniform_dist(0, 1000000);
 
 /* Used for writing the csv output file */
 parallel_vector<string> output;
@@ -246,6 +248,14 @@ int main(int argc, char** argv)
        Details in algorithms.cpp */
     vector<int> symbset = create_symbolset(q);
 
+    // cout << "floor 6.5: " << nearest_symbol_floor(6.5, symbset) << endl;
+    // cout << "floor -10: " << nearest_symbol_floor(-10, symbset) << endl;
+    // cout << "floor  10: " << nearest_symbol_floor(10, symbset) << endl;
+    // cout << "ceil  5.5: " << nearest_symbol_ceil(5.5, symbset) << endl;
+    // cout << "ceil  -10: " << nearest_symbol_ceil(-10, symbset) << endl;
+    // cout << "ceil   10: " << nearest_symbol_ceil(10, symbset) << endl;
+
+
     int num_points = 0; /* Number of codewords inside the spherical constellation */
     
     /* try to find radius for the codebook that has atleast 2^s codewords if s is spesified */
@@ -393,7 +403,6 @@ int main(int argc, char** argv)
                 /* Simulation starts by generating a random codeword that we want to send */
                 if (samples <= 0) {
                     codeword = codebook_instance[dist(mersenne_twister)];
-                    // cout << vec2str(codeword.first, codeword.first.size()) << endl;
                 } else {
                     if (P <= 0){
                         codeword = create_random_codeword(bases, symbset); 

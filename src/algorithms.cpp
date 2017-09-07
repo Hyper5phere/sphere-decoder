@@ -76,6 +76,32 @@ double nearest_symbol(double x, const vector<int> &S){
     return nearest;
 }
 
+double nearest_symbol_floor(double x, const vector<int> &S){
+
+    // for (const int symbol : S) {
+    //     if (symbol < x) {
+    //         return symbol;
+    //     }
+    // }
+    for (int i = S.size()-1; i >= 0; i--) {
+        if (S[i] <= x) {
+            return S[i];
+        }
+    }
+    // return S[S.size()-1];
+    return S[0];
+}
+
+double nearest_symbol_ceil(double x, const vector<int> &S){
+
+    for (auto i = 0u; i < S.size()-1; i++) {
+        if (S[i] >= x) {
+            return S[i];
+        }
+    }
+    return S[S.size()-1];
+}
+
 /* A simple heuristic function based on the idea that the volume of the hypersphere divided by the volume of the fundamental region of the lattice 
  * should roughly equal to the number of lattice points inside the hypersphere
  * i.e. this function estimates the squared radius required for the hypersphere in order to have 2^s codewords (lattice points) inside it
@@ -335,53 +361,114 @@ pair<vector<int>, cx_mat> create_random_codeword(const vector<cx_mat> &bases, co
 
 /* Attempts to take account the probability bias when picking vector coefficients uniform randomly 
    from hyperplane intervals within a hypersphere */
-vector<int> create_unbiased_subset(const mat &R, const vector<int> &subset, vec xt,
+// vector<int> create_unbiased_subset(const mat &R, const vector<int> &subset, vec xt,
+//                                    vec ener, vec curr, double radius, int i){
+//     if (i <= 0) return subset; /* can't perform lookahead for the lowest dimension */
+
+//     vector<int> unbiased_subset; //, delta_vec;
+//     unbiased_subset.reserve(4*subset.size());
+
+//     double xiener = 0.0;
+//     int ub = 0, lb = 0, delta = 0; //, delta_sum = 0, bias_correction_amount = 0;
+//     int k = params["no_of_matrices"];
+
+//     // cout << i << endl;
+//     // cout << vec2str(xt, xt.size()) << endl;
+//     // cout << vec2str(ener, ener.size()) << endl;
+//     // cout << vec2str(curr, curr.size()) << endl << endl;
+
+//     for (const int elem : subset) {
+//         xt[i] = elem;
+//         xiener = pow(R(i,i)*xt[i] + curr[i], 2);
+
+//         for (int j = i; j < k; j++)
+//             curr[i-1] += xt[j]*R(i-1,j);
+//         ener[i-1] = ener[i] + xiener;
+
+//         lb = nearest_symbol_ceil(-(sqrt(radius - ener[i-1]) + curr[i-1])/R(i-1,i-1), subset);
+//         ub = nearest_symbol_floor((sqrt(radius - ener[i-1]) - curr[i-1])/R(i-1,i-1), subset);
+//         delta = (ub - lb)/2 + 1;
+
+//         // cout << lb << ", " << ub << ", " << delta << endl;
+
+//         for (int d = 0; d < delta; d++)
+//             unbiased_subset.push_back(elem);
+//         // delta_vec.push_back(delta);
+//         // delta_sum += delta;
+//     }
+//     // cout << vec2str(xt, xt.size()) << endl;
+//     // cout << vec2str(ener, ener.size()) << endl;
+//     // cout << vec2str(curr, curr.size()) << endl << endl;
+//     // cout << endl;
+
+//     // for (auto j = 0u; j < subset.size(); j++){
+//     //     bias_correction_amount = delta_sum/gcd(delta_sum, delta_vec[j]);
+//     //     for (int s = 0; s < bias_correction_amount; s++)
+//     //         unbiased_subset.push_back(subset[j]);
+//     // }
+//     // cout << vec2str(unbiased_subset, unbiased_subset.size()) << endl << endl;
+//     return unbiased_subset;
+// }
+
+
+/* Attempts to pick q-PAM coefficients which correspond to large subhyperspheres more often 
+   This should eliminate some the bias present (picking border points too often) in naive uniform random picking */
+int unbiased_random_select(const mat &R, const vector<int> &subset, vec xt,
                                    vec ener, vec curr, double radius, int i){
-    if (i <= 0) return subset; /* can't perform lookahead for the lowest dimension */
+    if (i <= 0) return 0; /* can't perform lookahead for the lowest dimension */
 
-    vector<int> unbiased_subset; //, delta_vec;
+    vector<int> unbiased_subset, feasible_coeffs;
+    vector<double> radiuses;
+    vector<pair<double, double>> intervals;
     unbiased_subset.reserve(4*subset.size());
+    radiuses.reserve(subset.size());
+    intervals.reserve(subset.size());
+    feasible_coeffs.reserve(subset.size());
 
-    double xiener = 0.0;
-    int ub = 0, lb = 0, delta = 0; //, delta_sum = 0, bias_correction_amount = 0;
+    double xiener = 0.0, radius_sum = 0.0, r = 0.0, numer = 0.0, ub = 0, lb = 0;
     int k = params["no_of_matrices"];
 
-    // cout << i << endl;
-    // cout << vec2str(xt, xt.size()) << endl;
-    // cout << vec2str(ener, ener.size()) << endl;
-    // cout << vec2str(curr, curr.size()) << endl << endl;
-
-    for (const int elem : subset) {
-        xt[i] = elem;
+    /* calculate subsphere radiuses for each coefficient */
+    for (auto j = 0u; j < subset.size(); j++) {
+        xt[i] = subset[j];
         xiener = pow(R(i,i)*xt[i] + curr[i], 2);
-
-        for (int j = i; j < k; j++)
-            curr[i-1] += xt[j]*R(i-1,j);
-        ener[i-1] = ener[i] + xiener;
-
-        lb = nearest_symbol(-(sqrt(radius - ener[i-1]) + curr[i-1])/R(i-1,i-1), subset);
-        ub = nearest_symbol((sqrt(radius - ener[i-1]) - curr[i-1])/R(i-1,i-1), subset);
-        delta = (ub - lb)/2;
-
-        // cout << lb << ", " << ub << ", " << delta << endl;
-
-        for (int d = 0; d < delta; d++)
-            unbiased_subset.push_back(elem);
-        // delta_vec.push_back(delta);
-        // delta_sum += delta;
+        r = radius - xiener - ener[i];
+        if (r > 0){ /* We don't want negative radiuses, do we? */
+            r = pow(r, k-1);
+            radiuses.push_back(r);
+            radius_sum += r;
+            feasible_coeffs.push_back(subset[j]);
+        }
     }
-    // cout << vec2str(xt, xt.size()) << endl;
-    // cout << vec2str(ener, ener.size()) << endl;
-    // cout << vec2str(curr, curr.size()) << endl << endl;
+
+    /* Calculate intervals from [0,1] for each coefficient */
+    for (auto j = 0u; j < radiuses.size(); j++) {
+        lb = numer/radius_sum;
+        ub = (numer+radiuses[j])/radius_sum;
+        intervals.push_back(make_pair(lb, ub));
+        numer += radiuses[j];
+    }
+
+    // intervals.back().second = 1.0;
+
+    // cout << vec2str(radiuses, radiuses.size()) << endl;
+    // cout << vec2str(feasible_coeffs, feasible_coeffs.size()) << endl;
+    // cout << vec2str(intervals, intervals.size()) << endl << endl;
     // cout << endl;
 
-    // for (auto j = 0u; j < subset.size(); j++){
-    //     bias_correction_amount = delta_sum/gcd(delta_sum, delta_vec[j]);
-    //     for (int s = 0; s < bias_correction_amount; s++)
-    //         unbiased_subset.push_back(subset[j]);
-    // }
-    // cout << vec2str(unbiased_subset, unbiased_subset.size()) << endl << endl;
-    return unbiased_subset;
+    // uniform_real_distribution<double> dist(0.0, 1.0);
+    double X = uniform_real_dist(mersenne_twister);
+    // cout << X << endl << endl;
+
+    /* Select the coefficient from distribution created earlier (weights large radiuses) */
+    for (auto j = 0u; j < feasible_coeffs.size(); j++) {
+        // cout << "[" << intervals[j].first << ", " << intervals[j].second << "]" << endl;
+        if (intervals[j].first <= X && X <= intervals[j].second)
+            return feasible_coeffs[j];
+    }
+    // cout << "------" << endl;
+    
+    return 0;
 }
 
 /* Creates a random codeword from basis matrices B_i and symbolset x-PAM within given radius (spherical shaping) */
@@ -408,7 +495,7 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
         // uniform_real_distribution<double> xirange(lb, ub);
         // xt[i] = nearest_symbol(xirange(mersenne_twister), S); // probability bias fix this
         subset = slice_symbset(S, lb, ub);
-        // if (i >= 3 /*max(k-13, 3)*/ && !subset.empty())
+        // if (i >= k-10 /*max(k-13, 3)*/ && !subset.empty())
         //     subset = create_unbiased_subset(R, subset, xt, ener, curr, radius, i);
 
         if (subset.empty()) { /* No lattice points are within energy bounds in this dimension */
@@ -417,7 +504,18 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
             continue;
         }
         
-        xt[i] = pick_uniform(subset);
+        // if (i > 0)
+        //     xt[i] = unbiased_random_select(R, subset, xt, ener, curr, radius, i);
+        // else
+            xt[i] = pick_uniform(subset);
+
+        if (xt[i] == 0) {
+            cout << "something went wrong" << endl;
+            i = k-1;
+            xt.zeros(); curr.zeros(); ener.zeros();
+            continue;
+        }
+
         xiener = pow(R(i,i)*xt[i] + curr[i], 2);
 
         // if (xiener + ener[i] < radius + 1e-6) {  

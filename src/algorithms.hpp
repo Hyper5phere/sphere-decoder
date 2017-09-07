@@ -25,10 +25,14 @@ extern std::mt19937_64 mersenne_twister;
 
 /* general purpose large uniform integer distribution (use with modulo) */
 extern std::uniform_int_distribution<int> uniform_dist;
+extern std::uniform_real_distribution<double> uniform_real_dist;
+// extern std::normal_distribution uniform_dist;
 
 /* function prototypes */
 int sesd_sign(double x);
 double nearest_symbol(double x, const std::vector<int> &S);
+double nearest_symbol_floor(double x, const std::vector<int> &S);
+double nearest_symbol_ceil(double x, const std::vector<int> &S);
 double estimate_squared_radius(const arma::mat &G, int s);
 double frob_norm_squared(const arma::cx_mat &A);
 void process_qr(arma::mat &Q, arma::mat &R);
