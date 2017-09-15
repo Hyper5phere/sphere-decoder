@@ -1,7 +1,7 @@
 PROGRAM=../sphdec
 CXX=g++
 OBJS=main.o misc.o config.o algorithms.o sphdec.o
-FLAGS=-std=c++11 -larmadillo -llapack -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0
+FLAGS=-std=c++14 -larmadillo -llapack -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0
 MODE=-O3
 # debug: MODE=-g
 # production: MODE=-O3

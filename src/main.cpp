@@ -12,6 +12,7 @@
 #define ARMA_NO_DEBUG /* disable Armadillo bound checks for addiotional speed */
 
 #include <iostream>
+#include <iomanip>
 #include <armadillo> /* linear algebra library */
 #include <complex>
 #include <vector>
@@ -79,7 +80,7 @@ int main(int argc, char** argv)
     /* assign signal SIGINT (when CTRL-C is pressed) to signal handler */
     signal(SIGINT, signal_handler);
     /* if this flag is true, the program will exit from simulation loops */
-    exit_flag = false; 
+    exit_flag = false;
 
     /* define default filenames */
     filenames["settings"]         = "settings/settings.ini";
@@ -278,6 +279,7 @@ int main(int argc, char** argv)
         for (auto j = pvec.size()-1; j >= 0; j--) {
             if (pvec[j] >= (int)pow(2, s) && pvec[j] < (int)pow(2, s+1)) {
                 P = rvec[j];
+                cout << P << endl;
                 num_points = pvec[j];
                 break;
             }
@@ -353,7 +355,11 @@ int main(int argc, char** argv)
         create_output_filename(); /* see misc.cpp for details */
 
     /* thread safe output string vector, used for csv output */
-    output.append("Simulated SNR,Real SNR,Runs,BLER,Avg Complexity"); /* add label row */
+    output.append("Simulated SNR,Real SNR,Avg Complexity,Max Complexity,Errors,Runs,BLER"); /* add label row */
+
+    log_msg("------------------------------------------------------------------------------------------------------------");
+    log_msg("SNR-simulation | Real SNR     | Avg Complexity | Max Complexity | Errors     | Runs       | BLER ");
+    log_msg("------------------------------------------------------------------------------------------------------------");
 
     auto start = chrono::high_resolution_clock::now();
     
@@ -366,6 +372,8 @@ int main(int argc, char** argv)
 
         vector<int> x(k), orig(k); /* output and input vectors */
 
+        ostringstream buffer; /* string stream buffer used for log_msg() */
+
         /* simulation variables */
         int runs = 0;
         int errors = 0; 
@@ -376,6 +384,7 @@ int main(int argc, char** argv)
         double sigpow = 0;
         double bler = 0;
         double avg_complex = 0;
+        int    max_complex = 0;
         double noisepow = 0;
         double SNRreal = 0;
         double C = 0.0; /* initial squared radius for the sphere decoder */
@@ -457,6 +466,7 @@ int main(int argc, char** argv)
 
                 /* increase counters */
                 total_nodes += visited_nodes;
+                if (visited_nodes > max_complex) max_complex = visited_nodes;
                 runs++;
 
                 /* print intermediate simulation stats every now and then (if enabled) */
@@ -464,10 +474,18 @@ int main(int argc, char** argv)
                     SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
                     bler = (double)errors/runs;
                     avg_complex = (double)total_nodes/runs;
-                    log_msg("SNR-simulation " + to_string(snr) + \
+                    /*log_msg("SNR-simulation " + to_string(snr) + \
                     "\tReal SNR: " + to_string(SNRreal) + \
                     ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + ")" + \
-                    ", Avg Complexity: " + to_string(avg_complex));
+                    ", Avg Complexity: " + to_string(avg_complex) + \
+                    ", Max Complexity: " + to_string(max_complex));*/
+
+                    buffer << std::right << std::setw(14) << snr << " | " << setw(12) << SNRreal << " | "
+                           << std::setw(14) << avg_complex << " | " << std::setw(14) << max_complex << " | " 
+                           << std::setw(10) << errors << " | " << std::setw(10)  << runs << " | " << std::setw(16) << bler;
+
+                    log_msg(buffer.str());
+                    buffer.str("");
                 }
             }
             
@@ -480,12 +498,23 @@ int main(int argc, char** argv)
             /* Average complexity (number of visited search tree nodes) of the sphere decoder */
             avg_complex = (double)total_nodes/runs;
             
-            output.append(to_string(snr) + "," + to_string(SNRreal) + "," + to_string(runs) + "," + to_string(bler) + "," + to_string(avg_complex));
+            output.append(to_string(snr) + "," + float2str(SNRreal, 16) + "," + float2str(avg_complex, 16) + "," + to_string(max_complex)
+                  + "," + to_string(errors) + "," + to_string(runs) + "," + float2str(bler, 16));
             
-            log_msg("SNR-simulation " + to_string(snr) + \
+
+            /*log_msg("SNR-simulation " + to_string(snr) + \
                     "\t[Finished] Real SNR: " + to_string(SNRreal) + \
                     ", BLER: " + to_string(errors) + "/" + to_string(runs) + " (" + to_string(bler) + ")" + \
-                    ", Avg Complexity: " + to_string(avg_complex));
+                    ", Avg Complexity: " + to_string(avg_complex) + \
+                    ", Max Complexity: " + to_string(max_complex));*/
+
+
+            buffer << "[Finished] " << std::right << std::setw(3) << snr << " | " << setw(12) << SNRreal << " | "
+                   << std::setw(14) << avg_complex << " | " << std::setw(14) << max_complex << " | " 
+                   << std::setw(10) << errors << " | " << std::setw(10)  << runs << " | " << std::setw(16) << bler;
+
+            log_msg(buffer.str());
+            buffer.str("");
 
             /* reset counters after simulation round */
             runs = 0;
@@ -496,6 +525,7 @@ int main(int argc, char** argv)
         }
 
     }
+    log_msg("------------------------------------------------------------------------------------------------------------");
     auto end = chrono::high_resolution_clock::now();
     auto simulation_time = chrono::duration_cast<chrono::duration<double>>(end - start);
     log_msg("Simulations finished in " + to_string(simulation_time.count()) + " seconds.");
