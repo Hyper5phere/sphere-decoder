@@ -532,6 +532,8 @@ int main(int argc, char** argv)
 
     }
     log_msg("---------------------------------------------------------------------------------------------------------");
+    log_msg("SNR simulation | Real SNR     | Avg Complexity | Max Complexity | Errors     | Runs       | BLER ");
+    log_msg("---------------------------------------------------------------------------------------------------------");
     auto end = chrono::high_resolution_clock::now();
     auto simulation_time = chrono::duration_cast<chrono::duration<double>>(end - start);
     log_msg("Simulations finished in " + to_string(simulation_time.count()) + " seconds.");
