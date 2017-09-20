@@ -32,6 +32,11 @@ using namespace arma;
 std::mutex log_mutex;
 std::mutex output_mutex;
 
+string red = "\e[1;31m";
+string green = "\e[1;32m";
+string yellow = "\e[1;33m";
+string def = "\e[0m";
+
 /* Generates a standard datetime string of current local time */
 string time_str(){
     struct tm *timeinfo;
@@ -42,12 +47,26 @@ string time_str(){
     return string(timestamp);
 }
 
-/* function used for logging, should be thread safe */
+/* function used for logging, should be thread safe, outputs to terminal and into a txt file
+ *
+ * Defined values for lvl argument:
+ * "Raw"   : msg is printed as is without prefix or color
+ * "Info"  : default value, has prefix but no color, used for basic logging
+ * "Alert" : Something unexpected happened, uses yellow color
+ * "Error" : An error occurred and the program needs to terminate, uses red color
+ */
 void log_msg(const string msg, const string lvl) {
-    string prefix;
+    string prefix = "";
+    string color = "";
     if (lvl.compare("Raw") != 0) { /* raw input contains no prefix */
-        prefix = time_str();
+        prefix += time_str();
         prefix += " | [" + lvl + "]\t";
+    }
+    if (lvl.compare("Alert") == 0){
+        color = yellow;
+    } 
+    if (lvl.compare("Error") == 0){
+        color = red;
     }
     lock_guard<mutex> lock(log_mutex); /* make sure other threads don't write to log file simultaneosly */
     ofstream logfile(filenames["log"], ios_base::app);
@@ -55,7 +74,7 @@ void log_msg(const string msg, const string lvl) {
         logfile << endl;
     else {
         logfile << prefix << msg << endl; /* log txt file */
-        cout << prefix << msg << endl;    /* stdout */
+        cout << color << prefix << msg << def << endl;    /* stdout */
     }
     logfile.close();
 }

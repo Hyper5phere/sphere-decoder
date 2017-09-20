@@ -42,6 +42,9 @@ extern std::unordered_map<std::string, std::string> sparams;
 /* flag which indicates early stop of the simulation */
 extern bool exit_flag;
 
+/* Terminal text color definitions */
+extern std::string red, green, yellow, def;
+
 /* thread safe std::vector data structure */
 template <typename T>
 class parallel_vector : public std::vector<T> {

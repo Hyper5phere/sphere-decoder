@@ -275,11 +275,17 @@ int main(int argc, char** argv)
         }
         /* Counts corresponding number of points inside hypersphere for each radius in rvec */
         vector<int> pvec = count_points_many_radiuses(Rorig, symbset, rvec, vec(k, fill::zeros), k, 0);
+
+        // cout << "rvec size: " << rvec.size() << endl;
+        // cout << "pvec size: " << pvec.size() << endl << endl;
+        // cout << "rvec: " << vec2str(rvec, rvec.size()) << endl;
+        // cout << "pvec: " << vec2str(pvec, pvec.size()) << endl;
+
         /* Pick the smallest radius that maps to number of codewords in range [2^s, 2^(s+1)] */
-        for (auto j = pvec.size()-1; j >= 0; j--) {
+        int end_index = (int)pvec.size()-1;
+        for (int j = end_index; j >= 0; j--) {
             if (pvec[j] >= (int)pow(2, s) && pvec[j] < (int)pow(2, s+1)) {
                 P = rvec[j];
-                cout << P << endl;
                 num_points = pvec[j];
                 break;
             }
@@ -357,9 +363,9 @@ int main(int argc, char** argv)
     /* thread safe output string vector, used for csv output */
     output.append("Simulated SNR,Real SNR,Avg Complexity,Max Complexity,Errors,Runs,BLER"); /* add label row */
 
-    log_msg("------------------------------------------------------------------------------------------------------------");
-    log_msg("SNR-simulation | Real SNR     | Avg Complexity | Max Complexity | Errors     | Runs       | BLER ");
-    log_msg("------------------------------------------------------------------------------------------------------------");
+    log_msg("---------------------------------------------------------------------------------------------------------");
+    log_msg("SNR simulation | Real SNR     | Avg Complexity | Max Complexity | Errors     | Runs       | BLER ");
+    log_msg("---------------------------------------------------------------------------------------------------------");
 
     auto start = chrono::high_resolution_clock::now();
     
@@ -482,7 +488,7 @@ int main(int argc, char** argv)
 
                     buffer << std::right << std::setw(14) << snr << " | " << setw(12) << SNRreal << " | "
                            << std::setw(14) << avg_complex << " | " << std::setw(14) << max_complex << " | " 
-                           << std::setw(10) << errors << " | " << std::setw(10)  << runs << " | " << std::setw(16) << bler;
+                           << std::setw(10) << errors << " | " << std::setw(10)  << runs << " | " << std::setw(13) << bler;
 
                     log_msg(buffer.str());
                     buffer.str("");
@@ -509,9 +515,9 @@ int main(int argc, char** argv)
                     ", Max Complexity: " + to_string(max_complex));*/
 
 
-            buffer << "[Finished] " << std::right << std::setw(3) << snr << " | " << setw(12) << SNRreal << " | "
+            buffer << green << "[Finished] " << std::right << std::setw(3) << snr << " | " << setw(12) << SNRreal << " | "
                    << std::setw(14) << avg_complex << " | " << std::setw(14) << max_complex << " | " 
-                   << std::setw(10) << errors << " | " << std::setw(10)  << runs << " | " << std::setw(16) << bler;
+                   << std::setw(10) << errors << " | " << std::setw(10)  << runs << " | " << std::setw(13) << bler << def;
 
             log_msg(buffer.str());
             buffer.str("");
@@ -525,7 +531,7 @@ int main(int argc, char** argv)
         }
 
     }
-    log_msg("------------------------------------------------------------------------------------------------------------");
+    log_msg("---------------------------------------------------------------------------------------------------------");
     auto end = chrono::high_resolution_clock::now();
     auto simulation_time = chrono::duration_cast<chrono::duration<double>>(end - start);
     log_msg("Simulations finished in " + to_string(simulation_time.count()) + " seconds.");
