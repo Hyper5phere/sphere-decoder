@@ -406,6 +406,8 @@ int main(int argc, char** argv)
         for (int snr = min; snr <= max; snr += step) {
 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); /* calculate channel matrix variance from SNR */
+            /* for the SISO channel model the variance has to be bigger since there are so many entries in H fixed to zero */
+            if (channel_model.compare("siso") == 0) Hvar *= 2*n; /* scale variance by factor 2n */
             /* (noise variance is constant one) */
 
             /* Single SNR simulation loop: 
