@@ -313,6 +313,7 @@ int main(int argc, char** argv)
     log_msg("---------------");
     log_msg("Number of basis matrices (code length): " + to_string(k));
     log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
+    log_msg("Channel model: " + channel_model);
     log_msg("Codebook size: " + to_string(codebook.size()));
     log_msg("Average code energy: " + to_string(e.first));
     log_msg("Max code energy: " + to_string(e.second));
@@ -437,7 +438,7 @@ int main(int argc, char** argv)
                 if (channel_model.compare("mimo") == 0)
                     H = create_random_matrix(n, m, 0, Hvar);
                 else if (channel_model.compare("siso") == 0)
-                    H = create_random_diag_matrix(n, 0, Hvar);
+                    H = create_random_diag_matrix(t, 0, Hvar);
                 else {
                     log_msg("Invalid channel model parameter used!", "Error");
                     exit(1);
