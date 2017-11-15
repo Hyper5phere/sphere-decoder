@@ -52,9 +52,9 @@
 - include settings examples with basis matrix file embedded as TEXT
 - leave comments out of settings file and explain them in detail (refer to line numbers?)
 - input examples:
-...1. Alamouti
-...2. SISO
-...3. Wiretap
-...4. Spherical shaping
+... Alamouti
+... SISO
+... Wiretap
+... Spherical shaping
 
 
