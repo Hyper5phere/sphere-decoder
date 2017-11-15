@@ -16,6 +16,7 @@
 
 ### Third chapter
 - Finish mathematical background (how sphdec works)
+
 ##### Sphere decoder implementation
 - explain use of finite signal sets (restricted to PAM)
 - accepts complex matrices as input
@@ -23,10 +24,12 @@
 
 ### Fourth chapter
 - Remove technical information, add graphs and compare simulation results
+
 ##### Program implementation
 - simulation implements siso and mimo channels
 - fixes noise variance to 1
 - simulates different SNRs by varying fading coefficients of the channel matrix
+
 ##### Simulation examples
 - Compare orthonormal golden code (SISO) to Z^8
 - run two simulations, plot and compare results
