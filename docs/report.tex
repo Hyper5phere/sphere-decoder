@@ -437,16 +437,22 @@ The node values on each level $k$ of the search tree represent candidate value f
 Considering only this option in each dimension yields the Babai nearest plane algorithm, which is only a $(m-1)$-dimensional problem. It is a quick way to find a nearby lattice point, but it is not necessarily the closest one \cite{agrell}. The point given by this algorithm is called the Babai point.
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
+\subsection{Sphere decoder implementation}
 
-\subsection{Program modules}
-The program is written in C++11 standard and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
+%The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 
 \clearpage
 
-\section{Simulations and results}
+\section{Lattice code simulations}
+\subsection{Program implementation}
+\subsection{Simulation parameters}
+\subsection{Simulation output}
+\subsection{Simulation examples}
+\subsubsection{MIMO -- Alamouti 8-PAM}
+\subsubsection{MIMO -- MIDO}
+\subsubsection{SISO -- Spherical shaping}
 
-\subsection{Wiretap simulations and coset encoding}
-\subsection{Rician MIMO channel model}
+
  
 \clearpage
 
@@ -503,7 +509,7 @@ Journal of Open Source Software, Vol. 1, pp. 26, 2016.
 %\end{tabular}
 
 \subsection{Preface}
-The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. Its implementation heavily depends on C++ linear algebra template library called Armadillo \cite{arma}. This program is a console application (i.e. it is operated from command line) that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). In case of compability issues parts of the program can be left uncompiled intentionally like the plotting utility. 
+The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. Its implementation heavily depends on C++ linear algebra template library called Armadillo \cite{arma}. This program is a console application (i.e. it is operated from command line) that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). If there are compatibility issues optional parts of the program can be left uncompiled intentionally. 
 \par This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here, but references to additional documentation are given. In the following chapters we will go through the installation and usage of the program in detail. 
 
 \subsection{System requirements}
@@ -514,7 +520,7 @@ Regarding the hardware as the rule of the thumb, the better the performance your
 \begin{verbatim}
 $ sudo apt-get install build-essential
 \end{verbatim}
-If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGCC} and \url{https://www.gnu.org/software/make/}. The next thing is to gather the required library packages:
+If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGCC} and \url{https://www.gnu.org/software/make/}. \par The next thing is to gather the required library packages:
 \begin{enumerate}
 \item OpenBLAS library: \url{https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide}
 \item LAPACK -- Linear Algebra PACKage: \url{http://www.netlib.org/lapack}
@@ -522,11 +528,12 @@ If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGC
 \item Armadillo C++ Linear algebra library: \url{http://arma.sourceforge.net/download.html} 
 \item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
 \item MPFR 2.3.0 or higher (optional, for LLL reduction only) \url{http://www.mpfr.org/}
-\item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}
+\item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}.
 \end{enumerate}
 % (libarmadillo-dev)
-You can follow the links for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of doing this is by opening a terminal in Linux (CTRL+ALT+T) and using the package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link. 
-\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}, \textit{libmpfr-dev} and \textit{libgmp-dev}. Note that there might be some version number before the first dash in those names. The Boost, MPFR and GMP libraries can safely be omitted for compability reasons. If all the install processes succeed you are now all set up to install the program itself.
+Please note that the fplll library used for LLL reduction seems to only support reduction of integer matrices, which is not very reasonable assumption for communications applications like this, so \textbf{it is recommended for most users not to bother with the LLL reduction related functionality and simply leave it out (ie. not install packages 6 ja 7).} 
+\par You can follow the links in the packege list for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of installing them is by opening a terminal (in Linux CTRL+ALT+T) and using a package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link in the package list. 
+\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}, \textit{libmpfr-dev} and \textit{libgmp-dev}. Note that there might be some version number before the first dash in those names. The Boost, MPFR and GMP libraries can safely be omitted for compatibility reasons. If all the install processes succeed you are now all set up to install the program itself.
 
 \subsection{Installing the program}
 
@@ -534,7 +541,7 @@ Open terminal (CTRL+ALT+T) and create a folder for the program
 \begin{verbatim}
 $ mkdir sphere-decoder
 $ cd sphere-decoder
-\end{verbatim}Once you are in that folder copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. This can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command (requires git to be installed on the system) in the terminal:
+\end{verbatim}Once you are in that folder copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. This requires you to have Aalto University login credentials. If you have trouble accessing the repository contact your supervisor who instructed you to use this program, they should have a copy of it. The copying from the repository can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command in the terminal (requires git to be installed on the system):
 \begin{verbatim}
 $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \end{verbatim}
@@ -543,11 +550,12 @@ $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \begin{verbatim}
 $ ll
 \end{verbatim}
-Check if the contents of that folder look similar to those of the gitlab repository. If everything looks all right, you're using Linux and want to do the plain installation (without plotting or LLL reduction), just type the following in terminal
+Check if the contents of that folder look similar to those of the Gitlab repository. If everything looks all right, you're using Linux and want to do the plain installation (without plotting or LLL reduction), just type the following in terminal
 \begin{verbatim}
 $ make
 \end{verbatim}
-to compile the program. For other operating systems you likely need to modify the Makefile located in the /src/ directory. There are a couple of options how to compile the program if you did manage to install required libraries. If you installed everything listed above and want to do the full installation, then type this instead
+to compile the program. For other operating systems you likely need to modify the Makefile located in the /src/ directory. For convenience there is also a file called \textit{Makefile.mac} in /src/ directory. Replacing the default Makefile with that (by removing the file extension) should work for most MAC users. 
+\par There are a couple of options how to compile the program if you did manage to install the required libraries. If you installed everything listed above and want to do the full installation, then type this instead
 \begin{verbatim}
 $ make with=plotting+lll+gpu
 \end{verbatim}
@@ -562,7 +570,7 @@ but keep in mind the requirements for them:
 \begin{verbatim}
 $ ./configure --prefix=$(pwd)/src/fplll/
 \end{verbatim} 
-so the library will be installed in the correct place.
+so the library will be installed in the correct place. 
 \item \textbf{gpu}: CUDA Toolkit and NVBLAS, see section \ref{sec:req}
 \end{enumerate}
 %If you didn't install the Boost C++ library you need to do the following in order to compile the program:
@@ -611,7 +619,7 @@ When editing the settings, only modify the right hand side of the equality sign.
 
 \subsection{Running the program}
 
-Once the program is set up correctly, running the program is a relatively easy task. Just make sure you're in the main folder of the local repository and type the following in terminal:
+Once the program is set up correctly, running the program is a relatively easy task. Just make sure you're in the root folder of the local repository (the folder where the program is located) and type the following in terminal:
 \begin{verbatim}
 $ make run
 \end{verbatim}
@@ -626,7 +634,7 @@ $ sh sphdec.sh [settings_file.ini*]
 
 \noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
 \par Once the program has started it prints useful data related to the current actions it is taking to the terminal as well as in the log.txt file located in the /logs/ folder. Visiting the log.txt file can be useful for reviewing previous program behaviour in the future. In the log file each program runtime should be separated by an empty line.
-\par If the program gets stuck somewhere or takes too long to finish a large simulation, pressing CTRL+C in the terminal will terminate the execution of the program almost instantly. The program attempts to output the current simulation data even in this situation but it is not quaranteed to succeed so be careful while stopping the simulations prematurely. For large simulations one needs to be patient as the simulation complexity grows exponentially with the lattice code dimension. It might be required to hit this key combination several times if the program does not terminate within five seconds or so.
+\par If the program gets stuck somewhere or takes too long to finish a large simulation, pressing CTRL+C in the terminal will terminate the execution of the program almost instantly. The program attempts to output the current simulation data even in this situation but it is not quaranteed to succeed so keep that in mind when doing that. For large simulations one needs to be patient as the simulation complexity grows exponentially with the lattice code dimension. It might be required to hit this key combination several times if the program does not terminate within five seconds or so.
 
 \subsection{Output and Plots}
 
