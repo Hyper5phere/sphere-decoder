@@ -34,7 +34,7 @@
 - Wiretap: Bob's (base) lattice Z^4, index 16 (determinant of sublattice), integer entries.
 - describe lattices and channel model
 
-###Conclusion
+### Conclusion
 - repeat yourself
 - this program implements efficient sphdec
 - written in C++, is fast, uses linear algebra library
@@ -44,7 +44,7 @@
 - test new lattice codes and compare with old ones
 - facilitates threoretical simulations to evaluate new code constructions
 
-###Program User Guide
+### Program User Guide
 - leave LLL reduction documentation out (doesn't work properly)
 - include settings examples with basis matrix file embedded as TEXT
 - leave comments out of settings file and explain them in detail (refer to line numbers?)
