@@ -607,8 +607,9 @@ If there are no errors regarding missing libraries or such then you have just co
 
 \subsection{Setup and Input}
 
-Now that the program runs it is time to take a look at the simulation parameters and the program input to make reasonable simulations. In the /bases/ folder one can save text files containing the lattice code basis matrices for the simulation which the program takes as input. The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
-\par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The contents of the file are displayed in figure \ref{fig:settings}. After '//' begins a comment sequence which is ignored by the program when reading the settings file. Make sure not to remove any of the 15 option lines or the program will give you an error. In case you end up messing up the settings file in some way, easy way to reset it is to just delete it and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}.
+Now that the program is installed it is time to take a look at the simulation parameters and the program input in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. You can add your own basis matrix text files there by following a spesific format, which is later discussed in detail with examples. You can use the example basis matrix files provided with the program as a reference.
+%The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
+\par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The key contents of the file are displayed in figure \ref{fig:settings}. There are usually also comments in those settings files that start after the character sequence '//' and end in the line end but these are left out of the figures for clarity reasons. The comments are of course ignored by the program and only hold meaning for the user. Make sure not to remove any of the 22 options or the program will complain you about missing options. If you want to disable an option, it is done by either leaving the option value empty (string options) or setting it to -1 (number options) as seen in the figure \ref{fig:settings}. In case you end up messing up the settings file in some way, easy way to reset it is to just delete the file and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}. 
 
 %\begin{figure}[htb]
 %\begin{center}
@@ -637,7 +638,7 @@ snr_max=20
 snr_step=2                    
 simulation_rounds=10000       
 required_errors=-1              
-plot_results=0    
+plot_results=-1    
 stat_display_interval=-1        
 spherical_shaping_max_power=-1
 codebook_size_exponent=-1     
@@ -665,8 +666,10 @@ radius_search_density=100
 \label{fig:alamouti_basis}
 \end{figure}
 
-When editing the settings, only modify the right hand side of the equality sign. If you change the variable names, the program will work incorrectly. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program doesn't need to be recompiled for these changes to take effect, just run it again. 
-\par One can also create multiple settings file in that folder. To use a different settings file one just needs to give its name as a command line argument for the program.
+When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. 
+%Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. 
+The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program doesn't need to be recompiled for these changes to take effect, just run it again after saving the settings file.
+\par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you don't have to touch every parameter everytime you want to do a different simulation.
 
 \subsection{Running the program}
 
