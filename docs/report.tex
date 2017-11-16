@@ -61,6 +61,7 @@
 
 \usepackage{graphicx}
 \usepackage{epstopdf}
+\usepackage{fancyvrb}
 
 %% Use this if you write hard core mathematics, these are usually needed
 \usepackage{amsfonts,amssymb,amsbsy,amsmath}
@@ -485,7 +486,7 @@ August 2002.
 Journal of Open Source Software, Vol. 1, pp. 26, 2016.
 \url{http://dx.doi.org/10.21105/joss.00026}
 
-\bibitem{fplll} The FPLLL development team, \textit{fplll, a lattice reduction library.} 2016, Available at \url{https://github.com/fplll/fplll}
+%\bibitem{fplll} The FPLLL development team, \textit{fplll, a lattice reduction library.} 2016, Available at \url{https://github.com/fplll/fplll}
 
 
 \end{thebibliography}
@@ -514,26 +515,29 @@ The purpose of this program is to simulate the performance of different space--t
 
 \subsection{System requirements}
 \label{sec:req}
-Regarding the hardware as the rule of the thumb, the better the performance your computer has the faster the simulations, although nearly all modern computers with a keyboard and a monitor should suffice for small simulations. The program makes use of parallel CPU cores so one does not need to worry too much about single thread performance of the CPU. The program should not be too memory consuming except in some special use cases so no excessive amount of RAM is needed for fast simulations. 
-\par One can optionally make use of the computing power of the GPU which could potentially speed up large matrix operations that the linear algebra library Armadillo does. This requires CUDA toolkit and NVBLAS, see details here: \url{http://docs.nvidia.com/cuda/nvblas/index.html}.
+%Regarding the hardware as the rule of the thumb, the better the performance your computer has the faster the simulations, although nearly all modern computers with a keyboard and a monitor should suffice for small simulations. The program makes use of parallel CPU cores so one does not need to worry too much about single thread performance of the CPU. The program should not be too memory consuming except in some special use cases so no excessive amount of RAM is needed for fast simulations. 
+The program runs optimally on Linux and Mac OS and can make use of multiple CPU cores for parallel computing of the simulations. Windows is not recommended due to the limitations posed by the Armadillo library \cite{arma}. The hardware requirements for running small scale simulations are relatively low, any modern laptop should do.
+\par One can optionally make use of the computing power of the GPU, which could potentially speed up large matrix operations that the linear algebra library Armadillo does. This requires CUDA toolkit and NVBLAS, see details here: \url{http://docs.nvidia.com/cuda/nvblas/index.html}. Keep in mind that this feature is somewhat experimental, so if you encounter any problems you can always recompile the program without this feature.
 \par Before trying to install and run the program itself, you need to make sure you have GNU Make and a compatible C++ compiler installed. The recommended GNU C++ compiler (g++) and GNU Make should be preinstalled in most Linux distributions but in case they are not, try installing the \textit{build-essentials} package from the package manager. In Ubuntu you can do this by typing in terminal:
 \begin{verbatim}
 $ sudo apt-get install build-essential
 \end{verbatim}
-If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGCC} and \url{https://www.gnu.org/software/make/}. \par The next thing is to gather the required library packages:
+If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGCC} and \url{https://www.gnu.org/software/make/}. 
+\par The next thing is to gather the required library packages:
 \begin{enumerate}
 \item OpenBLAS library: \url{https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide}
 \item LAPACK -- Linear Algebra PACKage: \url{http://www.netlib.org/lapack}
 \item ARPACK library: \url{http://www.caam.rice.edu/software/ARPACK}
 \item Armadillo C++ Linear algebra library: \url{http://arma.sourceforge.net/download.html} 
 \item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
-\item MPFR 2.3.0 or higher (optional, for LLL reduction only) \url{http://www.mpfr.org/}
-\item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}.
+%\item MPFR 2.3.0 or higher (optional, for LLL reduction only) \url{http://www.mpfr.org/}
+%\item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}.
 \end{enumerate}
 % (libarmadillo-dev)
-Please note that the fplll library used for LLL reduction seems to only support reduction of integer matrices, which is not very reasonable assumption for communications applications like this, so \textbf{it is recommended for most users not to bother with the LLL reduction related functionality and simply leave it out (ie. not install packages 6 ja 7).} 
-\par You can follow the links in the packege list for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of installing them is by opening a terminal (in Linux CTRL+ALT+T) and using a package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link in the package list. 
-\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}, \textit{libmpfr-dev} and \textit{libgmp-dev}. Note that there might be some version number before the first dash in those names. The Boost, MPFR and GMP libraries can safely be omitted for compatibility reasons. If all the install processes succeed you are now all set up to install the program itself.
+%Please note that the fplll library used for LLL reduction seems to only support reduction of integer matrices, which is not very reasonable assumption for communications applications like this, so \textbf{it is recommended for most users not to bother with the LLL reduction related functionality and simply leave it out (ie. not install packages 6 ja 7).} 
+You can follow the links in the packege list for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of installing them is by opening a terminal (in Linux CTRL+ALT+T) and using a package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link in the package list. 
+\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}. %, \textit{libmpfr-dev} and \textit{libgmp-dev}. 
+Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compatibility reasons. If all the install processes succeed you are now all set up to install the program itself.
 
 \subsection{Installing the program}
 
@@ -550,27 +554,27 @@ $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \begin{verbatim}
 $ ll
 \end{verbatim}
-Check if the contents of that folder look similar to those of the Gitlab repository. If everything looks all right, you're using Linux and want to do the plain installation (without plotting or LLL reduction), just type the following in terminal
+Check if the contents of that folder look similar to those of the Gitlab repository. If everything looks all right, you're using Linux and want to do the plain installation (without plotting or GPU support), just type the following in terminal
 \begin{verbatim}
 $ make
 \end{verbatim}
 to compile the program. For other operating systems you likely need to modify the Makefile located in the /src/ directory. For convenience there is also a file called \textit{Makefile.mac} in /src/ directory. Replacing the default Makefile with that (by removing the file extension) should work for most MAC users. 
-\par There are a couple of options how to compile the program if you did manage to install the required libraries. If you installed everything listed above and want to do the full installation, then type this instead
+\par There are a couple of options how to compile the program if you did manage to install the required libraries. If you installed everything listed above and want to do the full installation, then type this instead.
 \begin{verbatim}
-$ make with=plotting+lll+gpu
+$ make with=plotting+gpu
 \end{verbatim}
-You can choose any combination of those three options, for example
+You can choose also choose just one of those options, for example
 \begin{verbatim}
-$ make with=gpu+plotting
+$ make with=plotting
 \end{verbatim} 
 but keep in mind the requirements for them:
 \begin{enumerate}
 \item \textbf{plotting}: C++ Boost library
-\item \textbf{lll}: GMP, MPFR and you probably need to compile the fplll library \cite{fplll} in {/src/fplll} from source, see \url{https://github.com/fplll/fplll/#compilation} for help. Also remember to run the configure command like so
-\begin{verbatim}
-$ ./configure --prefix=$(pwd)/src/fplll/
-\end{verbatim} 
-so the library will be installed in the correct place. 
+%\item \textbf{lll}: GMP, MPFR and you probably need to compile the fplll library \cite{fplll} in {/src/fplll} from source, see \url{https://github.com/fplll/fplll/#compilation} for help. Also remember to run the configure command like so
+%\begin{verbatim}
+%$ ./configure --prefix=$(pwd)/src/fplll/
+%\end{verbatim} 
+%so the library will be installed in the correct place. 
 \item \textbf{gpu}: CUDA Toolkit and NVBLAS, see section \ref{sec:req}
 \end{enumerate}
 %If you didn't install the Boost C++ library you need to do the following in order to compile the program:
@@ -594,24 +598,71 @@ so the library will be installed in the correct place.
 \begin{verbatim}
 $ make run
 \end{verbatim}
-or by 
-\begin{verbatim}
-$ sh sphdec.sh
-\end{verbatim}
-if you're using the LLL reduction build.
-\par If there are no errors regarding missing libraries or such then you have just correctly installed the program! If there are such errors during the compilation or program runtime, go back to previous section and double check that you have installed the correct libraries. 
+%or by 
+%\begin{verbatim}
+%$ sh sphdec.sh
+%\end{verbatim}
+%if you're using the LLL reduction build.
+If there are no errors regarding missing libraries or such then you have just correctly installed the program! If there are such errors during the compilation or program runtime, go back to previous section and double check that you have installed the correct libraries. 
 
 \subsection{Setup and Input}
 
 Now that the program runs it is time to take a look at the simulation parameters and the program input to make reasonable simulations. In the /bases/ folder one can save text files containing the lattice code basis matrices for the simulation which the program takes as input. The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
 \par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The contents of the file are displayed in figure \ref{fig:settings}. After '//' begins a comment sequence which is ignored by the program when reading the settings file. Make sure not to remove any of the 15 option lines or the program will give you an error. In case you end up messing up the settings file in some way, easy way to reset it is to just delete it and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}.
 
+%\begin{figure}[htb]
+%\begin{center}
+  %\includegraphics[width=\linewidth]{settings}
+  %\caption{The default settings file for the sphere decoder program.}
+  %\label{fig:settings}
+%\end{center}
+%\end{figure}
+
 \begin{figure}[htb]
-\begin{center}
-  \includegraphics[width=\linewidth]{settings}
-  \caption{The default settings file for the sphere decoder program.}
-  \label{fig:settings}
-\end{center}
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=alamouti.txt
+output_file=
+coset_file=
+error_file= 
+channel_model=mimo            
+x-PAM=4                         
+energy_estimation_samples=-1   
+no_of_matrices=4                
+matrix_coefficient=1.0         
+time_slots=2                    
+no_of_transmit_antennas=2      
+no_of_receiver_antennas=2    
+snr_min=-6                      
+snr_max=20                    
+snr_step=2                    
+simulation_rounds=10000       
+required_errors=-1              
+plot_results=0    
+stat_display_interval=-1        
+spherical_shaping_max_power=-1
+codebook_size_exponent=-1     
+radius_search_density=100
+\end{Verbatim}
+\caption{The default settings file (settings.ini) for the sphere decoder program.}
+\label{fig:settings}
+\end{figure}
+
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single]
+{{1, 0},
+{0, 1}}
+
+{{0, -1},
+{1, 0}}
+
+{{0+I, 0},
+{0, 0-I}}
+
+{{0, 0+I},
+{0+I, 0}}
+\end{Verbatim}
+\caption{An example basis matrix input file (alamouti.txt) for the Alamouti lattice code.}
+\label{fig:alamouti_basis}
 \end{figure}
 
 When editing the settings, only modify the right hand side of the equality sign. If you change the variable names, the program will work incorrectly. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program doesn't need to be recompiled for these changes to take effect, just run it again. 
@@ -627,12 +678,12 @@ or
 \begin{verbatim}
 $ ./sphdec [settings_file.ini*]
 \end{verbatim}
-or 
-\begin{verbatim}
-$ sh sphdec.sh [settings_file.ini*]
-\end{verbatim}
+%or 
+%\begin{verbatim}
+%$ sh sphdec.sh [settings_file.ini*]
+%\end{verbatim}
 
-\noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
+\noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. %The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
 \par Once the program has started it prints useful data related to the current actions it is taking to the terminal as well as in the log.txt file located in the /logs/ folder. Visiting the log.txt file can be useful for reviewing previous program behaviour in the future. In the log file each program runtime should be separated by an empty line.
 \par If the program gets stuck somewhere or takes too long to finish a large simulation, pressing CTRL+C in the terminal will terminate the execution of the program almost instantly. The program attempts to output the current simulation data even in this situation but it is not quaranteed to succeed so keep that in mind when doing that. For large simulations one needs to be patient as the simulation complexity grows exponentially with the lattice code dimension. It might be required to hit this key combination several times if the program does not terminate within five seconds or so.
 

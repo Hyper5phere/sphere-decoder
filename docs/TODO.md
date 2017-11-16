@@ -2,17 +2,18 @@
 
 ### Input files
 ##### Settings file examples (7 in total)
-- SISO Alamouti 8-PAM ✔
-- MIMO Alamouti 4-PAM
+- MIMO Alamouti 4-PAM ✔
 - MIMO MIDO ✔
 - SISO Golden code 8-PAM or 16-PAM
 - MIMO Golden code 8-PAM ✔
+- Krus_7
 
 ##### Input matrix examples
 - Alamouti ✔
 - Golden code ✔
 - MIDO ✔
 - Wiretap examples
+- Krus_7
 
 ### Third chapter
 - Finish mathematical background (how sphdec works)
@@ -31,11 +32,13 @@
 - simulates different SNRs by varying fading coefficients of the channel matrix
 
 ##### Simulation examples
-- Compare orthonormal golden code (SISO) to Z^8
+- ~~Compare orthonormal golden code (SISO) to Z^8~~
+- Compare [Krus_7](https://ecse.monash.edu/staff/eviterbo/rotations/rotations.html) to Z^7 (SISO)
 - run two simulations, plot and compare results
 - Graphs for MIMO and Wiretap (no comparison)
 - Wiretap: Bob's (base) lattice Z^4, index 16 (determinant of sublattice), integer entries.
-- describe lattices and channel model
+- Use the three existing wiretap plots..?
+- Describe lattices and channel model
 
 ### Conclusion
 - repeat yourself
@@ -48,9 +51,9 @@
 - facilitates threoretical simulations to evaluate new code constructions
 
 ### Program User Guide
-- leave LLL reduction documentation out (doesn't work properly)
-- include settings examples with basis matrix file embedded as TEXT
-- leave comments out of settings file and explain them in detail (refer to line numbers?)
+- leave LLL reduction documentation out (doesn't work properly) ✔
+- include settings examples with basis matrix file embedded as TEXT 
+- leave comments out of settings file and explain them in detail (refer to line numbers?) 
 - input examples: *Alamouti, SISO, Wiretap, Spherical shaping*
 
 
