@@ -607,8 +607,26 @@ If there are no errors regarding missing libraries or such then you have just co
 
 \subsection{Setup and Input}
 
-Now that the program is installed it is time to take a look at the simulation parameters and the program input in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. You can add your own basis matrix text files there by following a spesific format, which is later discussed in detail with examples. You can use the example basis matrix files provided with the program as a reference.
+Now that the program is installed it is time to take a look at the simulation parameters and the program input files in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. Note that the program supports complex matrices as input, which are the preferred way of inputting your basis matrices. You can (and should) add your own basis matrix text files there. The program should not be too picky about the input format but do make sure you have something other than white spaces separating the matrix entries. The most tested input format is the \href{http://reference.wolfram.com/language/tutorial/LinearAlgebraMatrixTypes.html#1527024338}{Wolfram Mathematica complex matrix format}, which should work in all cases. This format is also used in most of the example basis matrix files provided with the program, which you can use as a reference, like the one in figure \ref{fig:alamouti_basis}.
 %The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single]
+{{1, 0},
+{0, 1}}
+
+{{0, -1},
+{1, 0}}
+
+{{0+I, 0},
+{0, 0-I}}
+
+{{0, 0+I},
+{0+I, 0}}
+\end{Verbatim}
+\caption{An example basis matrix input file (alamouti.txt) for the Alamouti lattice code. It contains four 2x2 complex matrices, which form the base of the lattice code.}
+\label{fig:alamouti_basis}
+\end{figure}
+
 \par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The key contents of the file are displayed in figure \ref{fig:settings}. There are usually also comments in those settings files that start after the character sequence '//' and end in the line end but these are left out of the figures for clarity reasons. The comments are of course ignored by the program and only hold meaning for the user. Make sure not to remove any of the 22 options or the program will complain you about missing options. If you want to disable an option, it is done by either leaving the option value empty (string options) or setting it to -1 (number options) as seen in the figure \ref{fig:settings}. In case you end up messing up the settings file in some way, easy way to reset it is to just delete the file and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}. 
 
 %\begin{figure}[htb]
@@ -646,24 +664,6 @@ radius_search_density=100
 \end{Verbatim}
 \caption{The default settings file (settings.ini) for the sphere decoder program.}
 \label{fig:settings}
-\end{figure}
-
-\begin{figure}[htb]
-\begin{Verbatim}[frame=single]
-{{1, 0},
-{0, 1}}
-
-{{0, -1},
-{1, 0}}
-
-{{0+I, 0},
-{0, 0-I}}
-
-{{0, 0+I},
-{0+I, 0}}
-\end{Verbatim}
-\caption{An example basis matrix input file (alamouti.txt) for the Alamouti lattice code.}
-\label{fig:alamouti_basis}
 \end{figure}
 
 When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. 
