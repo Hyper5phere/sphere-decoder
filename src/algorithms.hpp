@@ -39,7 +39,7 @@ void process_qr(arma::mat &Q, arma::mat &R);
 arma::cx_mat create_generator_matrix(const std::vector<arma::cx_mat> &bases);
 // arma::mat create_real_generator_matrix(const std::vector<arma::cx_mat> &bases);
 std::vector<arma::cx_mat> generator_to_bases(const arma::cx_mat &G);
-arma::vec to_real_vector(const arma::cx_mat &A, bool row_wise = true);
+arma::vec to_real_vector(const arma::cx_mat &A, bool row_wise = false);
 arma::mat to_real_matrix(const arma::cx_mat &A);
 arma::cx_mat to_complex_matrix(const arma::mat &A);
 arma::cx_mat create_random_matrix(int n, int m, double mean, double variance);

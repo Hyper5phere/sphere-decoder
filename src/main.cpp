@@ -144,11 +144,14 @@ int main(int argc, char** argv)
     /* flag that spesifies if we're doing the so called 'wiretap' simulation 
        i.e. all codewords that belong to the same coset have the same meaning 
        for this simulation we need another lattice, which is a sublattice of the previous one */
-    bool coset_encoding = false;
+    bool coset_encoding = (filenames.count("cosets") != 0); /* If the user has spesified a coset basis file, assume 'wiretap' simulation */
+	bool siso_channel = (channel_model.compare("siso") == 0); /* flag that is true when SISO channel model is used */
+	
+	if (!siso_channel && channel_model.compare("mimo") != 0){
+        log_msg("Invalid channel model parameter used!", "Error");
+        exit(1);
+    }
 
-    /* If the user has spesified a coset basis file, assume 'wiretap' simulation */
-    if (filenames.count("cosets") != 0)
-        coset_encoding = true;
 
     /* Conditionally read the coset basis matrices from a different basis file */
     if (coset_encoding)
@@ -408,7 +411,7 @@ int main(int argc, char** argv)
 
             Hvar = pow(10.0, snr/10.0)*(t/e.first); /* calculate channel matrix variance from SNR */
             /* for the SISO channel model the variance has to be bigger since there are so many entries in H fixed to zero */
-            if (channel_model.compare("siso") == 0) Hvar *= 2*n; /* scale variance by factor 2n */
+            if (siso_channel) Hvar *= 2*n; /* scale variance by factor 2n */
             /* (noise variance is constant one) */
 
             /* Single SNR simulation loop: 
@@ -430,19 +433,15 @@ int main(int argc, char** argv)
                     }
                 }
 
-
                 orig = codeword.first;  /* coefficients from the signal set (i.e. data vector) */
                 X = codeword.second;    /* Code block we want to send */
 
                 /* Generate random channel matrix according to channel mode */
-                if (channel_model.compare("mimo") == 0)
+                if (!siso_channel)
                     H = create_random_matrix(n, m, 0, Hvar);
-                else if (channel_model.compare("siso") == 0)
+                else
                     H = create_random_diag_matrix(t, 0, Hvar);
-                else {
-                    log_msg("Invalid channel model parameter used!", "Error");
-                    exit(1);
-                }
+                
 
                 N = create_random_matrix(n, t, 0, Nvar); /* Additive complex Gaussian white noise matrix */
 

@@ -260,7 +260,7 @@ vector<int> sphdec_wrapper(const vector<cx_mat> &bases, const mat Rorig, const c
 
     for (int i = 0; i < k; i++)
         B.col(i) = to_real_vector(H*bases[i]); /* B = (HX1 HX2 ... HXk) = generator matrix of faded lattice */
-    
+
     qr_econ(Q, R, B);                          /* QR-decomposition of B (omits zero rows in R) */
     process_qr(Q, R);                          /* Make sure R has positive diagonal elements */
 
