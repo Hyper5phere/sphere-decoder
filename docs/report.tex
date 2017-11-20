@@ -63,16 +63,17 @@
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
 \usepackage{tikz}
-\usetikzlibrary{shapes,arrows}
+\usetikzlibrary{shapes,arrows,positioning}
 
 % Define block styles for tikz flow charts
-\tikzstyle{decision} = [diamond, draw, fill=blue!20, 
-    text width=4.5em, text badly centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{decision} = [diamond, draw, fill=yellow!20, 
+    text width=4.5em, text centered, node distance=3cm, inner sep=0pt]
 \tikzstyle{block} = [rectangle, draw, fill=blue!20, 
-    text width=5em, text centered, rounded corners, minimum height=4em]
+    minimum width=5em, text centered, minimum height=4em]
 \tikzstyle{line} = [draw, -latex']
 \tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
     minimum height=2em]
+\tikzstyle{every node}=[font=\small]
 
 %% Use this if you write hard core mathematics, these are usually needed
 \usepackage{amsfonts,amssymb,amsbsy,amsmath}
@@ -459,28 +460,46 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \subsection{Program implementation}
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}[node distance = 2cm, auto]
+\begin{tikzpicture}[node distance = 5em, auto]
     % Place nodes
-    \node [block] (main) {main()};
-    \node [block, below of=main] (init) {configure()};
-    \node [cloud, left of=init] (expert) {input};
-    \node [cloud, right of=init] (system) {system};
-    \node [block, below of=init] (identify) {identify candidate models};
-    \node [block, below of=identify] (evaluate) {evaluate candidate models};
-    \node [block, left of=evaluate, node distance=3cm] (update) {update model};
-    \node [decision, below of=evaluate] (decide) {is best candidate better?};
-    \node [block, below of=decide, node distance=3cm] (stop) {stop};
+    \node [block, align=center] (main) {program start\\ and setup};
+    \node [block, left of=main, align=center, node distance=9em] (choose) {Choose channel\\ model and data\\ encoding method};
+    \node [decision, below of=main] (estimate) {Estimate squared radius?};
+    \node [decision, left of=estimate, node distance=9em] (spherical) {Use spherical shaping?};
+    \node [block, right of=estimate, node distance=9.5em,align=center] (radius) {Find $r^2$ s.t.\\ size of spherical\\ codebook is within\\ range $\left[2^s, 2^{s+1}\right]$};
+    \node [block, below of=estimate, node distance=7em] (codebook) {create codebook};
+    \node [block, left of=codebook, node distance=9em, align=center] (code-energy) {calculate\\ code energy};
+    \node [block, below of=code-energy,align=center, node distance=6em] (siminfo) {print\\ simulation info};
+    \node [decision, right of=siminfo, node distance=9em] (continue) {Continue to simulation?};
+    \node [cloud, right of=continue, align=center, node distance=9em] (exit) {exit\\ program};
+    %\node [block, below of=main] (init) {configure()};
+    %\node [cloud, left of=init] (expert) {input};
+    %\node [cloud, right of=init] (system) {system};
+    %%\node [block, below of=init] (identify) {identify candidate models};
+    %\node [block, below of=identify] (evaluate) {evaluate candidate models};
+    %\node [block, left of=evaluate, node distance=3cm] (update) {update model};
+   % \node [decision, below of=evaluate] (decide) {is best candidate better?};
+    %\node [block, below of=decide, node distance=3cm] (stop) {stop};
     % Draw edges
-    \path [line] (main) -- (init);
-    \path [line] (init) -- (identify);
-    \path [line] (identify) -- (evaluate);
-    \path [line] (evaluate) -- (decide);
-    \path [line] (decide) -| node [near start] {yes} (update);
-    \path [line] (update) |- (identify);
-    \path [line] (decide) -- node {no}(stop);
-    \path [line,dashed] (expert) -- (init);
-    \path [line,dashed] (system) -- (init);
-    \path [line,dashed] (system) |- (evaluate);
+    \path [line] (main) -- (choose);
+    \path [line] (choose) -- (spherical);
+    \path [line] (spherical) -- node {yes} (estimate);
+    \path [line] (spherical) -- node {no} (codebook);
+    \path [line] (estimate) -- node {yes} (radius);
+    \path [line] (estimate) -- node {no} (codebook);
+    \path [line] (radius) -- (codebook);
+    \path [line] (codebook) -- (code-energy);
+    \path [line] (code-energy) -- (siminfo);
+    \path [line] (siminfo) -- (continue);
+    \path [line] (continue) -- node {no} (exit);
+    %\path [line] (identify) -- (evaluate);
+    %\path [line] (evaluate) -- (decide);
+    %\path [line] (decide) -| node [near start] {yes} (update);
+    %\path [line] (update) |- (identify);
+    %\path [line] (decide) -- node {no}(stop);
+    %\path [line,dashed] (expert) -- (init);
+    %\path [line,dashed] (system) -- (init);
+    %\path [line,dashed] (system) |- (evaluate);
 \end{tikzpicture}
 \caption{The program flow chart.}
 \label{fig:flowchart}
