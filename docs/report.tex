@@ -462,25 +462,29 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \centering
 \begin{tikzpicture}[node distance = 5em, auto]
     % Place nodes
-    \node [block, align=center] (main) {program start\\ and setup};
-    \node [block, left of=main, align=center, node distance=9em] (choose) {Choose channel\\ model and data\\ encoding method};
+    \node [cloud, align=center] (main) {Program start\\ and setup};
+    \node [draw,trapezium,trapezium left angle=70,trapezium right angle=-70,minimum height=2em, fill=magenta!20, right of=main, node distance=12.5em,align=center] (input) {\textbf{Input:} settings\\ and basis matrices\\(Optional: sublattice basis\\ matrices and error limits)};
+    \node [block, left of=main, align=center, node distance=9.5em] (choose) {Choose channel\\ model and data\\ encoding method};
     \node [decision, below of=main] (estimate) {Estimate squared radius?};
-    \node [decision, left of=estimate, node distance=9em] (spherical) {Use spherical shaping?};
-    \node [block, right of=estimate, node distance=9.5em,align=center] (radius) {Find $r^2$ s.t.\\ size of spherical\\ codebook is within\\ range $\left[2^s, 2^{s+1}\right]$};
-    \node [block, below of=estimate, node distance=7em] (codebook) {create codebook};
-    \node [block, left of=codebook, node distance=9em, align=center] (code-energy) {calculate\\ code energy};
-    \node [block, below of=code-energy,align=center, node distance=6em] (siminfo) {print\\ simulation info};
+    \node [decision, left of=estimate, node distance=9.5em] (spherical) {Use spherical shaping?};
+    \node [block, right of=estimate, node distance=9.5em,align=center] (radius) {Find $r^2$ so that\\ size of spherical\\ codebook is within\\ range $\left[2^s, 2^{s+1}\right]$};
+    \node [block, below of=estimate, node distance=7em] (codebook) {Create codebook};
+    \node [block, left of=codebook, node distance=9em, align=center] (code-energy) {Calculate\\ code energy};
+    \node [block, below of=code-energy,align=center, node distance=6em] (siminfo) {Print\\ simulation info};
     \node [decision, right of=siminfo, node distance=9em] (continue) {Continue to simulation?};
-    \node [cloud, right of=continue, align=center, node distance=9em] (exit) {exit\\ program};
-    %\node [block, below of=main] (init) {configure()};
-    %\node [cloud, left of=init] (expert) {input};
-    %\node [cloud, right of=init] (system) {system};
-    %%\node [block, below of=init] (identify) {identify candidate models};
-    %\node [block, below of=identify] (evaluate) {evaluate candidate models};
-    %\node [block, left of=evaluate, node distance=3cm] (update) {update model};
-   % \node [decision, below of=evaluate] (decide) {is best candidate better?};
-    %\node [block, below of=decide, node distance=3cm] (stop) {stop};
+    \node [cloud, right of=continue, align=center, node distance=9em] (exit) {Exit\\ program};
+    \node [block, below of=continue, node distance=7em, align=center] (startsim) {Start parallel\\ SNR simulations\\ $\rightarrow$ for each SNR do};
+    \node [block, left of=startsim, node distance=10em, align=center] (Hvar) {Calculate channel\\ matrix variance $\tau^2$\\ from SNR};
+    \node [decision, below of=Hvar, node distance=7em] (loop) {Enough errors and simulation rounds?}; 
+    \node [block, right of=loop, node distance=11em, align=center] (codeword) {Randomly choose\\ codeword $\mathbf{X}$\\ from codebook};
+    \node [block, right of=startsim, node distance=10em, align=center] (channel) {Calculate channel\\ matrix $\mathbf{H}$ from $\tau^2$\\ according to channel\\ model};
+    \node [block, right of=codeword, node distance=10em, align=center] (simulate) {Simulate received\\ codeword $\mathbf{Y} = \mathbf{HX} + \mathbf{N}$,\\ where $\mathbf{N}$ is a\\ random noise matrix};
+    \node [block, below of=simulate, node distance=6.8em, align=center] (sphdec) {Use sphere decoder to $\mathbf{Y}$\\ and compare the result with $\mathbf{X}$ \\ according to data encoding method\\ $\rightarrow$ count decoding errors};
+    \node [block, below right of=loop, node distance=9em, align=center] (end) {Save simulation\\ results and wait for\\ other simulations to finish};
+    \node [cloud, below right of=end, node distance=7.5em, align=center] (finish) {Output all simulation\\ results (csv) and exit program};
+    
     % Draw edges
+    \path [line] (input) -- (main);
     \path [line] (main) -- (choose);
     \path [line] (choose) -- (spherical);
     \path [line] (spherical) -- node {yes} (estimate);
@@ -492,14 +496,17 @@ Considering only this option in each dimension yields the Babai nearest plane al
     \path [line] (code-energy) -- (siminfo);
     \path [line] (siminfo) -- (continue);
     \path [line] (continue) -- node {no} (exit);
-    %\path [line] (identify) -- (evaluate);
-    %\path [line] (evaluate) -- (decide);
-    %\path [line] (decide) -| node [near start] {yes} (update);
-    %\path [line] (update) |- (identify);
-    %\path [line] (decide) -- node {no}(stop);
-    %\path [line,dashed] (expert) -- (init);
-    %\path [line,dashed] (system) -- (init);
-    %\path [line,dashed] (system) |- (evaluate);
+    \path [line] (continue) -- node {yes} (startsim);
+    \path [line] (startsim) -- (Hvar);
+    \path [line] (Hvar) -- (loop);
+    \path [line] (loop) -- node {yes} (end);
+    \path [line] (loop) -- node {no} (codeword);
+    \path [line] (codeword) -- (channel);
+    \path [line] (channel) -- (simulate);
+    \path [line] (simulate) -- (sphdec);
+    \path [line] (sphdec) -- (loop);
+    \path [line] (end) -- (finish);
+
 \end{tikzpicture}
 \caption{The program flow chart.}
 \label{fig:flowchart}
