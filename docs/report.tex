@@ -63,7 +63,7 @@
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
 \usepackage{tikz}
-\usetikzlibrary{shapes,arrows,positioning}
+\usetikzlibrary{shapes,arrows,positioning,fit}
 
 % Define block styles for tikz flow charts
 \tikzstyle{decision} = [diamond, draw, fill=yellow!20, 
@@ -74,6 +74,7 @@
 \tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
     minimum height=2em]
 \tikzstyle{every node}=[font=\small]
+\tikzstyle{frame} = [line width=3pt, draw=cyan!80,dashed,inner sep=0.5em,minimum width=15cm,minimum height=6cm]
 
 %% Use this if you write hard core mathematics, these are usually needed
 \usepackage{amsfonts,amssymb,amsbsy,amsmath}
@@ -453,6 +454,18 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \subsection{Sphere decoder implementation}
 
 %The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[node distance = 5em, auto]
+	% Place nodes
+	\node [cloud, align=center] (start) {Algorithm start};
+	\node [frame,fit=(start)] (cyan) {};
+	\node [anchor=south west, font=\large\color{cyan}, xshift=0.5em, yshift=0.5em] at (cyan.south west){Preprocess sphere decoder input};
+	% Draw edges
+\end{tikzpicture}
+\caption{The sphere decoder algorithm flowchart.}
+\label{fig:sphdec}
+\end{figure}
 
 \clearpage
 
@@ -467,36 +480,42 @@ Considering only this option in each dimension yields the Babai nearest plane al
     \node [block, left of=main, align=center, node distance=9.5em] (choose) {Choose channel\\ model and data\\ encoding method};
     \node [decision, below of=main] (estimate) {Estimate squared radius?};
     \node [decision, left of=estimate, node distance=9.5em] (spherical) {Use spherical shaping?};
-    \node [block, right of=estimate, node distance=9.5em,align=center] (radius) {Find $r^2$ so that\\ size of spherical\\ codebook is within\\ range $\left[2^s, 2^{s+1}\right]$};
+    \node [block, right of=estimate, node distance=10.5em,align=center] (radius) {Find $r^2$ so that\\ size of spherical\\ codebook is within\\ range $\left[2^s, 2^{s+1}\right]$};
     \node [block, below of=estimate, node distance=7em] (codebook) {Create codebook};
+    \node [block, right of=codebook, node distance=9.5em,align=center] (readradius) {Read the user\\ defined $r^2$ from\\ the settings file};
     \node [block, left of=codebook, node distance=9em, align=center] (code-energy) {Calculate\\ code energy};
     \node [block, below of=code-energy,align=center, node distance=6em] (siminfo) {Print\\ simulation info};
-    \node [decision, right of=siminfo, node distance=9em] (continue) {Continue to simulation?};
+    \node [decision, right of=siminfo, node distance=9em] (continue) {Continue to simulations?};
     \node [cloud, right of=continue, align=center, node distance=9em] (exit) {Exit\\ program};
-    \node [block, below of=continue, node distance=7em, align=center] (startsim) {Start parallel\\ SNR simulations\\ $\rightarrow$ for each SNR do};
+    \node [block, below of=continue, node distance=8em, align=center] (startsim) {Start SNR\\ simulation};
     \node [block, left of=startsim, node distance=10em, align=center] (Hvar) {Calculate channel\\ matrix variance $\tau^2$\\ from SNR};
     \node [decision, below of=Hvar, node distance=7em] (loop) {Enough errors and simulation rounds?}; 
     \node [block, right of=loop, node distance=11em, align=center] (codeword) {Randomly choose\\ codeword $\mathbf{X}$\\ from codebook};
-    \node [block, right of=startsim, node distance=10em, align=center] (channel) {Calculate channel\\ matrix $\mathbf{H}$ from $\tau^2$\\ according to channel\\ model};
+    \node [block, right of=startsim, node distance=11em, align=center] (channel) {Calculate channel\\ matrix $\mathbf{H}$ from $\tau^2$\\ according to channel\\ model};
     \node [block, right of=codeword, node distance=10em, align=center] (simulate) {Simulate received\\ codeword $\mathbf{Y} = \mathbf{HX} + \mathbf{N}$,\\ where $\mathbf{N}$ is a\\ random noise matrix};
     \node [block, below of=simulate, node distance=6.8em, align=center] (sphdec) {Use sphere decoder to $\mathbf{Y}$\\ and compare the result with $\mathbf{X}$ \\ according to data encoding method\\ $\rightarrow$ count decoding errors};
-    \node [block, below right of=loop, node distance=9em, align=center] (end) {Save simulation\\ results and wait for\\ other simulations to finish};
-    \node [cloud, below right of=end, node distance=7.5em, align=center] (finish) {Output all simulation\\ results (csv) and exit program};
+    \node [block, below right of=loop, node distance=9em, align=center] (end) {End simulation,\\ save results and wait for\\ other simulations to finish};
+    \node [cloud, below right of=end, node distance=8em, align=center] (finish) {Output all simulation\\ results and exit program};
+    
+    % simulation frame
+    \node [frame,fit=(startsim)(Hvar)(loop)(codeword)(channel)(simulate)(sphdec)(end)] (cyan) {};
+	\node [anchor=north west, font=\color{cyan}\bf, xshift=-0.4em, yshift=1.5em] at (cyan.north west){For each SNR parallel do};
     
     % Draw edges
     \path [line] (input) -- (main);
     \path [line] (main) -- (choose);
     \path [line] (choose) -- (spherical);
     \path [line] (spherical) -- node {yes} (estimate);
-    \path [line] (spherical) -- node {no} (codebook);
+    \path [line] (spherical) -- node [near start] {no} (codebook);
     \path [line] (estimate) -- node {yes} (radius);
-    \path [line] (estimate) -- node {no} (codebook);
+    \path [line] (estimate) -- node [near start] {no} (readradius);
     \path [line] (radius) -- (codebook);
+    \path [line] (readradius) -- (codebook);
     \path [line] (codebook) -- (code-energy);
     \path [line] (code-energy) -- (siminfo);
     \path [line] (siminfo) -- (continue);
     \path [line] (continue) -- node {no} (exit);
-    \path [line] (continue) -- node {yes} (startsim);
+    \path [line] (continue) -- node [near start] {yes} (startsim);
     \path [line] (startsim) -- (Hvar);
     \path [line] (Hvar) -- (loop);
     \path [line] (loop) -- node {yes} (end);
@@ -508,8 +527,8 @@ Considering only this option in each dimension yields the Babai nearest plane al
     \path [line] (end) -- (finish);
 
 \end{tikzpicture}
-\caption{The program flow chart.}
-\label{fig:flowchart}
+\caption{The program flowchart.}
+\label{fig:program}
 \end{figure}
 
 \subsection{Simulation examples}
