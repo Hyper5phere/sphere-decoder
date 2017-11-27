@@ -75,6 +75,7 @@
     minimum height=2em]
 \tikzstyle{every node}=[font=\small]
 \tikzstyle{frame} = [line width=3pt, draw=cyan!80,dashed,inner sep=0.5em,minimum width=15cm,minimum height=6cm]
+\tikzstyle{trapez} = [draw, trapezium, trapezium left angle=70, trapezium right angle=-70, minimum height=2em, fill=magenta!20]
 
 %% Use this if you write hard core mathematics, these are usually needed
 \usepackage{amsfonts,amssymb,amsbsy,amsmath}
@@ -452,6 +453,7 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
 \subsection{Sphere decoder implementation}
+The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy which accounts for a finite signal set boundaries with some minor optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherical shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
 
 %The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 \begin{figure}[ht]
@@ -459,7 +461,9 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \begin{tikzpicture}[node distance = 5em, auto]
 	% Place nodes
 	\node [cloud, align=center] (start) {Algorithm start};
-	\node [frame,fit=(start)] (cyan) {};
+	\node [trapez, align=center, above of=start] (input) {\textbf{Input:} $\mathbf{B}_i, \textbf{R}_{orig}, \textbf{H}, \textbf{X}, \textbf{N}, Q, C_0$};
+	\node [block, align=center, below of=start] (qr) {QR-decomposition of $\mathbf{B}$};
+	\node [frame,fit=(start)(qr)] (cyan) {};
 	\node [anchor=south west, font=\large\color{cyan}, xshift=0.5em, yshift=0.5em] at (cyan.south west){Preprocess sphere decoder input};
 	% Draw edges
 \end{tikzpicture}
@@ -476,7 +480,8 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \begin{tikzpicture}[node distance = 5em, auto]
     % Place nodes
     \node [cloud, align=center] (main) {Program start\\ and setup};
-    \node [draw,trapezium,trapezium left angle=70,trapezium right angle=-70,minimum height=2em, fill=magenta!20, right of=main, node distance=12.5em,align=center] (input) {\textbf{Input:} settings\\ and basis matrices\\(Optional: sublattice basis\\ matrices and error limits)};
+    %\node [draw,trapezium,trapezium left angle=70,trapezium right angle=-70,minimum height=2em, fill=magenta!20, right of=main, node distance=12.5em,align=center] (input) {\textbf{Input:} settings\\ and basis matrices\\(Optional: sublattice basis\\ matrices and error limits)};
+    \node [trapez, right of=main, node distance=12.5em, align=center] (input) {\textbf{Input:} settings\\ and basis matrices\\(Optional: sublattice basis\\ matrices and error limits)};
     \node [block, left of=main, align=center, node distance=9.5em] (choose) {Choose channel\\ model and data\\ encoding method};
     \node [decision, below of=main] (estimate) {Estimate squared radius?};
     \node [decision, left of=estimate, node distance=9.5em] (spherical) {Use spherical shaping?};
