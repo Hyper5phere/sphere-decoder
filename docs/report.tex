@@ -460,12 +460,20 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 \centering
 \begin{tikzpicture}[node distance = 5em, auto]
 	% Place nodes
-	\node [cloud, align=center] (start) {Algorithm start};
-	\node [trapez, align=center, above of=start] (input) {\textbf{Input:} $\mathbf{B}_i, \textbf{R}_{orig}, \textbf{H}, \textbf{X}, \textbf{N}, Q, C_0$};
-	\node [block, align=center, below of=start] (qr) {QR-decomposition of $\mathbf{B}$};
-	\node [frame,fit=(start)(qr)] (cyan) {};
-	\node [anchor=south west, font=\large\color{cyan}, xshift=0.5em, yshift=0.5em] at (cyan.south west){Preprocess sphere decoder input};
+	\node [trapez, align=center] (input) {\textbf{Input:} $\mathbf{B}_i, \textbf{R}_{orig}, \textbf{H}, \textbf{X}, \textbf{N}, Q, C_0$};
+	\node [block, align=center, below of=input] (start) {Convert $n\times t$ complex matrix $\mathbf{Y}$\\ into real vector $\textbf{y}$ of length $2\times n\times t$};
+	\node [block, align=center, below of=start] (gen) {Calculate the real generator \\ matrix $\textbf{B}$ of the faded lattice \\ $\mathbf{B} = \left(\text{vec}(\textbf{H}\textbf{B}_1) \,\text{vec}(\textbf{H}\textbf{B}_2) \ldots \text{vec}(\textbf{H}\textbf{B}_k)\right)$};
+	\node [block, align=center, below left of=gen, node distance=7em] (qr) {QR-decomposition of $\mathbf{B}$}; 
+	\node [block, align=center, right of=qr, node distance=10em] (mapy) {Map $\mathbf{y}$ to same \\ coordinates as $\textbf{R}$\\ $\Rightarrow \textbf{y} = \mathbf{Q}^T \textbf{y}$};
+	\node [frame,fit=(start)(qr)(gen)(mapy)] (cyan) {};
+	\node [anchor=south west, font=\color{cyan}\bf, xshift=0.1em, yshift=-0.2em] at (cyan.north west){Preprocess sphere decoder input};
+	\node [decision, below of=mapy, node distance=8em] (choose) {Use spherical shaping ($P > 0$)?};
 	% Draw edges
+    \path [line] (input) -- (start);
+    \path [line] (start) -- (gen);
+    \path [line] (gen) -- (qr);
+    \path [line] (qr) -- (mapy);
+    \path [line] (mapy) -- (choose);
 \end{tikzpicture}
 \caption{The sphere decoder algorithm flowchart.}
 \label{fig:sphdec}
