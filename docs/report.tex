@@ -244,7 +244,8 @@ SNR & Signal to noise ratio \\
 CVP & Closest vector problem \\
 MIMO & Multiple input multiple output \\
 PAM & Pulse amplitude modulation \\
-i.i.d. & independent and identically distributed
+i.i.d. & independent and identically distributed \\
+BLER & Block error rate \\
 \end{tabular}
 
 
@@ -341,7 +342,7 @@ The most relevant mathematical problem related to sphere decoding, a communicati
   \label{fig:voronoi}
 \end{figure}
 
-CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for a lattice codes sent via channel that induces fading. Such decoding process can be thought as a CVP and it's later explained in further detail.
+CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for a lattice codes sent via channel that induces fading. Such decoding process can be thought as a CVP. %and it's later explained in further detail.
 
 \subsection{Space--time lattice codes}
 
@@ -453,7 +454,7 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
 \subsection{Sphere decoder implementation}
-The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy which accounts for a finite signal set boundaries with some minor optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherical shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
+The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherical shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
 
 %The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 \begin{figure}[ht]
@@ -483,6 +484,10 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 
 \section{Lattice code simulations}
 \subsection{Program implementation}
+The program discussed in this paper is essentially a lattice code simulator implemented as a command line application which the aforementioned sphere decoder algorithm is also part of. In this section a rough outline of the implementation is presented, which is most concisely presented in figure \ref{fig:program}. With this insight one ought to create better simulations, especially when experimenting simulations outside the normal parameter range.
+\par What the program actually simulates is the block error rate (BLER) of the lattice code under different levels of signal-to-noise ratios (SNR). Block error occurs when the decoded codeword is not exactly the same as the one we sent and the program counts these. Then BLER is simply the number of block errors divided by the number of simulation runs. The program can run multiple simulations in parallel, all of which simulate one SNR level each. The SNR is used to calculate the variance of the Rayleigh channel matrix coefficients in figure \ref{fig:mimo}. The channel noise matrix variance was chosen to be fixed one during all simulations. Note that the channel model is not limited to MIMO like in figure \ref{fig:mimo} but can also be chosen to be SISO system which simulates one transmit and one receiver antenna.
+\par The program requires at least two input files: the settings file and a basis matrix file, both located in their dedicated folders. Depending on the type of simulation one can also spesify two additional input files for the sublattice basis matrices (for wiretap simulations) and simulation error limits (i.e. how many errors per SNR). To put it simply, the basis matrices are \textit{the lattice code} you want to test and the other two input files are just parameters for the simulation. 
+
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[node distance = 5em, auto]
