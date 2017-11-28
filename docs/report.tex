@@ -454,7 +454,7 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
 \subsection{Sphere decoder implementation}
-The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherical shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
+The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherical shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope sh=aped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
 
 %The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 \begin{figure}[ht]
@@ -469,16 +469,39 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 	\node [frame,fit=(start)(qr)(gen)(mapy)] (cyan) {};
 	\node [anchor=south west, font=\color{cyan}\bf, xshift=0.1em, yshift=-0.2em] at (cyan.north west){Preprocess sphere decoder input};
 	\node [decision, below of=mapy, node distance=8em] (choose) {Use spherical shaping ($P > 0$)?};
+	\node [block, align=center, below of=choose, node distance=9em] (alg_ii) {Algorithm II}; 
+	\node [block, align=center, left of=choose, node distance=10em] (alg_i) {Algorithm I}; 
+	\node [cloud, align=center, below of=alg_i, node distance=9em] (output) {\textbf{Output:} decoded \\ lattice point $\mathbf{\hat{x}}$}; 
 	% Draw edges
     \path [line] (input) -- (start);
     \path [line] (start) -- (gen);
     \path [line] (gen) -- (qr);
     \path [line] (qr) -- (mapy);
     \path [line] (mapy) -- (choose);
+    \path [line] (choose) -- node {no}(alg_i);
+    \path [line] (choose) -- node {yes}(alg_ii);
+    \path [line] (alg_i) -- (output); 
+    \path [line] (alg_ii) -- (output); 
 \end{tikzpicture}
 \caption{The sphere decoder algorithm flowchart.}
 \label{fig:sphdec}
 \end{figure}
+
+\subsection*{Algorithm I, (Input $C_0, \mathbf{y'}, \mathbf{R}$. Output $\mathbf{\hat{x}}$)}
+\textbf{Step 1.} (Initialization) Set $i:=k$ \\
+\textbf{Step 2.} \\
+\textbf{Step 3.} \\
+\textbf{Step 4.} \\
+\textbf{Step 5.} \\
+\textbf{Step 6.} \\
+
+\subsection*{Algorithm II, (Input $C_0, \mathbf{y'}, \mathbf{R}, \mathbf{R'}, P^2$. Output $\mathbf{\hat{x}}$)}
+\textbf{Step 1.} (Initialization) Set $i:=k$ \\
+\textbf{Step 2.} \\
+\textbf{Step 3.} \\
+\textbf{Step 4.} \\
+\textbf{Step 5.} \\
+\textbf{Step 6.} \\
 
 \clearpage
 
