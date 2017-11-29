@@ -156,7 +156,7 @@
 %%
 %\advisor{Prof.\ Pirjo Professori}
 \advisor{Prof.\ Marcus Greferath}
-\advisor{D.Sc.\ Oliver Gnilke}
+\advisor{Dr.\ Oliver W. Gnilke}
 %\advisor{M.Sc.\ Polli Pohjaaja}
 
 %% Aalto logo: syntax:
@@ -281,16 +281,16 @@ Wireless communication has been a crucial part of modern information technology 
 
 \section{Lattices in communications technology}
 
-Before we go into communications applications of lattices such as lattice codes, let us start off with the definition of a lattice. Let $n$ and $m$ be positive integers such that $n \leq m$ and $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ be linearly independent vectors. A subset $\Lambda$ of $\mathbb{R}^m$ is called a lattice of dimension $n$ if it is defined as
+Before we go into communications applications of lattices such as lattice codes, let us start off with the definition of a lattice. Let $n$ and $m$ be positive integers such that $n \leq m$ and $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ be linearly independent vectors. A discrete Abelian subgroup $\Lambda$ of $\mathbb{R}^m$ is called a \emph{lattice} of dimension $n$ if it is defined as
 
 \begin{equation}
-\Lambda = \sum_{i=1}^{n} \mathbb{Z}\mathbf{b}_i = \{a_1\mathbf{b}_1 + ...+a_n\mathbf{b}_n \mid a_i \in \mathbb{Z}, 1 \leq i \leq n\}\label{eq:lattice}
+\Lambda = \sum_{i=1}^{n} \mathbb{Z}\mathbf{b}_i = \{a_1\mathbf{b}_1 + \ldots + a_n\mathbf{b}_n \mid a_i \in \mathbb{Z}, 1 \leq i \leq n\}\label{eq:lattice}
 \end{equation}
 
-\noindent where the set of vectors $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ is called the basis of the lattice $\Lambda$. All points of the lattice can be obtained as a linear combination of the basis vectors $\mathbf{b}_i$ and integer coefficients $\mathbf{a}_i$ as stated in \eqref{eq:lattice}. The number of basis vectors $n$ is also called the rank of the lattice and if $n = m$ the lattice is said to have full rank. The points of the lattice $\Lambda$ form a group under addition which means that if $\mathbf{x} \in \Lambda$ then $-\mathbf{x} \in \Lambda$ and if $\mathbf{x}, \mathbf{y} \in \Lambda$ then $\mathbf{x} \pm \mathbf{y} \in \Lambda$. \cite{cassels}
+\noindent where the set of vectors $\mathbf{b}_1, \ldots, \mathbf{b}_n \in \mathbb{R}^m$ is called the basis of the lattice $\Lambda$. All points of the lattice can be obtained as a linear combination of the basis vectors $\mathbf{b}_i$ and integer coefficients $\mathbf{a}_i$ as stated in \eqref{eq:lattice}. The number of basis vectors $n$ is also called the rank of the lattice and if $n = m$ the lattice is said to have full rank. The points of the lattice $\Lambda$ form a group under addition which means that if $\mathbf{x} \in \Lambda$ then $-\mathbf{x} \in \Lambda$ and if $\mathbf{x}, \mathbf{y} \in \Lambda$ then $\mathbf{x} \pm \mathbf{y} \in \Lambda$. \cite{cassels}
 \par There is also a matrix representation for the same lattice
 \begin{equation}
-\Lambda = \{\mathbf{x}\mid\mathbf{x} = \mathbf{B}\mathbf{a} \} \label{eq:matrix}
+\Lambda = \{\mathbf{B}a \mid a \in {\mathbb Z}^n\} \label{eq:matrix}
 \end{equation}
 where $\mathbf{B} = [\mathbf{b}_1, ... , \mathbf{b}_n]$ is an $m \times n$ matrix called the generator matrix of the lattice $\Lambda$ and $\mathbf{a}$ is an $n$-dimensional integer column vector. Note that $\mathbf{B}$ is not uniquely determined by the lattice as in fact there exists infinitely many bases for the same lattice \cite{cassels}. Also the origin is part of every lattice regardless of the choice of $\mathbf{B}$. If $\mathbf{B}$ is a basis for lattice $\Lambda$ then $\mathbf{B}'$ is also a basis for the same lattice if the following holds
 \begin{align}
@@ -324,41 +324,43 @@ In other words we convert each column of $\mathbf{B}$ to real vector by separati
 
 \subsection{Closest vector problem}
 
-The most relevant mathematical problem related to sphere decoding, a communications application of interest in this paper, is the closest vector problem (CVP). Given a lattice $\Lambda \subset J$ and an input point $\mathbf{y} \in J$ the problem is to find a lattice point $\hat{\mathbf{x}} \in \Lambda$ that is closest to $\mathbf{y}$. More precisely $\hat{\mathbf{x}} \in \Lambda$ has to meet the following condition
+The most relevant mathematical problem related to sphere decoding, a communications application of interest in this paper, is the closest vector problem (CVP). Let $J$ be a general vector space. Given a lattice $\Lambda \subset J$ and an input point $\mathbf{y} \in J$ the problem is to find a lattice point $\hat{\mathbf{x}} \in \Lambda$ that is closest to $\mathbf{y}$. More precisely $\hat{\mathbf{x}} \in \Lambda$ has to meet the following condition
 
 \begin{equation}
 \|\mathbf{y}-\hat{\mathbf{x}}\| \leq \|\mathbf{y}-\mathbf{x}\|, \ \ \ \forall \mathbf{x} \in \Lambda.
 \label{eq:cvp}
 \end{equation}
 
-\noindent$J$ is the vector space, in which $\Lambda$ belongs in. In this thesis we mostly consider $J=\mathbb{C}^n$. 
-\par For a fixed point $\mathbf{x}' \in \Lambda$ the set of vectors $\mathbf{y}_i \in J$ that satisfy the inequality \eqref{eq:cvp} is called the Voronoi region $\mathcal{V}_{\mathbf{x}'} \subset J$ (see figure \ref{fig:voronoi}) of lattice point $\mathbf{x}'$ \cite{zamir}. This means that if $\mathbf{y} \in \mathcal{V}_{\mathbf{x}'}$ then the solution to CVP is $\mathbf{x}'$. An example of lattice's Voronoi cells is illustrated in figure \ref{fig:voronoi}. If $\mathbf{y} \in \partial\mathcal{V}_{\mathbf{x}'}$ the solution to CVP is a random choice between points whose Voronoi region contains that boundary. The volume of the $\mathcal{V}_{\mathbf{x}'}$, also know as the lattice constant as it is independent of the choice of basis, is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$. 
+\noindent In this thesis we mostly consider $J=\mathbb{C}^n$. 
+\par For a fixed point $\mathbf{x}' \in \Lambda$ the set of vectors $\mathbf{y}_i \in J$ that satisfy the inequality \eqref{eq:cvp} is called the Voronoi region $\mathcal{V}_{\mathbf{x}'} \subset J$ (see figure \ref{fig:voronoi}) of lattice point $\mathbf{x}'$ \cite{zamir}. This means that if $\mathbf{y} \in \mathcal{V}_{\mathbf{x}'}$ then the solution to CVP is $\mathbf{x}'$. An example of lattice's Voronoi cells is illustrated in figure \ref{fig:voronoi}. If $\mathbf{y} \in \partial\mathcal{V}_{\mathbf{x}'}$ the solution to CVP is a random choice between points whose Voronoi region contains that boundary. The volume of the $\mathcal{V}_{\mathbf{x}'}$
+%, also known as the lattice constant as it is independent of the choice of basis, 
+is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$. 
 
 \begin{figure}[ht]
 % source: http://www.gregegan.net/APPLETS/12/deBruijnNotes.html
   \centering
   \includegraphics[width=0.5\linewidth]{voronoi_cells}
-  \caption{The voronoi cells of the two dimensional hexagonal lattice $\mathsf{A}_2$.}
+  \caption{The Voronoi cells of the two dimensional hexagonal lattice $\mathsf{A}_2$.}
   \label{fig:voronoi}
 \end{figure}
 
-CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for a lattice codes sent via channel that induces fading. Such decoding process can be thought as a CVP. %and it's later explained in further detail.
+CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for lattice codes sent via channel that induces fading. Such decoding process can be thought as a CVP. %and it's later explained in further detail.
 
 \subsection{Space--time lattice codes}
 
-Space--time lattice codes are a robust way of encoding the data on a  wireless channel that uses multiple transmit and receiver antennas, i.e. a MIMO-system. Wireless channels are usually very error prone due to interference and fading caused by the surrounding electrical devices, obstacles and nature. This method helps to improve the reliability of the data transmission on such channel, meaning we get decoding errors less likely. Codewords from certain space--time lattice code constellation can be represented as a matrix that is defined like so
+Space--time lattice codes are a robust way of encoding the data on a  wireless channel that uses multiple transmit and receiver antennas, i.e. a MIMO-system. Wireless channels are usually very error prone due to interference and fading caused by the surrounding electrical devices, obstacles and environment. This method helps to improve the reliability of the data transmission on such channel, meaning we get decoding errors less likely. Codebook from a certain space--time lattice code constellation can be represented as a set of matrices, which is defined as
 
 \begin{equation}
 \mathcal{L} = \Bigg\{\sum_{i=1}^k a_i\mathbf{X}_i \ \Big| \ \mathbf{X}_i \in \mathcal{M}_{m \times l}(\mathbb{C}), \ a_i \in S \subset \mathbb{Z} \Bigg\}.
 \label{eq:codeword}
 \end{equation}
-The $\mathbf{X}_i, i = 1,...,k$ denote the constant basis matrices of the lattice code and the coefficients $a_i, i = 1,...,k$ are integers from a finite signal set $S$ which represent the data we want to send. We call $\mathcal{L}$ our codebook as it contains all possible codewords for a certain finite signal set. In this thesis we consider the pulse amplitude modulation ($q$-PAM) signal set of size $q$. It is defined like
+The $\mathbf{X}_i, i = 1,...,k$ denote the constant basis matrices of the lattice code and the coefficients $a_i, i = 1,...,k$ are integers from a finite signal set $S$ which represent the data we want to send. We call $\mathcal{L}$ our codebook as it contains all possible codewords for a certain finite signal set. In this thesis we consider the pulse amplitude modulation ($q$-PAM) signal set of size $q$. It is defined as
 
 \begin{equation}
-S = \{a = 2u-q+1\mid u \in \mathbb{Z_q}\}
+S = \{a = 2u-q+1\mid u \in \mathbb{Z}_q\}
 \label{eq:pam}
 \end{equation}
-with $\mathbb{Z_q} = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,1,3\}$ i.e. all the odd integers which absolute value is smaller than 4. The size of the signal set is usually chosen to be some power of two, i.e. $q = 2^b$. This way $b$ information bits are mapped to each codeword we send. \cite{mia} 
+with $\mathbb{Z}_q = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,1,3\}$ i.e. all the odd integers which absolute value is smaller than 4. The size of the signal set is usually chosen to be some power of two, i.e. $q = 2^b$. This way $b$ information bits are mapped to each codeword we send. \cite{mia} 
 %Note that the origin i.e. the zero vector is never part of the $q$-PAM codebook $\mathcal{L}$ as it maps to origin in every lattice we choose for our lattice code.
 
 \begin{figure}[ht]
@@ -368,7 +370,7 @@ with $\mathbb{Z_q} = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,
   \label{fig:mimo}
 \end{figure}
 
-\par Consider a multiple antenna system as in figure \ref{fig:mimo} of $m$ transmit and $n$ receive antennas. We choose a $m\times l$ complex matrix $\mathbf{X} \in \mathcal{L}$ constructed from \eqref{eq:codeword} as the codeword which we send through this wireless channel, where $l$ denotes the number of channel uses (time slots) required to send the codeword. In this thesis we consider quasi-static channel model i.e. path gains $h_{i,j}$ in figure \ref{fig:mimo} are assumed to stay constant during the sending of single codeword i.e. during $l$ channel uses and then change. 
+\par Consider a multiple antenna system as in figure \ref{fig:mimo} of $m$ transmit and $n$ receive antennas. We choose an $m\times l$ complex matrix $\mathbf{X} \in \mathcal{L}$ constructed from \eqref{eq:codeword} as the codeword which we send through this wireless channel, where $l$ denotes the number of channel uses (time slots) required to send the codeword. In this thesis we consider quasi-static channel model i.e. path gains $h_{i,j}$ in figure \ref{fig:mimo} are assumed to stay constant during the sending of single codeword i.e. during $l$ channel uses and then change. 
 %To simulate noise we must add a matrix whose entries are identically distributed complex Gaussian random variables to the codeword we receive. 
 \par The simulated received noisy $m\times l$ codeword matrix can be obtained like this
 
@@ -377,7 +379,7 @@ with $\mathbb{Z_q} = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,
 \label{eq:system}
 \end{equation}
 
-where $\mathbf{H}$ is $n \times m$ channel matrix that simulates the path gains in figure \ref{fig:mimo} and $\mathbf{N}$ is a $n\times l$ noise matrix. $\mathbf{H}$ and $\mathbf{N}$ is generated from independent and identically distributed  (i.i.d.) complex gaussian random entries with zero mean for each simulation round. Their distributions use different variance though. 
+where $\mathbf{H}$ is $n \times m$ channel matrix that simulates the path gains in figure \ref{fig:mimo} and $\mathbf{N}$ is a $n\times l$ noise matrix. $\mathbf{H}$ and $\mathbf{N}$ is generated from independent and identically distributed  (i.i.d.) complex Gaussian random entries with zero mean for each simulation round. Their distributions use different variance though. 
 \par The component $y_{i,j}$ of the received matrix corresponds to the $j$-th signal received by antenna $i$, which is a superposition of faded versions of all $m$ transmitted signals with additive noise, i.e. it can be obtained like
 \begin{equation}
 y_{i,j} = h_{i,1}x_{1,j}+h_{i,2}x_{2,j}+...+h_{i,m}x_{m,j}+n_{i,j}   
@@ -390,7 +392,7 @@ for all $1 \leq i \leq n, \ 1 \leq j \leq m$. The $n_{i,j}$ is the corresponding
 
 \section{Sphere decoder}
 
-In this chapter we will discuss an efficient decoding algorithm for the space--time block codes known as the sphere decoder. This thesis is particularly interested in the Schnorr-Euchnerr implementation of the algorithm which combines the Pohst strategy and the Babai nearest plane algorithm \cite{agrell}. The problem of decoding the correct codeword from the set of all possible codewords from the received noisy codeword can be reduced to CVP that was discussed earlier. What the sphere decoder basicly does is that instead of searching through all lattice points within the finite signal set boundaries it only considers lattice points within a hypersphere around the received vector of certain radius. This significantly reduces the complexity of the search algorithm. 
+In this chapter we will discuss an efficient decoding algorithm for the space--time block codes known as the sphere decoder. This thesis is particularly interested in the Schnorr-Euchner implementation of the algorithm which combines the Pohst strategy and the Babai nearest plane algorithm \cite{agrell}. The problem of decoding the correct codeword from the set of all possible codewords from the received noisy codeword can be reduced to CVP that was discussed earlier. What the sphere decoder basicly does is that instead of searching through all lattice points within the finite signal set boundaries it only considers lattice points within a hypersphere around the received vector of certain radius. This significantly reduces the complexity of the search algorithm. 
 
 \begin{figure}[ht]
   \centering
@@ -419,9 +421,9 @@ where $\mathbf{G}'$ is a $m \times (n-1)$ matrix and the last column vector can 
 \end{equation}
 
 \noindent Equation \eqref{eq:decom} basically describes a stack of $(n-1)$-dimensional translated sublattices, where $u_n$ is the index of each sublattice of an $n$-dimensional lattice $\Lambda$. The hyperplanes over which the sublattices are spanned are called \textit{layers}. For example you can think of the horizontal lines in figure \ref{fig:sphdec} as one dimensional layers and the discrete points in them as a sublattice of the whole two dimensional lattice. 
-\par To better understand the the given expression in equation \eqref{eq:decom} let's consider the sublattice in the base layer $u_n = 0$, which is just all the points in the sublattice generated by $\mathbf{G}'$. Similarly we can get all other sublattices from this base sublattice by offsetting all the points in it by linear combination $u_n\mathbf{v}_{\parallel}+u_n\mathbf{v}_{\bot}$, where $\mathbf{v}_{\parallel}$ denotes a translation of all points in that same hyperplane and $\|\mathbf{v}_{\bot}\|$ is the orthogonal distance between two adjacent layers in the $n$-th dimension. By taking the union of all these sublattices we get the whole $n$-dimensional lattice. In figure \ref{fig:sphdec} for example you can think of the middle horizontal line as the base layer.
+\par To better understand the given expression in equation \eqref{eq:decom} let's consider the sublattice in the base layer $u_n = 0$, which is just all the points in the sublattice generated by $\mathbf{G}'$. Similarly we can get all other sublattices from this base sublattice by offsetting all the points in it by linear combination $u_n\mathbf{v}_{\parallel}+u_n\mathbf{v}_{\bot}$, where $\mathbf{v}_{\parallel}$ denotes a translation of all points in that same hyperplane and $\|\mathbf{v}_{\bot}\|$ is the orthogonal distance between two adjacent layers in the $n$-th dimension. By taking the union of all these sublattices we get the whole $n$-dimensional lattice. In figure \ref{fig:sphdec} for example you can think of the middle horizontal line as the base layer.
 \par If $\mathbf{G}$ is an upper triangular matrix, we can easily express $\mathbf{v}_{\bot}$ as $\mathbf{v}_{\bot} = (0, 0, ..., v_{nn})^T$ and thus we can write simply $\|\mathbf{v}_{\bot}\| = |v_{nn}|$. In fact any generator matrix $\mathbf{G}$ can be rotated to upper triangular form \cite{agrell} with $v_{nn} > 0$ so we can simply denote the distance between $(k-1)$-dimensional layers with $v_{kk}$ later on.
-\par With the consept of recursive sublattice decomposition a search algorithm in $n$-dimensional lattice $\Lambda(\mathbf{G})$ can be described recursively as a finite number of ($n-1$)-dimensional search operations. If $\mathbf{x} \in \mathbb{R}^m$ is a vector to decode in the lattice $\Lambda(\mathbf{G})$, which is decomposed as in \eqref{eq:decom}, the orthogonal distance from $\mathbf{x}$ to the $(n-1)$-dimensional layer with index $u_n$ is given by the formula
+\par With the concept of recursive sublattice decomposition a search algorithm in $n$-dimensional lattice $\Lambda(\mathbf{G})$ can be described recursively as a finite number of ($n-1$)-dimensional search operations. If $\mathbf{x} \in \mathbb{R}^m$ is a vector to decode in the lattice $\Lambda(\mathbf{G})$, which is decomposed as in \eqref{eq:decom}, the orthogonal distance from $\mathbf{x}$ to the $(n-1)$-dimensional layer with index $u_n$ is given by the formula
 \begin{equation}
 y_n = |u_n-\hat{u}_n| \cdot \|\mathbf{v}_{\bot}\|
 \label{eq:dist}
@@ -434,17 +436,17 @@ where
 i.e. $\hat{u}_n$ is a scalar projection of $\mathbf{x}$ onto the $(n-1)$-dimensional layer (hyperplane) normal $\mathbf{v}_{\bot}$. Inserting this scalar projection i.e. the magnitude of $\mathbf{x}$ vector's orthogonal component to the layers in dimension $n$ into the equation \eqref{eq:dist} pretty obviously yields the orthogonal distance of $\mathbf{x}$ to the layer with index $u_n$. 
 
 
-\subsection{Schorr-Euchnerr lattice search algorithm}
+\subsection{Schnorr-Euchnerr lattice search algorithm}
 Now regarding CVP it is sufficient to consider these orthogonal distances in equation \eqref{eq:dist} and we can thus write the CVP in the form
 \begin{equation}
 \text{min} \sum_{n = 0}^{m} y_n
 \label{eq:cvp}
 \end{equation}
-This can be thought as traversing the search tree of depth $m$ from root node to the leaf node at lowest level with smallest sum of node values. In the figure \ref{fig:tree} a search tree for 4-dimensional CVP is illustrated. The tree is not full as not all subtrees need to be considered in smart implementations of the lattice search algorithm as the search can be stopped early. The conditions for this are discussed later. Please note that only paths from root to level 4 nodes are considered feasible solutions to CVP as the solution vector $\mathbf{\hat{x}}$ has to have 4 components.
+This can be thought as traversing the search tree of depth $m$ from root node to the leaf node at lowest level with smallest sum of node values. In the figure \ref{fig:tree} a search tree for 4-dimensional CVP is illustrated. The tree is not full as not all subtrees need to be considered in smart implementations of the lattice search algorithm as the search can be stopped early. The conditions for this are discussed later. Note that only paths from root to level 4 nodes are considered feasible solutions to CVP as the solution vector $\mathbf{\hat{x}}$ has to have 4 components.
 \begin{figure}[ht] 
   \centering
   \includegraphics[width=0.5\linewidth]{search-tree}
-  \caption{Travelsal of a lattice search algorithm in a four dimensional lattice \cite{mia}.}
+  \caption{Traversal of a lattice search algorithm in a four dimensional lattice \cite{mia}.}
   \label{fig:tree}
 \end{figure}
 The node values on each level $k$ of the search tree represent candidate value for the $(m-k+1)$-th component of the solution vector selected from some finite signal set. Here $m = 4$.
@@ -454,7 +456,7 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
 \subsection{Sphere decoder implementation}
-The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherical shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope sh=aped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
+The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherically shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
 
 %The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 \begin{figure}[ht]
@@ -509,7 +511,7 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 \subsection{Program implementation}
 The program discussed in this paper is essentially a lattice code simulator implemented as a command line application which the aforementioned sphere decoder algorithm is also part of. In this section a rough outline of the implementation is presented, which is most concisely presented in figure \ref{fig:program}. With this insight one ought to create better simulations, especially when experimenting simulations outside the normal parameter range.
 \par What the program actually simulates is the block error rate (BLER) of the lattice code under different levels of signal-to-noise ratios (SNR). Block error occurs when the decoded codeword is not exactly the same as the one we sent and the program counts these. Then BLER is simply the number of block errors divided by the number of simulation runs. The program can run multiple simulations in parallel, all of which simulate one SNR level each. The SNR is used to calculate the variance of the Rayleigh channel matrix coefficients in figure \ref{fig:mimo}. The channel noise matrix variance was chosen to be fixed one during all simulations. Note that the channel model is not limited to MIMO like in figure \ref{fig:mimo} but can also be chosen to be SISO system which simulates one transmit and one receiver antenna.
-\par The program requires at least two input files: the settings file and a basis matrix file, both located in their dedicated folders. Depending on the type of simulation one can also spesify two additional input files for the sublattice basis matrices (for wiretap simulations) and simulation error limits (i.e. how many errors per SNR). To put it simply, the basis matrices are \textit{the lattice code} you want to test and the other two input files are just parameters for the simulation. There are many possible combinations of parameters to use, we'll go through some of them in the next section with example simulation setups.
+\par The program requires at least two input files: the settings file and a basis matrix file, both located in their dedicated folders. Depending on the type of simulation one can also specify two additional input files for the sublattice basis matrices (for wiretap simulations) and simulation error limits (i.e. how many errors per SNR). To put it simply, the basis matrices are \textit{the lattice code} you want to test and the other two input files are just parameters for the simulation. There are many possible combinations of parameters to use, we'll go through some of them in the next section with example simulation setups.
 \par One key feature of the program is the support for codebooks of spherical shape. Unlike the codebook described in \eqref{eq:codeword}, which is clearly a parallelotope shaped subset of a lattice $\Lambda(\textbf{X}_i)$ as the codeword coordinates take values from finite subset of $\mathbb{Z}$. In contrast to this, a spherical codebook only considers codewords in the lattice, that lie within certain radius of the origin. The simulations work rather differently depending on which type of codebook is used, this can also be clearly seen in flow charts \ref{fig:sphdec} and \ref{fig:program}. The idea of using a spherical codebook is to keep the maximum energy of the codebook reasonable as in skewed lattices parallelotope vertices and therefore some of the possible codewords can be rather far from the origin and require significantly more energy to send than the ones near origin. The problem however is estimating the correct radius to cover certain amount of codewords within the codebook boundary hypersphere. The program implements an option for estimating the radius automatically as seen in the program flowchart \ref{fig:program}.
 
 \begin{figure}[ht]
