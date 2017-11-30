@@ -307,7 +307,7 @@ where $\mathbf{W}$ is an $m \times m$ matrix with integer entries \cite{agrell}.
   \label{fig:bases}
 \end{figure}
 
-\par What we considered earlier were lattices spanned over real $m$-dimensional space $\mathbb{R}^m$ but in similar sense we can consider a lattice consisting of complex valued vectors from $\mathbb{C}^m$. The principles of such complex lattice are almost the same, however, now $\mathbf{B}$ and $\mathbf{a}$ take values from $\mathbb{C}$. Note that a complex lattice has an equivalent real representation which has double the rank of the corresponding complex lattice. Consider a lattice $\Lambda \subset \mathbb{C}^m$ with a generator matrix $\mathbf{B} = [\mathbf{z}_1, ... , \mathbf{z}_n]$. Now we can always express it with a real valued lattice $\Lambda_{\text{real}} \subset \mathbb{R}^{2m}$ and the corresponding $2m \times n$ generator matrix is given by
+\par What we considered earlier were lattices spanned over real $m$-dimensional space $\mathbb{R}^m$ but in similar sense we can consider a lattice consisting of complex valued vectors from $\mathbb{C}^m$. The principles of such complex lattice are almost the same, however, now elements of $\mathbf{B}$ and $\mathbf{a}$ take values from $\mathbb{C}$. Note that a complex lattice has an equivalent real representation which has double the rank of the corresponding complex lattice. Consider a lattice $\Lambda \subset \mathbb{C}^m$ with a generator matrix $\mathbf{B} = [\mathbf{z}_1, ... , \mathbf{z}_n]$. Now we can always express it with a real valued lattice $\Lambda_{\text{real}} \subset \mathbb{R}^{2m}$ and the corresponding $2m \times n$ generator matrix is given by
 
 \begin{equation}
 \mathbf{B}_{\text{real}} =
@@ -456,7 +456,8 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \par To ensure we indeed find the closest lattice point, which in decoding applications like the sphere decoder is crucial, we need to be a bit more throughout than this. Exhaustive search over all possible codewords in the lattice is just not feasible solution as the number those codewords grows exponentially with the rank (dimension) of the lattice code. This is where the Pohst strategy comes into play.
 
 \subsection{Sphere decoder implementation}
-The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithm introduced in \cite{mia}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{mia} also handled spherically shaped codebooks, the new implementetion divides these two scenarios for codebooks into two separate algorithms. This saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which requires a much simpler algorithm. The way these functions are structured combined with the included algorithms.cpp file provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this premade interface within the main program source file.
+The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithms introduced in \cite{mia} and \cite{ranto}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{ranto} also handled spherically shaped codebooks, this program introduces two separate algorithms: one for parallelotope and one for spherically shaped codebooks. Pseudocodes for both algorithms are given in this paper. This division saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which not surpricingly requires a much simpler algorithm. 
+\par The way the algorithms in the program are structured provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this application programming interface within the main program source file. 
 
 %The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 \begin{figure}[ht]
@@ -470,7 +471,7 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 	\node [block, align=center, right of=qr, node distance=10em] (mapy) {Map $\mathbf{y}$ to same \\ coordinates as $\textbf{R}$\\ $\Rightarrow \textbf{y} = \mathbf{Q}^T \textbf{y}$};
 	\node [frame,fit=(start)(qr)(gen)(mapy)] (cyan) {};
 	\node [anchor=south west, font=\color{cyan}\bf, xshift=0.1em, yshift=-0.2em] at (cyan.north west){Preprocess sphere decoder input};
-	\node [decision, below of=mapy, node distance=8em] (choose) {Use spherical shaping ($P > 0$)?};
+	\node [decision, below of=mapy, node distance=8em] (choose) {Use spherical shaping ($P^2 > 0$)?};
 	\node [block, align=center, below of=choose, node distance=9em] (alg_ii) {Algorithm II}; 
 	\node [block, align=center, left of=choose, node distance=10em] (alg_i) {Algorithm I}; 
 	\node [cloud, align=center, below of=alg_i, node distance=9em] (output) {\textbf{Output:} decoded \\ lattice point $\mathbf{\hat{x}}$}; 
@@ -489,21 +490,67 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 \label{fig:sphdec}
 \end{figure}
 
-\subsection*{Algorithm I, (Input $C_0, \mathbf{y'}, \mathbf{R}$. Output $\mathbf{\hat{x}}$)}
-\textbf{Step 1.} (Initialization) Set $i:=k$ \\
-\textbf{Step 2.} \\
-\textbf{Step 3.} \\
-\textbf{Step 4.} \\
-\textbf{Step 5.} \\
-\textbf{Step 6.} \\
+\newpage
+\subsection*{Algorithm I, (Input $C_0', \mathbf{y'}, \mathbf{R}$, S. Output $\mathbf{\hat{x}}$)}
+\textbf{Step 1.} Initialization) Set $i := k, T_k := 0, \xi_k := 0$ and $d_c := C_0'$ (current sphere 
+\indent squared radius). \\
 
-\subsection*{Algorithm II, (Input $C_0, \mathbf{y'}, \mathbf{R}, \mathbf{R'}, P^2$. Output $\mathbf{\hat{x}}$)}
-\textbf{Step 1.} (Initialization) Set $i:=k$ \\
-\textbf{Step 2.} \\
-\textbf{Step 3.} \\
-\textbf{Step 4.} \\
-\textbf{Step 5.} \\
-\textbf{Step 6.} \\
+\noindent \textbf{Step 2.} (DFE on $x_i$) Set $x_{\text{temp}} :=\underset{a\,\in\,S}{\operatorname{argmin}}\left|\frac{y'_i - \xi_i}{r_{i,i}} - a \right|$. \\
+\indent If $x_{\text{temp}} \leq S_1$ set $\Delta_i := 2$. \\
+\indent Else if $x_{\text{temp}} \geq S_{q}$ set $\Delta_i := -2$. \\
+\indent Else set $\Delta_i := 2 \cdot \operatorname{sign}\left(y'_i-\xi_i-r_{i,i}x_i\right)$. \\
+
+\noindent \textbf{Step 3.} (Main step) If $d_c < T_i + \left|y'_i-\xi_i-r_{i,i}x_i\right|^2$, then go to Step 4 (i.e., we are\\
+\indent outside the sphere).\\
+\indent Else if $x_i \not\in S$ (i.e., we are inside the sphere but outside the signal set boundaries) \\ 
+\indent then \{Set $x_{\text{next}} := x_i + \Delta_i$. If $(x_i < S_1\,\, \text{and}\,\, x_{\text{next}} > S_q)$ or \\
+\indent $(x_i > S_q\,\, \text{and}\,\, x_{\text{next}} < S_{1})$ then go to Step 4, else go to Step 6.\}  \\
+\indent Else (i.e., we are inside the sphere and signal set boundaries) \\
+\indent\indent If $i > 1$ then \\
+\indent\indent\indent \{let $\xi_{i-1} := \sum_{j=1}^{k} r_{i-1,j}x_j,$\\ 
+\indent\indent\indent $T_{i-1} := T_i + \left|y'_i-\xi_i-r_{i,i}x_i\right|^2,$\\
+\indent\indent\indent $i := i - 1$ and go to Step 2\}. \\
+\indent\indent Else if $i=1$ then go to Step 5. \\
+
+\noindent \textbf{Step 4.} If $i = k$, terminate, else set $i := i+1$ and go to Step 6.\\
+
+\noindent \textbf{Step 5.} (A valid point is found) Let $d_c := T_1 + \left|y'_1-\xi_1-r_{1,1}x_1\right|^2$, save $\mathbf{\hat{x}} := \mathbf{x}$. \\
+\indent Then, let $i := i+1$ and go to Step 6.\\
+
+\noindent \textbf{Step 6.} (Schnorr-Euchner enumeration of level $i$) Let $x_i := x_i + \Delta_i,$\\
+\indent $\Delta_i := -\Delta_i - 2\cdot\operatorname{sign}(\Delta_i)  $ and go to Step 3.\\
+
+\subsection*{Algorithm II, (Input $C_0, \mathbf{y'}, \mathbf{R}, S,$ \framebox{$\mathbf{R'}, P^2$}. Output $\mathbf{\hat{x}}$)}
+\textbf{Step 1.} Initialization) Set $i := k, T_k := 0, \xi_k := 0,$ \framebox{$P_k := 0, \eta_k := 0$} and $d_c := C_0'$ \\
+\indent (current sphere squared radius). \\
+
+\noindent \textbf{Step 2.} (DFE on $x_i$) Set $x_{\text{temp}} :=\underset{a\,\in\,S}{\operatorname{argmin}}\left|\frac{y'_i - \xi_i}{r_{i,i}} - a \right|$. \\
+\indent If $x_{\text{temp}} \leq S_1$ set $\Delta_i := 2$. \\
+\indent Else if $x_{\text{temp}} \geq S_{q}$ set $\Delta_i := -2$. \\
+\indent Else set $\Delta_i := 2 \cdot \operatorname{sign}\left(y'_i-\xi_i-r_{i,i}x_i\right)$. \\
+
+\noindent \textbf{Step 3.} (Main step) If $d_c < T_i + \left|y'_i-\xi_i-r_{i,i}x_i\right|^2$, then go to Step 4 (i.e., we are\\
+\indent outside the sphere).\\
+\indent Else if $x_i \not\in S$ or \framebox{$P^2 < P_i + \left|r'_{i,i}x_i+\eta_i\right|^2$} (i.e., we are inside the sphere but outside \\
+\indent the signal set boundaries) \\ 
+\indent then \{Set $x_{\text{next}} := x_i + \Delta_i$. If $(x_i < S_1\,\, \text{and}\,\, x_{\text{next}} > S_q)$ or \\
+\indent $(x_i > S_q\,\, \text{and}\,\, x_{\text{next}} < S_{1})$ then go to Step 4, else go to Step 6.\}  \\
+\indent Else (i.e., we are inside the sphere and signal set boundaries) \\
+\indent\indent If $i > 1$ then \\
+\indent\indent\indent \{let $\xi_{i-1} := \sum_{j=1}^{k} r_{i-1,j}x_j,$\\ 
+\indent\indent\indent $T_{i-1} := T_i + \left|y'_i-\xi_i-r_{i,i}x_i\right|^2,$\\
+\indent\indent\indent \framebox{$\eta_{n-1} := \sum_{j=1}^{k} r'_{i-1,j}x_j,$} \\
+\indent\indent\indent \framebox{$P_{i-1} := P_i + \left|r'_{i,i}x_i+\eta_i\right|^2,$}\\
+\indent\indent\indent $i := i - 1$ and go to Step 2\}. \\
+\indent\indent Else if $i=1$ then go to Step 5. \\
+
+\noindent \textbf{Step 4.} If $i = k$, terminate, else set $i := i+1$ and go to Step 6.\\
+
+\noindent \textbf{Step 5.} (A valid point is found) Let $d_c := T_1 + \left|y'_1-\xi_1-r_{1,1}x_1\right|^2$, save $\mathbf{\hat{x}} := \mathbf{x}$. \\
+\indent Then, let $i := i+1$ and go to Step 6.\\
+
+\noindent \textbf{Step 6.} (Schnorr-Euchner enumeration of level $i$) Let $x_i := x_i + \Delta_i,$\\
+\indent $\Delta_i := -\Delta_i - 2\cdot\operatorname{sign}(\Delta_i)  $ and go to Step 3.\\
 
 \clearpage
 
@@ -610,6 +657,8 @@ Journal of Open Source Software, Vol. 1, pp. 26, 2016.
 \url{http://dx.doi.org/10.21105/joss.00026}
 
 \bibitem{ranto} C. Hollanti and K. Ranto, \textit{Maximal orders in space-time coding: Construction and decoding}. International Symposium on Information Theory and Its Applications, Auckland, 2008, pp. 1-5. Available at \url{http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4895634}
+
+\bibitem{damen} M.O. Damen,\ H. El Gamal,\ G. Caire \emph{On maximum-likelihood detection and the search for the closest lattice point} IEEE Transactions on Information Theory, Vol. 49, pp.2389-2402, October 2003. Available at \url{http://ieeexplore.ieee.org/document/1237128/}
 
 %\bibitem{fplll} The FPLLL development team, \textit{fplll, a lattice reduction library.} 2016, Available at \url{https://github.com/fplll/fplll}
 
