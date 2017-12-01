@@ -76,7 +76,7 @@
 \tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
     minimum height=2em]
 \tikzstyle{every node}=[font=\small]
-\tikzstyle{frame} = [line width=3pt, draw=cyan!80,dashed,inner sep=0.5em,minimum width=15cm,minimum height=6cm]
+\tikzstyle{frame} = [line width=3pt, draw=cyan!80,dashed,inner sep=0.8em] %,minimum width=15cm,minimum height=6cm]
 \tikzstyle{trapez} = [draw, trapezium, trapezium left angle=70, trapezium right angle=-70, minimum height=2em, fill=magenta!20]
 
 %% Use this if you write hard core mathematics, these are usually needed
@@ -498,28 +498,35 @@ The node values on each level $k$ of the search tree represent candidate value f
 \par So how does one select the layer, which is closest to $\mathbf{\hat{x}}$ in each dimension $n$? As the layer indices $u_n$ take values from $\mathbb{Z}$, clearly selecting $u_n = \left\lceil\hat{u}_n\right\rfloor$ in equation \eqref{eq:dist} gives you the smallest $y_n$ in that dimension. 
 %The operation $\left\lceil\cdot\right\rfloor$ denotes rounding to the nearest integer. 
 Considering only this option in each dimension yields the Babai nearest plane algorithm, which reduces the search problem to a $(m-1)$-dimensional one. It is a quick way to find a nearby lattice point, but it is not necessarily the closest one \cite{agrell}. The point found by this algorithm is called the Babai point.
-\par To ensure one indeed finds the closest lattice point, which in decoding applications like the sphere decoder is crucial, one needs to be a bit more throughout than this. Indeed Schnorr-Euchnerr sphere decoder does not stop here but instead climbs up the search tree and enumerates through all feasible points that are closer than the first point found also known as the \emph{Babai point}. This what the sphere decoder using Pohst strategy would also do. What's different in Schnorr-Euchner strategy from Pohst apart from not requiring initial radius thanks to the Babai nearest plane algorithm is the way of enumerating sublattice indices in equation \eqref{eq:dist}. While Pohst method would just go through the layers in ascending order within the distance upper bound (sphere radius), Schnorr-Euchnerr starts from the midpoint i.e. $u_n = \left\lceil\hat{u}_n\right\rfloor$ and zigzags around it until it hits the upper bound. In other word the Schnorr-Euchner enumeration goes through the layers by ascending order of orthogonal distance from $\mathbf{x}$ to that layer. The benefit of doing this is quite obvious: if one finds a layer that is outside the current sphere radius one can stop the search in that sublattice early as clearly there are no longer points within radius in it. This significantly reduces the search tree complexity depicted in figure \ref{fig:tree} and thus makes the algorithm more efficient.
+\par To ensure one indeed finds the closest lattice point, which in decoding applications like the sphere decoder is crucial, one needs to be a bit more throughout than this. Indeed Schnorr-Euchnerr sphere decoder does not stop here but instead climbs up the search tree and enumerates through all feasible points that are closer than the first point found also known as the \emph{Babai point}. This what the sphere decoder using Pohst strategy would also do. What's different in Schnorr-Euchner strategy from Pohst apart from not requiring initial radius thanks to the Babai nearest plane algorithm is the way of enumerating sublattice indices in equation \eqref{eq:dist}. While Pohst method would just go through the layers in ascending order within the distance upper bound (sphere radius), Schnorr-Euchnerr starts from the midpoint i.e. $u_n = \left\lceil\hat{u}_n\right\rfloor$ and zigzags around it until it hits the upper bound (see figure \ref{fig:sublattice}). In other words the Schnorr-Euchner enumeration goes through the layers in ascending order of the orthogonal distances $y_n$. The benefit of doing this is quite obvious: if one finds a layer $u_n$ that is outside the current sphere radius one can stop the search in that sublattice early, as clearly there are no longer points within radius in that sublattice, thanks to the ascending distance ordering. This significantly reduces the search tree complexity depicted in figure \ref{fig:tree} and thus makes the algorithm more efficient \cite{mia}\cite{agrell}.
 
 \subsection{Sphere decoder implementation}
-The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithms introduced in \cite{mia} and \cite{ranto}, but the key differences are native handling of $q$-PAM signal sets (i.e. no mapping to $[0,q-1]$) and the use of dedicated and efficient linear algebra library Armadillo \cite{arma} with intuitive syntax, which also makes the code easy to read. While the original algorithm in \cite{ranto} also handled spherically shaped codebooks, this program introduces two separate algorithms: one for parallelotope and one for spherically shaped codebooks. Pseudocodes for both algorithms are given in this paper. This division saves a lot of unnecessary comparisons when using the algorithm with a normal pallelotope shaped codebook, which not surpricingly requires a much simpler algorithm. 
-\par The way the algorithms in the program are structured provides a lot of modularity to the program. This gives the experienced user an option to program his or her own custom simulations using this application programming interface within the main program source file. 
+The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithms introduced in \cite{mia} and \cite{ranto}, but there are a couple of key differences. The new implementation natively handles $q$-PAM signal sets defined in equation \eqref{eq:pam}, so the signal set does not need to be mapped to interval $[0,q-1]$ first like in previous algorithms, which was confusing when comparing the input and output vectors. The program also uses the dedicated and efficient linear algebra library called \emph{Armadillo} \cite{arma}. The library also has intuitive syntax, which makes the code rather easy to read for those who wish to understand every detail of it. While the original algorithm in \cite{ranto} also handled spherically shaped codebooks, this program introduces two separate algorithms: one for parallelotope and one for spherically shaped codebooks. Pseudocodes for both algorithms are given in this paper. This division saves a lot of unnecessary comparisons when using the program with a normal pallelotope shaped codebook, which not surpricingly requires a much simpler algorithm. 
+\par The way the algorithms in the program are structured, provides a lot of modularity. This gives the experienced user with programming background an option to program his or her own custom simulations using this application programming interface within the main program source file.
+\par The sphere decoder consist of two parts: \emph{input preprocessing} and \emph{decoding} as can be seen in figure \ref{fig:sphdec}.
 
 %The program is written in C++11 and uses a linear algebra library called Armadillo \cite{arma} for most matrix and vector operations. It is primarily designed for Unix operating systems but should be portable to other systems as well with slight modifications although not all features are quaranteed to work optimally.
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[node distance = 5em, auto]
 	% Place nodes
-	\node [trapez, align=center] (input) {\textbf{Input:} $\mathbf{B}_i, \textbf{R}_{orig}, \textbf{H}, \textbf{X}, \textbf{N}, Q, C_0$};
-	\node [block, align=center, below of=input] (start) {Convert $n\times t$ complex matrix $\mathbf{Y}$\\ into real vector $\textbf{y}$ of length $2\times n\times t$};
+	\node [trapez, align=center] (input) {\textbf{Input:} $\mathbf{B}_i, \textbf{R}', \textbf{H}, \textbf{Y}, \textbf{N}, S, C'_0$};
+	\node [block, align=center, below of=input, node distance=6em] (start) {Convert $n\times t$ complex matrix $\mathbf{Y}$\\ into real vector $\textbf{y}$ of length $2\times n\times t$};
 	\node [block, align=center, below of=start] (gen) {Calculate the real generator \\ matrix $\textbf{B}$ of the faded lattice \\ $\mathbf{B} = \left(\text{vec}(\textbf{H}\textbf{B}_1) \,\text{vec}(\textbf{H}\textbf{B}_2) \ldots \text{vec}(\textbf{H}\textbf{B}_k)\right)$};
-	\node [block, align=center, below left of=gen, node distance=7em] (qr) {QR-decomposition of $\mathbf{B}$}; 
-	\node [block, align=center, right of=qr, node distance=10em] (mapy) {Map $\mathbf{y}$ to same \\ coordinates as $\textbf{R}$\\ $\Rightarrow \textbf{y} = \mathbf{Q}^T \textbf{y}$};
+	\node [block, align=center, below left of=gen, node distance=7em] (qr) {QR-decomposition of $\mathbf{B}$: \\ $\textbf{B} = \textbf{QR}$}; 
+	\node [block, align=center, right of=qr, node distance=10em] (mapy) {Map $\mathbf{y}$ to same \\ coordinates as $\textbf{R}$\\ $\Rightarrow \textbf{y}' = \mathbf{Q}^T \textbf{y}$};
+	
+	%frame 1
 	\node [frame,fit=(start)(qr)(gen)(mapy)] (cyan) {};
-	\node [anchor=south west, font=\color{cyan}\bf, xshift=0.1em, yshift=-0.2em] at (cyan.north west){Preprocess sphere decoder input};
-	\node [decision, below of=mapy, node distance=8em] (choose) {Use spherical shaping ($P^2 > 0$)?};
-	\node [block, align=center, below of=choose, node distance=9em] (alg_ii) {Algorithm II}; 
+	\node [anchor=south west, font=\color{cyan}\bf, xshift=-0.45em, yshift=-0.2em] at (cyan.north west){Preprocess input};
+	
+	\node [decision, below of=mapy, node distance=10em] (choose) {Use spherical shaping ($P^2 > 0$)?};
+	\node [block, align=center, below of=choose, node distance=7.5em] (alg_ii) {Algorithm II}; 
 	\node [block, align=center, left of=choose, node distance=10em] (alg_i) {Algorithm I}; 
-	\node [cloud, align=center, below of=alg_i, node distance=9em] (output) {\textbf{Output:} decoded \\ lattice point $\mathbf{\hat{x}}$}; 
+	\node [cloud, align=center, below of=alg_i, node distance=13em] (output) {\textbf{Output:} decoded \\ lattice point $\mathbf{\hat{x}}$}; 
+	 %frame 2
+	\node [frame,fit=(choose)(alg_i)(alg_ii)] (decode) {};
+	\node [anchor=south west, font=\color{cyan}\bf, xshift=-0.45em, yshift=-0.1em] at (decode.north west){Decode};
 	% Draw edges
     \path [line] (input) -- (start);
     \path [line] (start) -- (gen);
@@ -629,11 +636,11 @@ The program discussed in this paper is essentially a lattice code simulator impl
     \node [block, left of=startsim, node distance=10em, align=center] (Hvar) {Calculate channel\\ matrix variance $\tau^2$\\ from SNR};
     \node [decision, below of=Hvar, node distance=7em] (loop) {Enough errors and simulation rounds?}; 
     \node [block, right of=loop, node distance=11em, align=center] (codeword) {Randomly choose\\ codeword $\mathbf{X}$\\ from codebook};
-    \node [block, right of=startsim, node distance=11em, align=center] (channel) {Calculate channel\\ matrix $\mathbf{H}$ from $\tau^2$\\ according to channel\\ model};
     \node [block, right of=codeword, node distance=10em, align=center] (simulate) {Simulate received\\ codeword $\mathbf{Y} = \mathbf{HX} + \mathbf{N}$,\\ where $\mathbf{N}$ is a\\ random noise matrix};
+    \node [block, above of=simulate, node distance=6.7em, align=center] (channel) {Calculate channel\\ matrix $\mathbf{H}$ from $\tau^2$\\ according to channel\\ model};
     \node [block, below of=simulate, node distance=6.8em, align=center] (sphdec) {Use sphere decoder to $\mathbf{Y}$\\ and compare the result with $\mathbf{X}$ \\ according to data encoding method\\ $\rightarrow$ count decoding errors};
     \node [block, below right of=loop, node distance=9em, align=center] (end) {End simulation,\\ save results and wait for\\ other simulations to finish};
-    \node [cloud, below right of=end, node distance=8em, align=center] (finish) {Output all simulation\\ results and exit program};
+    \node [cloud, below right of=end, node distance=9em, align=center] (finish) {Output all simulation\\ results and exit program};
     
     % simulation frame
     \node [frame,fit=(startsim)(Hvar)(loop)(codeword)(channel)(simulate)(sphdec)(end)] (cyan) {};
