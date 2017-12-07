@@ -48,27 +48,27 @@ extern std::string red, green, yellow, def;
 /* thread safe std::vector data structure */
 template <typename T>
 class parallel_vector : public std::vector<T> {
-	public:
-		parallel_vector() : std::vector<T>(){};
-		void append(T item)	{
-		    std::lock_guard<std::mutex> lock(this->m_);
-		    this->push_back(item);
-		};
-	private:
-		std::mutex m_;
+    public:
+        parallel_vector() : std::vector<T>(){};
+        void append(T item) {
+            std::lock_guard<std::mutex> lock(this->m_);
+            this->push_back(item);
+        };
+    private:
+        std::mutex m_;
 };
 
 /* thread safe std::set data structure */
 template <typename T>
 class parallel_set : public std::set<T> {
-	public:
-		parallel_set() : std::set<T>(){};
-		void par_insert(T item)	{
-		    std::lock_guard<std::mutex> lock(this->m_);
-		    this->insert(item);
-		};
-	private:
-		std::mutex m_;
+    public:
+        parallel_set() : std::set<T>(){};
+        void par_insert(T item) {
+            std::lock_guard<std::mutex> lock(this->m_);
+            this->insert(item);
+        };
+    private:
+        std::mutex m_;
 };
 
 /* function prototypes */
@@ -87,11 +87,11 @@ void output_complex_matrix(const std::string &filepath, const arma::cx_mat &A, b
 /* Makes a string representation out of any basic vector type */
 template <typename T>
 inline std::string vec2str(T vec, size_t size){
-	if (size <= 0) return "{}";
-	std::string str = "{";
-	for (size_t i = 0; i < (size-1); i++)
-		str += std::to_string(vec[i]) + ", ";
-	return str + std::to_string(vec[size-1]) + "}";
+    if (size <= 0) return "{}";
+    std::string str = "{";
+    for (size_t i = 0; i < (size-1); i++)
+        str += std::to_string(vec[i]) + ", ";
+    return str + std::to_string(vec[size-1]) + "}";
 }
 
 /* converts a floating point value to a string with custom precision
@@ -99,7 +99,7 @@ inline std::string vec2str(T vec, size_t size){
  */
 template <typename T>
 inline std::string float2str(const T value, int precision = 6){
-	std::ostringstream out;
+    std::ostringstream out;
     out << std::setprecision(precision) << value;
     return out.str();
 }
@@ -107,7 +107,7 @@ inline std::string float2str(const T value, int precision = 6){
 /* returns a string representation of an Armadillo matrix object */
 template <typename T>
 inline std::string mat2str(const T A){
-	std::ostringstream out;
+    std::ostringstream out;
     out << std::endl << A;
     return out.str();
 }

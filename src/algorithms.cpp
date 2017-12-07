@@ -29,7 +29,7 @@
 #include <fplll.h>
 #endif
 /* required packages to install:
- *	 libmpfr-dev
+ *   libmpfr-dev
  *   libgmp-dev
  */
 
@@ -541,7 +541,7 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
 /* Creates a codebook from basis matrices B_i and symbolset x-PAM within given radius (spherical shaping) */
 // vector<pair<vector<int>, cx_mat>> create_spherical_codebook(const vector<cx_mat> &bases, const mat &R, const vector<int> &S, double radius){
 vector<pair<vector<int>, cx_mat>> create_spherical_codebook(const vector<cx_mat> &bases, const mat &R, const vector<int> &S, 
-															double radius, vec xt, int dim, double dist) {
+                                                            double radius, vec xt, int dim, double dist) {
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
@@ -561,23 +561,23 @@ vector<pair<vector<int>, cx_mat>> create_spherical_codebook(const vector<cx_mat>
     // bool nextlevel = true;
 
     // while (true) {
-    // 	if (nextlevel) {
-	   //      lb = -(sqrt(radius - ener[i]) + curr[i])/R(i,i);
-	   //      ub = (sqrt(radius - ener[i]) - curr[i])/R(i,i);
-	   //      subset = slice_symbset(S, lb, ub);
-	   //      if (subset.empty()) { /* No lattice points are within energy bounds in this dimension */
-	   //      	cout << "empty interval!" << endl;
-	   //      	if (i == k - 1) break;
-	   //      	else {
-	   //      		indices[i] = 0;
-	   //      		// indices[i+1]++;
-		  //           i++;
-		  //           continue;
-		  //       }
-	   //      }
-	   //      nextlevel = false;
-	   //  }
-    //   	xt[i] = subset[indices[i]];
+    //  if (nextlevel) {
+       //      lb = -(sqrt(radius - ener[i]) + curr[i])/R(i,i);
+       //      ub = (sqrt(radius - ener[i]) - curr[i])/R(i,i);
+       //      subset = slice_symbset(S, lb, ub);
+       //      if (subset.empty()) { /* No lattice points are within energy bounds in this dimension */
+       //       cout << "empty interval!" << endl;
+       //       if (i == k - 1) break;
+       //       else {
+       //           indices[i] = 0;
+       //           // indices[i+1]++;
+          //           i++;
+          //           continue;
+          //       }
+       //      }
+       //      nextlevel = false;
+       //  }
+    //      xt[i] = subset[indices[i]];
 
     //     xiener = pow(R(i,i)*xt[i] + curr[i], 2);
 
@@ -586,7 +586,7 @@ vector<pair<vector<int>, cx_mat>> create_spherical_codebook(const vector<cx_mat>
 
     //     // if (xiener + ener[i] < radius + 1e-6) {  
     //     if (i > 0) {
-    //     	curr[i-1] = 0;                     
+    //      curr[i-1] = 0;                     
     //         for (int j = i; j < k; j++)
     //             curr[i-1] += xt[j]*R(i-1,j);
     //         ener[i-1] = ener[i] + xiener;  
@@ -595,25 +595,25 @@ vector<pair<vector<int>, cx_mat>> create_spherical_codebook(const vector<cx_mat>
     //         cout << "lowering dimension!" << endl;
     //         // continue;    
     //     } else {
-    //     	coeffs = conv_to<vector<int>>::from(xt);
-    //     	X.zeros();
-    //     	for (int i = 0; i < k; i++) {
-		  //       X = X + coeffs[i]*bases[i];
-		  //   }
-		  //   cout << "found point!" << endl;
-		  //   codebook.push_back(make_pair(coeffs, X));
+    //      coeffs = conv_to<vector<int>>::from(xt);
+    //      X.zeros();
+    //      for (int i = 0; i < k; i++) {
+          //       X = X + coeffs[i]*bases[i];
+          //   }
+          //   cout << "found point!" << endl;
+          //   codebook.push_back(make_pair(coeffs, X));
     //     } 
     //     // }
     //     if (indices[i] >= subset.size() - 1){
-    //     	cout << "subset clear!" << endl;
-    //     	if (i == k - 1) break;
-	   //  	else {
-	   //  		indices[i] = 0;
-	   //  		// indices[i+1]++;
-	   //      	i++;
-	   //      	nextlevel = true;
-	   //      }
-    //     } else indices[i]++;   	    
+    //      cout << "subset clear!" << endl;
+    //      if (i == k - 1) break;
+       //   else {
+       //       indices[i] = 0;
+       //       // indices[i+1]++;
+       //       i++;
+       //       nextlevel = true;
+       //      }
+    //     } else indices[i]++;         
     // }
     // return codebook;
 
@@ -624,15 +624,15 @@ vector<pair<vector<int>, cx_mat>> create_spherical_codebook(const vector<cx_mat>
         xidist = pow(dot(R.row(i).subvec(i, k-1), tmp.subvec(i, k-1)), 2) + dist;
         if (xidist <= radius) {
             if (i > 0) {
-            	part = create_spherical_codebook(bases, R, S, radius, tmp, dim-1, xidist);
+                part = create_spherical_codebook(bases, R, S, radius, tmp, dim-1, xidist);
                 codebook.insert(codebook.end(), part.begin(), part.end());
             } else {
-            	coeffs = conv_to<vector<int>>::from(tmp);
-            	X.zeros();
-	        	for (int s = 0; s < k; s++) {
-			        X = X + coeffs[s]*bases[s];
-			    }
-			    // cout << vec2str(coeffs, k) << endl;
+                coeffs = conv_to<vector<int>>::from(tmp);
+                X.zeros();
+                for (int s = 0; s < k; s++) {
+                    X = X + coeffs[s]*bases[s];
+                }
+                // cout << vec2str(coeffs, k) << endl;
                 codebook.push_back(make_pair(coeffs, X));
             }
         }
@@ -665,8 +665,8 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
             codebook.push_back(code);
         }
     } else {
-    	if (P > 0)
-        	return create_spherical_codebook(bases, R, symbolset, P, vec(k, fill::zeros), k, 0);
+        if (P > 0)
+            return create_spherical_codebook(bases, R, symbolset, P, vec(k, fill::zeros), k, 0);
 
         if (cs > 1e6)
             log_msg("create_codebook: Generating a codebook of size " + to_string(cs) + ", this can be really slow!", "Warning");
@@ -807,32 +807,32 @@ vector<int> count_points_many_radiuses(const mat &R, const vector<int> &S, vecto
 cx_mat LLL_reduction(const cx_mat &G) {
     #ifdef USE_LLL
 
-    	mat G_real = to_real_matrix(G);
+        mat G_real = to_real_matrix(G);
 
-    	// ZZ_mat<double> fpG(G_real.n_rows, G_real.n_cols);
+        // ZZ_mat<double> fpG(G_real.n_rows, G_real.n_cols);
         // ZZ_mat<double> fpG(G_real.n_cols, G_real.n_rows);
         FP_mat<double> fpG(G_real.n_cols, G_real.n_rows);
-    	for (auto i = 0u; i < G_real.n_rows; i++) {
-    		for (auto j = 0u; j < G_real.n_cols; j++) {
-    			// fpG(i, j) = G_real(i, j);
+        for (auto i = 0u; i < G_real.n_rows; i++) {
+            for (auto j = 0u; j < G_real.n_cols; j++) {
+                // fpG(i, j) = G_real(i, j);
                 fpG(j, i) = G_real(i, j);
-    		}
-    	}
+            }
+        }
         cout << fpG << endl << endl;
-    	int status = lll_reduction(fpG, LLL_DEF_DELTA, LLL_DEF_ETA, LM_PROVED, FT_DEFAULT, 0, LLL_DEFAULT);
-    	if (status != RED_SUCCESS) {
-    	    log_msg("LLL reduction failed!", "Error"); //with error '" + to_string(get_red_status_str(status)) + "'", "Error");
-    	    exit(1);
-    	}
+        int status = lll_reduction(fpG, LLL_DEF_DELTA, LLL_DEF_ETA, LM_PROVED, FT_DEFAULT, 0, LLL_DEFAULT);
+        if (status != RED_SUCCESS) {
+            log_msg("LLL reduction failed!", "Error"); //with error '" + to_string(get_red_status_str(status)) + "'", "Error");
+            exit(1);
+        }
         cout << fpG << endl << endl;
-    	for (auto i = 0u; i < G_real.n_rows; i++) {
-    		for (auto j = 0u; j < G_real.n_cols; j++) {
-    			// G_real(i, j) = fpG(i, j).get_d();
+        for (auto i = 0u; i < G_real.n_rows; i++) {
+            for (auto j = 0u; j < G_real.n_cols; j++) {
+                // G_real(i, j) = fpG(i, j).get_d();
                 G_real(i, j) = fpG(j, i).get_d();
-    		}
-    	}
+            }
+        }
         cout << G_real << endl;
-    	return to_complex_matrix(G_real);
+        return to_complex_matrix(G_real);
 
     #else /* Do nothing */
 

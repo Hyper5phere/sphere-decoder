@@ -145,9 +145,9 @@ int main(int argc, char** argv)
        i.e. all codewords that belong to the same coset have the same meaning 
        for this simulation we need another lattice, which is a sublattice of the previous one */
     bool coset_encoding = (filenames.count("cosets") != 0); /* If the user has spesified a coset basis file, assume 'wiretap' simulation */
-	bool siso_channel = (channel_model.compare("siso") == 0); /* flag that is true when SISO channel model is used */
-	
-	if (!siso_channel && channel_model.compare("mimo") != 0){
+    bool siso_channel = (channel_model.compare("siso") == 0); /* flag that is true when SISO channel model is used */
+    
+    if (!siso_channel && channel_model.compare("mimo") != 0){
         log_msg("Invalid channel model parameter used!", "Error");
         exit(1);
     }

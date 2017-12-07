@@ -45,8 +45,8 @@ inline void dfe(int i, int q, vec &xt, const vec &y, vec &delta, const vec &ksi,
    i.e. no points in that sub search tree are inside the sphere because they can only be further away or at the same distance. */
 inline void se_enum(int i, vec &xt, vec &delta) {
     /* add delta to xt and pick new delta (difference to next symbol in S we want to try) */
-	xt[i] = xt[i] + delta[i];
-	delta[i] = -delta[i] - 2*sesd_sign(delta[i]);
+    xt[i] = xt[i] + delta[i];
+    delta[i] = -delta[i] - 2*sesd_sign(delta[i]);
 }
 
 /* Perform some basic checks to ensure that the sphere decoder works as intended */
@@ -81,11 +81,11 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     int i = k-1; /* We start from dimension k-1 and iterate all the way down to dimension 0 */
 
     vector<int> x(k); /* point to decode */
-	vec xt(k), ksi(k), delta(k), dist(k);
+    vec xt(k), ksi(k), delta(k), dist(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros();
     counter = 0; /* counts how many search tree nodes (loop iterations) we went through */
-	
-	double xidist = 0.0;
+    
+    double xidist = 0.0;
     bool found = false;
 
     if (!check(radius, R, y))
@@ -104,16 +104,16 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
         // cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
 
         if (radius < dist[i] + xidist) { // current point xt is outside the sphere
-        	// Step 4.
-        	if (i == k-1) {
-        		break;
-        	} else {
-        		// Step 6.
+            // Step 4.
+            if (i == k-1) {
+                break;
+            } else {
+                // Step 6.
                 i++;
-        		se_enum(i, xt, delta);
-        	}
+                se_enum(i, xt, delta);
+            }
         } else { // we are inside the sphere
-        	if (xt[i] < S[0] || xt[i] > S[q - 1]){ // we are outside the signal set boundaries
+            if (xt[i] < S[0] || xt[i] > S[q - 1]){ // we are outside the signal set boundaries
                 if ((xt[i] < S[0] && (xt[i] + delta[i]) > S[q - 1]) || (xt[i] > S[q - 1] && (xt[i] + delta[i]) < S[0])){
                     // Step 4.
                     if (i == k-1) {
@@ -123,28 +123,28 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
                         se_enum(i, xt, delta);
                     }
                 } else {
-        	        se_enum(i, xt, delta);
+                    se_enum(i, xt, delta);
                 }
             } else {
-        		if (i > 0) {
+                if (i > 0) {
                     ksi[i-1] = 0;
-        			for (int j = i; j < k; j++)
-        				ksi[i-1] += R(i-1, j)*xt[j];
-        			dist[i-1] = dist[i] + xidist;
-        			i--;
+                    for (int j = i; j < k; j++)
+                        ksi[i-1] += R(i-1, j)*xt[j];
+                    dist[i-1] = dist[i] + xidist;
+                    i--;
                     dfe(i, q, xt, y, delta, ksi, R, S);
-        		} else { // lattice point is found (Step 5)
-        			radius = dist[0] + xidist;
+                } else { // lattice point is found (Step 5)
+                    radius = dist[0] + xidist;
                     found = true;
-        			x = conv_to<vector<int>>::from(xt);
+                    x = conv_to<vector<int>>::from(xt);
                     i++;
-        			se_enum(i, xt, delta);
-        		}
-        	}
+                    se_enum(i, xt, delta);
+                }
+            }
         }
     }
     if (found)
-	    return x;
+        return x;
     else {
         log_msg("sphdec: point not found!", "Alert");
         return vector<int>(0);
