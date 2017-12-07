@@ -4,7 +4,7 @@
 ##### Settings file examples (7 in total)
 - MIMO Alamouti 4-PAM ✔
 - MIMO MIDO ✔
-- SISO Golden code 8-PAM or 16-PAM
+- ~~SISO Golden code 8-PAM or 16-PAM~~
 - MIMO Golden code 8-PAM ✔
 - Krus_7
 
@@ -12,16 +12,16 @@
 - Alamouti ✔
 - Golden code ✔
 - MIDO ✔
-- Wiretap examples
+- Wiretap examples ✔
 - Krus_7
 
 ### Third chapter
-- Finish mathematical background (how sphdec works)
+- Finish mathematical background (how sphdec works) ✔
 
 ##### Sphere decoder implementation
 - explain use of finite signal sets (restricted to PAM) ✔
-- accepts complex matrices as input
-- complex matrices converted to equivalent real representation internally
+- accepts complex matrices as input ✔
+- complex matrices converted to equivalent real representation internally ✔
 
 ### Fourth chapter
 - Remove technical information, add graphs and compare simulation results
