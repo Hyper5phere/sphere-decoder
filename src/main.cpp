@@ -232,6 +232,15 @@ int main(int argc, char** argv)
     // for (const auto &b : cos_bases) {
     //     output_complex_matrix("bases/alamouti_L5.txt", b, true);
     // }
+    // cx_mat T(7,7);
+    // for (short j = 0; j < 7; ++j){
+    //     T.row(j) = bases[j];
+    // }
+    // // auto cols = generator_to_bases(T);
+    // for (short j = 0; j < 7; ++j) {
+    //     output_complex_matrix("bases/krus_7_new.txt", T.col(j), true);
+    // }
+    // exit(0);
 
     /***** Another example of matrix outputting: prints the real generator matrix into a txt file *****/
     // output_real_matrix("bases/MIDO_basis.txt", G_real);
@@ -396,6 +405,8 @@ int main(int argc, char** argv)
         double avg_complex = 0;
         int    max_complex = 0;
         double noisepow = 0;
+        double sigsum = 0;
+        double noisesum = 0;
         double SNRreal = 0;
         double C = 0.0; /* initial squared radius for the sphere decoder */
 
@@ -445,9 +456,11 @@ int main(int argc, char** argv)
 
                 N = create_random_matrix(n, t, 0, Nvar); /* Additive complex Gaussian white noise matrix */
 
-                sigpow += frob_norm_squared(H*X);       /* Signal power */
-                noisepow += frob_norm_squared(N);       /* Noise power */
-                C = noisepow + 1e-3;                    /* initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison) */
+                sigpow = frob_norm_squared(H*X);       /* Signal power */
+                noisepow = frob_norm_squared(N);       /* Noise power */
+                C = noisepow + 1e-3;                   /* initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison) */
+                sigsum += sigpow;                      /* sum of signal powers */
+                noisesum += noisepow;                  /* sum of noise powers */
 
                 /* wrapper function for the sphere decoder algorithm, see details in sphdec.cpp 
                    x is the decoded output vector */
@@ -479,7 +492,7 @@ int main(int argc, char** argv)
 
                 /* print intermediate simulation stats every now and then (if enabled) */
                 if (runs % stat_interval == 0 && stat_interval > 0){
-                    SNRreal = 10 * log(sigpow / noisepow) / log(10.0);
+                    SNRreal = 10 * log(sigsum / noisesum) / log(10.0);
                     bler = (double)errors/runs;
                     avg_complex = (double)total_nodes/runs;
                     /*log_msg("SNR-simulation " + to_string(snr) + \
@@ -500,7 +513,7 @@ int main(int argc, char** argv)
             /* SNR simulation finished, calculate results... */
 
             /* Sanity check for the realized SNR, should roughly equal to the configured SNR */
-            SNRreal = 10 * log(sigpow / noisepow) / log(10.0); 
+            SNRreal = 10 * log(sigsum / noisesum) / log(10.0);
             /* Block error rate */
             bler = (double)errors/runs;
             /* Average complexity (number of visited search tree nodes) of the sphere decoder */
@@ -527,8 +540,8 @@ int main(int argc, char** argv)
             /* reset counters after simulation round */
             runs = 0;
             errors = 0;
-            noisepow = 0;
-            sigpow = 0;
+            sigsum = 0;
+            noisesum = 0;
             total_nodes = 0;
         }
 

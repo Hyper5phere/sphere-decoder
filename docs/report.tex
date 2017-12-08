@@ -683,15 +683,23 @@ The program discussed in this paper is essentially a lattice code simulator impl
 
 \subsection{Simulation examples}
 
-To better grasp the concept of the lattice code simulations using this program, let's give a couple of common examples. 
+To better grasp the concept of the lattice code simulations using this program, let's give a couple of common examples. To run successful simulations one needs to pay close attention to the simulation paramaters and the basis matrices of the lattice code.
+
+\subsubsection{Wiretap simulation}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{alamouti_cosets12345_8-PAM}
   \caption{Five different sublattices for coset encoding in wiretap simulations. ECDP stands for "Eve's correct decoding probability".}
-  \label{fig:bases}
+  \label{fig:ecdp}
 \end{figure}
 
+\begin{figure}[ht]
+  \centering
+\includegraphics[width=\linewidth]{mido_sample_all_65k_unbiased}
+  \caption{Comparing the MIDO (8-PAM, MIMO) simulation results with the old sphere decoder implementation from \cite{ranto}. The curves are roughly the same.}
+  \label{fig:mido}
+\end{figure}
 \clearpage
 
 \section{Summary}

@@ -249,7 +249,7 @@ vector<cx_mat> read_matrices(const string &filepath){
 
     /* Sanity check */
     if (m*t*k != (int)numbers.size()){
-        log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements (read " + to_string(numbers.size()) + \
+        log_msg("Failed to read the " + to_string(m*t*k) + " matrix elements (found " + to_string(numbers.size()) + \
             ") configured in '" + filepath + "'!", "Error");
         exit(1);
     }
