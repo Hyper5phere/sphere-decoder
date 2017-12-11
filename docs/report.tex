@@ -685,7 +685,16 @@ The program discussed in this paper is essentially a lattice code simulator impl
 
 To better grasp the concept of the lattice code simulations using this program, let's give a couple of common examples. To run successful simulations one needs to pay close attention to the simulation paramaters and the basis matrices of the lattice code.
 
-\subsubsection{Wiretap simulation}
+\subsubsection{Wiretap simulations}
+Sometimes the data sent through a wireless channel can be eavesdropped by an unwanted third party, so the motivation in these kinds of simulations is to find a way to represent the data in a such way that itö's hard to wiretap. The scenario here is that Alice sends data to Bob via wireless (directional) link and Eve wants to wiretap their communication from elsewhere. The assumptions for the simulation are that both Eve and Bob have the same channel model and Eve knows everything Bob does (e.g. the codebook Bob is using) but Eve's channel has lower SNR than Bob's channel due to Bob having better reception. The aim in code design here is to have low to none mutual information between Alice and Eve. 
+\par Having low SNR already makes Eve's job of making sense of the communication harder as she starts to gets decoding errors. However in the usual 16-QAM constellation (4-PAM symboling set) for example, the codewords are arranged in a spesific manner (see figure \ref{fig:16QAM}) and the decoding errors Eve gets are usually decoding to the neighboring codeword. For example if Alice sent 1111 to Bob using the codebook in figure \ref{fig:16QAM}, Eve probably won't decode to 0000 even with low SNR. So in the end Eve gets a rough idea what was sent by analyzing the codeword distribution. 
+\par The goal is to make such statistical analysis close to impossible, i.e. all Eve can do is take a guess. One way to achieve this is so called coset coding. Instead of assinging all 16 codewords in figure \ref{fig:16QAM} a different message one can assign the same message to multiple codewords. For example one can decide that the codewords in set $\{0001, 0010, 1101, 1110\}$ all mean the same message in figure \ref{fig:16QAM}. This set of codewords belongs to a sublattice, in this example $2\mathbb{Z}^2$, of the original lattice ($\mathbb{Z}^2$) in which the constellation lies in. 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{16-QAM}
+  \caption{The 16-QAM codeword constellation with Gray encoding, each point represents a codeword. Using this scheme the codewords can store up to 4 bits of information if each codeword is assigned a unique message.}
+  \label{fig:16QAM}
+\end{figure}
 
 \begin{figure}[ht]
   \centering
