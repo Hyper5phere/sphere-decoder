@@ -189,7 +189,8 @@
 \keywords{sphere decoding, space--time lattice codes, wireless communications}
 %% Abstract text
 \begin{abstractpage}[english]
- \end{abstractpage}
+
+\end{abstractpage}
 
 %% Force a new page so that the possible English abstract starts on a new page
 %%
@@ -236,7 +237,11 @@ $\mathbf{X}$  & Matrix \\
 \begin{tabular}{ll}
 $\| \cdot \| $     & Euclidean norm \\
 $\left\lceil\cdot\right\rfloor$ & Round to nearest integer \\
-det$(\mathbf{X})$  & Determinant of matrix $\mathbf{X}$
+det$(\mathbf{X})$  & Determinant of matrix $\mathbf{X}$ \\
+Re$(z)$ & Real part of complex number $z$ \\
+Im$(z)$ & Imaginary part of complex number $z$ \\
+vol$(\Lambda)$ & Volume of the fundamental (and Voronoi) cell of lattice $\Lambda$ \\
+$|\mathcal{L}|$ & Cardinality of set $\mathcal{L}$ \\
 \end{tabular}
 
 \subsection*{Abbreviations}
@@ -246,8 +251,10 @@ SNR & Signal to noise ratio \\
 CVP & Closest vector problem \\
 MIMO & Multiple input multiple output \\
 PAM & Pulse amplitude modulation \\
+QAM & Quadrature amplitude modulation \\
 i.i.d. & independent and identically distributed \\
 BLER & Block error rate \\
+ECDP & Eve's correct decoding probability \\
 \end{tabular}
 
 
@@ -276,6 +283,8 @@ BLER & Block error rate \\
 %% Leave first page empty
 Wireless communication has been a crucial part of modern information technology for a couple of decades now. It is facing a lot of practical everyday problems which motivate the ongoing extensive research on the field. One of these problems is the noise and fading that occurs on wireless channels due to obstacles and radiation from the surroundings. To avoid data loss during transmission via wireless link one has to encode the data to be sent in such a robust way that it can still be recovered at the receiving end even in the presence of noise and fading of reasonable scale. 
 \par One way to tackle this problem, and the method this thesis focuses on, is the use of space--time lattice codes and sphere decoding. From a mathematical point of view the process of decoding can then be viewed as a problem of finding the closest lattice point to a given input vector, that is, the possibly noisy vector containing the data we receive from the wireless channel. This problem in its general form is known to be NP-hard, but for communications applications, where the dimensionality and the shape of the lattice are kept reasonable, there exist algorithms, like the sphere decoder, that offer polynomial expected complexity with respect to the size of the codeword constellation \cite{mia}.
+\par This paper serves as a documentation for the lattice code simulator program. It should work as a stand alone reference for researchers who want to use it to test their lattice code designs in different simulations. This paper gives brief mathematical background about lattice theory, closest vector problem and space--time lattice codes in section \ref{sec:lattices}. After that the core algorithm of the program, namely \emph{the sphere decoder}, is discussed in chapter \ref{sec:sphdec}. Explicit pseudocodes are given for both algorithms used in the program as well as some mathematical background to help understand their workings. In section \ref{sec:sims} the principles of the simulations are explained i.e. the program model. Examples of common simulations are given.
+\par In addition to theoretical explanation about the simulations this program runs, a practical program user guide is included in the appendix of this paper. It explains how to install and setup the program, as well as offers examples of simulation setups for quick reference.
 
 
 %% In a thesis, every section starts a new page, hence \clearpage
@@ -393,7 +402,7 @@ for all $1 \leq i \leq n, \ 1 \leq j \leq m$. The $n_{i,j}$ is the corresponding
 \clearpage
 
 \section{Sphere decoder}
-
+\label{sec:sphdec}
 In this chapter we will discuss an efficient decoding algorithm for space--time block codes known as the sphere decoder. The name \emph{sphere decoder} actually comes from Pohst's idea of conducting the search within a finite hypersphere in 1981 \cite{agrell}. This thesis is particularly interested in the Schnorr-Euchner implementation of the algorithm, which is based on Pohst strategy and the Babai nearest plane algorithm \cite{agrell}. 
 \par The problem of decoding the correct codeword from the set of all possible codewords from the received noisy codeword can be reduced to CVP discussed earlier \cite{mia}. But exhaustive search over all points (codewords) in the finite lattice of interest (codebook) is just not feasible solution as the number of possible codewords grows exponentially with the rank of the lattice code $k$ in equation \eqref{eq:codeword} and the size of the signaling set $q$ in equation \eqref{eq:pam}. 
 \par Luckily the sphere decoder algorithm exists, which instead of searching through all lattice points within the finite signal set boundaries only considers lattice points within a hypersphere around the received vector of certain radius like in figure \ref{fig:sphere}. This significantly reduces the complexity of the search algorithm. 
@@ -610,10 +619,11 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 \clearpage
 
 \section{Lattice code simulations}
+\label{sec:sims}
 \subsection{Program implementation}
 The program discussed in this paper is essentially a lattice code simulator implemented as a command line application which the aforementioned sphere decoder algorithm is also part of. In this section a rough outline of the implementation is presented, which is most concisely presented in figure \ref{fig:program}. With this insight one ought to create better simulations, especially when experimenting simulations outside the normal parameter range.
 \par What the program actually simulates is the block error rate (BLER) of the lattice code under different levels of signal-to-noise ratios (SNR). Block error occurs when the decoded codeword is not exactly the same as the one we sent and the program counts these. Then BLER is simply the number of block errors divided by the number of simulation runs. The program can run multiple simulations in parallel, all of which simulate one SNR level each. The SNR is used to calculate the variance of the Rayleigh channel matrix coefficients in figure \ref{fig:mimo}. The channel noise matrix variance was chosen to be fixed one during all simulations. Note that the channel model is not limited to MIMO like in figure \ref{fig:mimo} but can also be chosen to be SISO system which simulates one transmit and one receiver antenna.
-\par The program requires at least two input files: the settings file and a basis matrix file, both located in their dedicated folders. Depending on the type of simulation one can also specify two additional input files for the sublattice basis matrices (for wiretap simulations) and simulation error limits (i.e. how many errors per SNR). To put it simply, the basis matrices are \textit{the lattice code} you want to test and the other two input files are just parameters for the simulation. There are many possible combinations of parameters to use, we'll go through some of them in the next section with example simulation setups.
+\par The program requires at least two input files: the settings file and a basis matrix file, both located in their dedicated folders. Depending on the type of simulation one can also specify two additional input files for the sublattice basis matrices (for wiretap simulations) and simulation error limits (i.e. how many errors per SNR). To put it simply, the basis matrices are \textit{the lattice code} this program is used to test and the other two input files are just parameters for the simulation. There are many possible combinations of parameters to use, we'll go through some of them in the next section with example simulation setups.
 \par One key feature of the program is the support for codebooks of spherical shape. Unlike the codebook described in \eqref{eq:codeword}, which is clearly a parallelotope shaped subset of a lattice $\Lambda(\textbf{X}_i)$ as the codeword coordinates take values from finite subset of $\mathbb{Z}$. In contrast to this, a spherical codebook only considers codewords in the lattice, that lie within certain radius of the origin. The simulations work rather differently depending on which type of codebook is used, this can also be clearly seen in flow charts \ref{fig:sphdec} and \ref{fig:program}. The idea of using a spherical codebook is to keep the maximum energy of the codebook reasonable as in skewed lattices parallelotope vertices and therefore some of the possible codewords can be rather far from the origin and require significantly more energy to send than the ones near origin. The problem however is estimating the correct radius to cover certain amount of codewords within the codebook boundary hypersphere. The program implements an option for estimating the radius automatically as seen in the program flowchart \ref{fig:program}. In the settings file user can specify the exponent $s$ and also the number or different radiuses considered around the initial radius when doing the search. The larger this variable is the better the radius estimate usually is (at the cost of increased computation time). If the estimation fails for some reason, it rolls back to user defined radius or using the parallelotope shaped codebook instead.
 \par Once this is done the program creates the codebook, either the whole thing or a random sampled part of it, which can be decided in the settings file. The last option is usually recommended as the codebooks tend to be really large and attempting to create too large codebooks can even cause your computer to freeze. Although using random sampled codewords especially with spherical shaped codebooks introduces a certain bias as codewords near the boundary of the hypersphere tend to get picked more often. The pregenererated random sampled codebook is not used in the actual simulations, instead random codewords are generated on the fly. If one chooses to generate the whole codebook then the codewords are also picked from it during simulation, which might slightly speed up the actual simulations and also eliminate any biases given that the codebook was generated correctly. 
 \par The codebook $\mathcal{L}$ is then used for calculating its average and maximum energy. The energy of a single codeword matrix $\mathbf{X}$ is its squared Frobenius norm. The codebook average energy is later used in calculating the variance for the channel matrix. After all preparations are done, the program prints out the info relevant to current simulation and asks the user to verify it before starting the actual simulations. If something is out of place (e.g. wrong signaling set or ridiculously high average energy) you can abort the simulation here and double check your input files.
@@ -719,7 +729,7 @@ so in the given example this rate is only 2-bits. But the overall code rate $r=\
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{alamouti_cosets12345_8-PAM}
-  \caption{Five different sublattices for coset encoding in wiretap simulations. ECDP stands for "Eve's correct decoding probability".}
+  \caption{Five different sublattices for coset encoding in wiretap simulations.}
   \label{fig:ecdp}
 \end{figure}
 
@@ -731,8 +741,8 @@ so in the given example this rate is only 2-bits. But the overall code rate $r=\
 \end{figure}
 \clearpage
 
-\section{Summary}
-
+\section{Conclusion}
+\label{sec:conc}
 
 \clearpage
 %% The \phantomsection command is nessesary for hyperref to jump to the 
@@ -885,7 +895,7 @@ If there are no errors regarding missing libraries or such then you have just co
 
 \subsection{Setup and Input}
 
-Now that the program is installed it is time to take a look at the simulation parameters and the program input files in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. Note that the program supports complex matrices as input, which are the preferred way of inputting your basis matrices. You can (and should) add your own basis matrix text files there. The program should not be too picky about the input format but do make sure you have something other than white spaces separating the matrix entries. The most tested input format is the \href{http://reference.wolfram.com/language/tutorial/LinearAlgebraMatrixTypes.html#1527024338}{Wolfram Mathematica complex matrix format}, which should work in all cases. This format is also used in most of the example basis matrix files provided with the program, which you can use as a reference, like the one in figure \ref{fig:alamouti_basis}.
+Now that the program is installed it is time to take a look at the simulation parameters and the program input files in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. Note that the program supports complex matrices as input, which are the preferred way of inputting your basis matrices. You can (and should) add your own basis matrix text files there. The program should not be too picky about the input format but do make sure you have something other than white spaces separating the matrix entries. The most tested input format is the \href{http://reference.wolfram.com/language/tutorial/LinearAlgebraMatrixTypes.html#77896732}{Wolfram Mathematica matrix format}, which should work in all cases. This format is also used in the example basis matrix files provided with the program, like the one in figure \ref{fig:alamouti_basis}, which you can also use as a reference.
 %The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single]
