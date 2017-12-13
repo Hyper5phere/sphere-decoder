@@ -6,14 +6,14 @@
 - MIMO MIDO ✔
 - ~~SISO Golden code 8-PAM or 16-PAM~~
 - MIMO Golden code 8-PAM ✔
-- Krus_7
+- Krus_7 ✔
 
 ##### Input matrix examples
 - Alamouti ✔
 - Golden code ✔
 - MIDO ✔
 - Wiretap examples ✔
-- Krus_7
+- Krus_7 ✔
 
 ### Third chapter
 - Finish mathematical background (how sphdec works) ✔

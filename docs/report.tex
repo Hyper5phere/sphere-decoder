@@ -695,7 +695,7 @@ Sometimes the data sent through a wireless channel can be eavesdropped by an unw
 as sublattice points form a group under addition, as one can recall from lattice theory in section \ref{sec:lattices}. 
 %One can divide the original lattice code into sublattices, which are carved out of the original one. Instead of assinging all 16 codewords in figure \ref{fig:16QAM} a different message one can assign the same message to multiple codewords. For example one can decide that the codewords in set $\{0001, 0010, 1101, 1110\}$ all mean the same message in figure \ref{fig:16QAM}. This set of codewords, which is called a \emph{coset}, lies in such a  sublattice, in this example $2\mathbb{Z}^2$. Using affine shifts for this sublattice one can obtain the three other sublattices to cover rest of the points in figure \ref{fig:16QAM}. So one ends up with four disjoint cosets that represent unique messages.
 
-As an example, let's consider figure \ref{fig:16QAM} where the codebook is carved out of lattice $\mathbb{Z}^2$, so $\Lambda_b = \mathbb{Z}^2$. An intuitive way to pick the sublattice is $\Lambda_e = 2\mathbb{Z}^2$, so now for example the codewords $\{0001, 0010, 1101, 1110\}$ all mean the same message. The right neighbors of those codewords (affine shift) form another coset that represents a different message and so on. 
+As an example, let's consider figure \ref{fig:16QAM} where the codebook is carved out of lattice $\mathbb{Z}^2$, so $\Lambda_b = \mathbb{Z}^2$. An intuitive way to pick the sublattice is $\Lambda_e = 2\mathbb{Z}^2$, so now for example the red codewords $\{0001, 0010, 1101, 1110\}$ all mean the same message. The right neighbors of those codewords (affine shift) form another coset that represents a different message and so on. The cosets are color coded in figure \ref{fig:16QAM}.
 \par The number of different cosets using this notation is defined as
 \begin{equation}
 \left[\Lambda_b : \Lambda_e\right] = \frac{\operatorname{vol}(\Lambda_e)}{\operatorname{vol}(\Lambda_b)} 
@@ -705,11 +705,14 @@ where the operator $\operatorname{vol}(\cdot)$ means the volume (or area) of the
 \begin{equation}
 r_i = \log_2{\left[\Lambda_b : \Lambda_e\right]}
 \end{equation}
-so in the given example this rate is only 2-bits. But the code rate $r=\log_2{|\mathcal{L}|}$ is still 4-bits, so the extra 2-bits are being used for confusion. That is why the difference $r-r_i$ is called the confusion rate $r_c$.
+so in the given example this rate is only 2-bits. But the overall code rate $r=\log_2{|\mathcal{L}|}$ is still 4-bits, so the extra 2-bits are being used for confusion. That is why the difference $r-r_i$ is called the confusion rate $r_c$. The program prints these rates in simulation information part (see figure \ref{fig:program}) when doing wiretap simulations.
+\par Using this complicated coding scheme to represent messages seems a bit unintuitive at first, but let's take a look at its obvious benefits. In earlier case Eve could eliminate with high confidence which messages were \emph{not} sent and therefore receive information. This is no longer the case. With clever choice of the cosets she could misdecode into any of those cosets, that is, get the wrong message, with close to equal probability as a member of each coset is now neighboring each codeword as seen in figure \ref{fig:16QAM}. This means that with low enough SNR she is ultimately reduced to guessing which one of the four messages was sent.
+\par So the idea of these simulations is to see how well a certain sublattice $\Lambda_e$ performs. That is, how fast will the Eve's correct decoding probability (ECDP = 1-BLER) converge to value $1/\left[\Lambda_b : \Lambda_e\right]$, which represents pure guessing out of all possible cosets. So the criteria for a good coset coding is \emph{the higher the SNR when this convergence happens the better}.
+\par 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.5\linewidth]{16-QAM}
-  \caption{The 16-QAM codeword constellation with Gray encoding, each point represents a codeword. Using this scheme the codewords can store up to 4 bits of information if each codeword is assigned a unique message.}
+  \caption{The 16-QAM codeword constellation with Gray encoding, each point represents a codeword. In coset encoding the codewords with the same color mean the same message.}
   \label{fig:16QAM}
 \end{figure}
 
