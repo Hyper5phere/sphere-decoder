@@ -186,10 +186,11 @@
 %% niin kuin se on yllä määritelty.
 %% Avainsanat
 %%
-\keywords{sphere decoding, space--time lattice codes, wireless communications}
+\keywords{sphere decoding, space--time lattice codes, wireless communications, spherical codebook, wiretap}
 %% Abstract text
 \begin{abstractpage}[english]
-
+Space--time block codes are widely used in wireless MIMO antenna systems because they enable transmission of multiple copies of a data stream, which  improves the reliability of data-transfer. Even though this adds some redundancy to channel uses, it's still a small price to pay for reliability, which is crucial in modern information systems. Because of the known wireless channel problems such as fading and thermal noise, sending only one copy of the data may not be enough, but the clever design of a space--time block code and the use of multiple antenna system might be more than sufficient to negate these issues. Clearly, the design of optimal codes, i.e the way to represent the data to the wireless link, plays a crucial role for future wireless communications, MIMO systems just being an example of their applications. \\ \\
+This paper is especially for information theorists and researchers of wireless codes. Also it's not strictly restricted to MIMO codes only. This paper introduces an efficient and relatively easy to use simulation program for testing code designs in wireless communications. It uses a smart implementation of the Schnorr-Euchner Sphere decoder algorithm for decoding, which offers a lot of flexibility to support various code constructions. The special features of the program include support for spherically shaped codebooks, complex matrix input and coset coding for wiretap simulations. Also SISO codes can be simulated with this program. This paper covers most of the theoretical background needed to use the program as well as gives practical instructions and examples for its usage.
 \end{abstractpage}
 
 %% Force a new page so that the possible English abstract starts on a new page
@@ -722,7 +723,7 @@ so in the given example this rate is only 2-bits. But the overall code rate $r=\
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.5\linewidth]{16-QAM}
-  \caption{The 16-QAM codeword constellation with Gray encoding, each point represents a codeword. In coset encoding the codewords with the same color mean the same message.}
+  \caption{The 16-QAM codeword constellation with Gray encoding, each point represents a codeword. In coset coding the codewords with the same color mean the same message.}
   \label{fig:16QAM}
 \end{figure}
 
@@ -986,6 +987,9 @@ If the program exits without errors its output should be found from /output/ fol
 plot_results=1 
 \end{verbatim}
 then a couple of graphical interfaces for plots generated from the simulation data should pop up. If there are errors check that you also have GNUPlot installed on your system. Plotting gives you a quick review on how the simulation went. For more rigorous data analysis it is recommended to import the output csv file to some numerical scientific calculation software like Matlab.
+
+\subsection{Example simulation setups}
+
 
 \subsection{General troubleshooting}
 Some general miscellaneous tips are listed here to help you troubleshoot errors while using the program:
