@@ -189,8 +189,8 @@
 \keywords{sphere decoding, space--time lattice codes, wireless communications, spherical codebook, wiretap}
 %% Abstract text
 \begin{abstractpage}[english]
-Space--time block codes are widely used in wireless MIMO antenna systems because they enable transmission of multiple copies of a data stream, which  improves the reliability of data-transfer. Even though this adds some redundancy to channel uses, it's still a small price to pay for reliability, which is crucial in modern information systems. Because of the known wireless channel problems such as fading and thermal noise, sending only one copy of the data may not be enough, but the clever design of a space--time block code and the use of multiple antenna system might be more than sufficient to negate these issues. Clearly, the design of optimal codes, i.e the way to represent the data to the wireless link, plays a crucial role for future wireless communications, MIMO systems just being an example of their applications. \\ \\
-This paper is especially for information theorists and researchers of wireless codes. Also it's not strictly restricted to MIMO codes only. This paper introduces an efficient and relatively easy to use simulation program for testing code designs in wireless communications. It uses a smart implementation of the Schnorr-Euchner Sphere decoder algorithm for decoding, which offers a lot of flexibility to support various code constructions. The special features of the program include support for spherically shaped codebooks, complex matrix input and coset coding for wiretap simulations. Also SISO codes can be simulated with this program. This paper covers most of the theoretical background needed to use the program as well as gives practical instructions and examples for its usage.
+Space--time block codes are widely used in wireless MIMO antenna systems because they enable transmission of multiple copies of a data stream, which  improves the reliability of data-transfer. Even though this adds some redundancy to channel uses, it's still a small price to pay for reliability, which is crucial in modern information systems. Because of the known wireless channel problems such as fading and thermal noise, sending only one copy of the data may not be enough, but the clever design of a space--time block code and the use of multiple antenna system might be more than sufficient to negate these issues. Clearly, the design of optimal codes, i.e the way to represent the data to the wireless link, plays a crucial role for future wireless communications, MIMO systems just being one example of their applications. \\ \\
+This paper is especially for information theorists and researchers of codes for Rayleigh fading SISO and MIMO channels. This paper introduces an efficient and relatively easy to use simulation program for testing code designs in wireless communications. It uses a smart implementation of the Schnorr-Euchner Sphere decoder algorithm for decoding, which offers a lot of flexibility to support various code constructions. The special features of the program include support for spherically shaped codebooks, complex matrix input and coset coding for wiretap simulations. Also SISO codes can be simulated with this program. This paper covers most of the theoretical background needed to use the program as well as gives practical instructions and examples for its usage.
 \end{abstractpage}
 
 %% Force a new page so that the possible English abstract starts on a new page
@@ -692,11 +692,9 @@ The program discussed in this paper is essentially a lattice code simulator impl
 \label{fig:program}
 \end{figure}
 
-\subsection{Simulation examples}
 
-To better grasp the concept of the lattice code simulations using this program, let's give a couple of common examples. To run successful simulations one needs to pay close attention to the simulation paramaters and the basis matrices of the lattice code.
 
-\subsubsection{Wiretap simulations}
+\subsection{Wiretap simulations}
 Sometimes the data sent through a wireless channel can be eavesdropped by an unwanted third party, so the motivation in these kinds of simulations is to find a way to represent the data in a such way that itö's hard to wiretap. The scenario here is that Alice sends data to Bob via wireless (directional) link and Eve wants to wiretap their communication from elsewhere. The assumptions for the simulation are that both Eve and Bob have the same channel model and Eve knows everything Bob does (e.g. the codebook Bob is using) but Eve's channel has lower SNR than Bob's channel due to Bob having better reception. The aim in code design here is to have low to none mutual information between Alice and Eve. 
 \par Having low SNR already makes Eve's job of making sense of the communication harder as she starts to get decoding errors. However in the usual 16-QAM constellation (4-PAM symboling set) for example, the codewords are arranged in a spesific manner (see figure \ref{fig:16QAM}) and the decoding errors Eve gets are usually decoding to the neighboring codeword. For example if Alice sent 1111 to Bob using the codebook in figure \ref{fig:16QAM}, Eve probably won't decode to 0000 even with low SNR. So in the end Eve gets a rough idea what was sent by analyzing the codeword distribution. The goal is to make such statistical analysis close to impossible, i.e. all Eve can do is guess. One way to achieve this is the so called coset coding. 
 \par Let's call the lattice, where the codebook $\mathcal{L}$ is carved out from, $\Lambda_b$. Then one picks a sublattice $\Lambda_e \subsetneq \Lambda_b$. In coset encoding the two codewords $\mathbf{x, y} \in \mathcal{L} \subseteq \Lambda_b$ mean the same message if, and only if
@@ -718,13 +716,25 @@ r_i = \log_2{\left[\Lambda_b : \Lambda_e\right]}
 \end{equation}
 so in the given example this rate is only 2-bits. But the overall code rate $r=\log_2{|\mathcal{L}|}$ is still 4-bits, so the extra 2-bits are being used for confusion. That is why the difference $r-r_i$ is called the confusion rate $r_c$. The program prints these rates in simulation information part (see figure \ref{fig:program}) when doing wiretap simulations.
 \par Using this complicated coding scheme to represent messages seems a bit unintuitive at first, but let's take a look at its obvious benefits. In earlier case Eve could eliminate with high confidence which messages were \emph{not} sent and therefore receive information. This is no longer the case. With clever choice of the cosets she could misdecode into any of those cosets, that is, get the wrong message, with close to equal probability as a member of each coset is now neighboring each codeword as seen in figure \ref{fig:16QAM}. This means that with low enough SNR she is ultimately reduced to guessing which one of the four messages was sent.
-\par So the idea of these simulations is to see how well a certain sublattice $\Lambda_e$ performs. That is, how fast will the Eve's correct decoding probability (ECDP = 1-BLER) converge to value $1/\left[\Lambda_b : \Lambda_e\right]$, which represents pure guessing out of all possible cosets. So the criteria for a good coset coding is \emph{the higher the SNR when this convergence happens the better}.
+\par So the idea of these simulations is to see how well a certain sublattice $\Lambda_e$ performs. That is, how fast will the Eve's correct decoding probability (ECDP = 1-BLER) converge to value $1/\left[\Lambda_b : \Lambda_e\right]$, which represents pure guessing out of all possible cosets. So the criteria for a good coset code construction is \emph{the higher the SNR when this convergence happens the better}. An example of this kind of simulation is given in the following chapter.
 \par 
-\begin{figure}[ht]
+\begin{figure}[h!]
   \centering
   \includegraphics[width=0.5\linewidth]{16-QAM}
   \caption{The 16-QAM codeword constellation with Gray encoding, each point represents a codeword. In coset coding the codewords with the same color mean the same message.}
   \label{fig:16QAM}
+\end{figure}
+
+
+\subsection{Simulation examples}
+
+To better grasp the concept of the lattice code simulations using this program, let's give a couple of common examples.
+
+\begin{figure}[ht]
+  \centering
+\includegraphics[width=\linewidth]{mido_sample_all_65k_unbiased}
+  \caption{Comparing the MIDO (8-PAM, MIMO) simulation results with the old sphere decoder implementation from \cite{ranto}. The curves are roughly the same.}
+  \label{fig:mido}
 \end{figure}
 
 \begin{figure}[ht]
@@ -734,12 +744,7 @@ so in the given example this rate is only 2-bits. But the overall code rate $r=\
   \label{fig:ecdp}
 \end{figure}
 
-\begin{figure}[ht]
-  \centering
-\includegraphics[width=\linewidth]{mido_sample_all_65k_unbiased}
-  \caption{Comparing the MIDO (8-PAM, MIMO) simulation results with the old sphere decoder implementation from \cite{ranto}. The curves are roughly the same.}
-  \label{fig:mido}
-\end{figure}
+
 \clearpage
 
 \section{Conclusion}
