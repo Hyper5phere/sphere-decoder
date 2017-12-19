@@ -96,6 +96,7 @@
   pdftitle={Default Title, Modify},pdfauthor={Your Name},
   pdfkeywords={Modify keywords}}
 
+\newcommand\scalemath[2]{\scalebox{#1}{\mbox{\ensuremath{\displaystyle #2}}}}
 
 %% All that is printed on paper starts here
 \begin{document}
@@ -228,9 +229,11 @@ This paper is especially for information theorists and researchers of codes for 
 
 \begin{tabular}{ll}
 $\mathbb{Z}$  & Set of integers \\
+$\mathbb{R}$  & Field of real numbers \\
 $\mathbb{C}$  & Field of complex numbers \\
-$\mathbf{x}$  & Vector \\
-$\mathbf{X}$  & Matrix \\
+$\mathbb{Z}[i]$ & Ring of Gaussian integers \\
+$\mathbf{x}$  & A vector \\
+$\mathbf{X}$  & A matrix \\
 \end{tabular}
 
 \subsection*{Operators}
@@ -283,7 +286,7 @@ ECDP & Eve's correct decoding probability \\
 \section{Introduction}
 %% Leave first page empty
 Wireless communication has been a crucial part of modern information technology for a couple of decades now. It is facing a lot of practical everyday problems which motivate the ongoing extensive research on the field. One of these problems is the noise and fading that occurs on wireless channels due to obstacles and radiation from the surroundings. To avoid data loss during transmission via wireless link one has to encode the data to be sent in such a robust way that it can still be recovered at the receiving end even in the presence of noise and fading of reasonable scale. 
-\par One way to tackle this problem, and the method this thesis focuses on, is the use of space--time lattice codes and sphere decoding. From a mathematical point of view the process of decoding can then be viewed as a problem of finding the closest lattice point to a given input vector, that is, the possibly noisy vector containing the data we receive from the wireless channel. This problem in its general form is known to be NP-hard, but for communications applications, where the dimensionality and the shape of the lattice are kept reasonable, there exist algorithms, like the sphere decoder, that offer polynomial expected complexity with respect to the size of the codeword constellation \cite{mia}.
+\par One way to tackle this problem, and the method this thesis focuses on, is the use of space--time lattice codes and sphere decoding. From a mathematical point of view the process of decoding can then be viewed as a problem of finding the closest lattice point to a given input vector, that is, the possibly noisy vector containing the data received from the wireless channel. This problem in its general form is known to be NP-hard, but for communications applications, where the dimensionality and the shape of the lattice are kept reasonable, there exist algorithms, like the sphere decoder, that offer polynomial expected complexity with respect to the size of the codeword constellation \cite{mia}.
 \par This paper serves as a documentation for the lattice code simulator program. It should work as a stand alone reference for researchers who want to use it to test their lattice code designs in different simulations. This paper gives brief mathematical background about lattice theory, closest vector problem and space--time lattice codes in section \ref{sec:lattices}. After that the core algorithm of the program, namely \emph{the sphere decoder}, is discussed in chapter \ref{sec:sphdec}. Explicit pseudocodes are given for both algorithms used in the program as well as some mathematical background to help understand their workings. In section \ref{sec:sims} the principles of the simulations are explained i.e. the program model. Examples of common simulations are given.
 \par In addition to theoretical explanation about the simulations this program runs, a practical program user guide is included in the appendix of this paper. It explains how to install and setup the program, as well as offers examples of simulation setups for quick reference.
 
@@ -293,7 +296,7 @@ Wireless communication has been a crucial part of modern information technology 
 
 \section{Lattices in communications technology}
 \label{sec:lattices}
-Before we go into communications applications of lattices such as lattice codes, let us start off with the definition of a lattice. Let $n$ and $m$ be positive integers such that $n \leq m$ and $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ be linearly independent vectors. A discrete Abelian subgroup $\Lambda$ of $\mathbb{R}^m$ is called a \emph{lattice} of dimension $n$ if it is defined as
+Before proceeding into communications applications of lattices such as lattice codes, let us start off with the definition of a lattice. Let $n$ and $m$ be positive integers such that $n \leq m$ and $\mathbf{b}_1, ... , \mathbf{b}_n \in \mathbb{R}^m$ be linearly independent vectors. A discrete Abelian subgroup $\Lambda$ of $\mathbb{R}^m$ is called a \emph{lattice} of dimension $n$ if it is defined as
 
 \begin{equation}
 \Lambda = \sum_{i=1}^{n} \mathbb{Z}\mathbf{b}_i = \{a_1\mathbf{b}_1 + \ldots + a_n\mathbf{b}_n \mid a_i \in \mathbb{Z}, 1 \leq i \leq n\}\label{eq:lattice}
@@ -319,7 +322,7 @@ where $\mathbf{W}$ is an $m \times m$ matrix with integer entries \cite{agrell}.
   \label{fig:bases}
 \end{figure}
 
-\par What we considered earlier were lattices spanned over real $m$-dimensional space $\mathbb{R}^m$ but in similar sense we can consider a lattice consisting of complex valued vectors from $\mathbb{C}^m$. The principles of such complex lattice are almost the same, however, now elements of $\mathbf{B}$ and $\mathbf{a}$ take values from $\mathbb{C}$. Note that a complex lattice has an equivalent real representation which has double the rank of the corresponding complex lattice. Consider a lattice $\Lambda \subset \mathbb{C}^m$ with a generator matrix $\mathbf{B} = [\mathbf{z}_1, ... , \mathbf{z}_n]$. Now we can always express it with a real valued lattice $\Lambda_{\text{real}} \subset \mathbb{R}^{2m}$ and the corresponding $2m \times n$ generator matrix is given by
+\par What was considered earlier were lattices spanned over real $m$-dimensional space $\mathbb{R}^m$ but in similar sense one can consider a lattice consisting of complex valued vectors from $\mathbb{C}^m$. The principles of such complex lattice are almost the same, however, now elements of $\mathbf{B}$ and $\mathbf{a}$ take values from $\mathbb{C}$. Note that a complex lattice has an equivalent real representation which has double the rank of the corresponding complex lattice. Consider a lattice $\Lambda \subset \mathbb{C}^m$ with a generator matrix $\mathbf{B} = [\mathbf{z}_1, ... , \mathbf{z}_n]$. Now one can always express it with a real valued lattice $\Lambda_{\text{real}} \subset \mathbb{R}^{2m}$ and the corresponding $2m \times n$ generator matrix is given by
 
 \begin{equation}
 \mathbf{B}_{\text{real}} =
@@ -332,7 +335,7 @@ where $\mathbf{W}$ is an $m \times m$ matrix with integer entries \cite{agrell}.
 \end{bmatrix}.
 \label{eq:complex}
 \end{equation}
-In other words we convert each column of $\mathbf{B}$ to real vector by separating each of their complex elements into two adjacent real elements, that is the real and imaginary parts of the original complex element. This process doubles the amount of rows in $\mathbf{B}_{\text{real}}$ but both representations ultimately describe the same lattice. \cite{conway}
+In other words each column of $\mathbf{B}$ is converted into real vector by separating each of their complex elements into two adjacent real elements, that is the real and imaginary parts of the original complex element. This process doubles the amount of rows in $\mathbf{B}_{\text{real}}$ but both representations ultimately describe the same lattice. \cite{conway}
 
 \subsection{Closest vector problem}
 
@@ -343,7 +346,7 @@ The most relevant mathematical problem related to sphere decoding, a communicati
 \label{eq:cvp}
 \end{equation}
 
-\noindent In this thesis we mostly consider $J=\mathbb{C}^n$. 
+\noindent In this paper mostly $J=\mathbb{C}^n$ is considered.
 \par For a fixed point $\mathbf{x}' \in \Lambda$ the set of vectors $\mathbf{y}_i \in J$ that satisfy the inequality \eqref{eq:cvp} is called the Voronoi region $\mathcal{V}_{\mathbf{x}'} \subset J$ (see figure \ref{fig:voronoi}) of lattice point $\mathbf{x}'$ \cite{zamir}. This means that if $\mathbf{y} \in \mathcal{V}_{\mathbf{x}'}$ then the solution to CVP is $\mathbf{x}'$. An example of lattice's Voronoi cells is illustrated in figure \ref{fig:voronoi}. If $\mathbf{y} \in \partial\mathcal{V}_{\mathbf{x}'}$ the solution to CVP is a random choice between points whose Voronoi region contains that boundary. The volume of the $\mathcal{V}_{\mathbf{x}'}$
 %, also known as the lattice constant as it is independent of the choice of basis, 
 is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where $\mathbf{B}$ is the generator matrix of $\Lambda$. 
@@ -356,23 +359,26 @@ is given by det$(\Lambda) = $ $\sqrt{\text{det}(\mathbf{B}^T\mathbf{B}})$, where
   \label{fig:voronoi}
 \end{figure}
 
-CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when we consider skewed lattices and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for lattice codes sent via channel that induces fading. Such decoding process can be thought as a CVP. %and it's later explained in further detail.
+CVP is trivial for orthogonal lattices as one could just round every coordinate of $\mathbf{y}$ to nearest integer an get the correct answer, but CVP has been shown to be NP-hard as the function of the lattice rank in general case when skewed lattices are considered and thus all known algorithms for CVP have exponential worst case complexity \cite{agrell}. Non-trivial lattices appear in most communications applications, for example when using maximum likelihood decoding for lattice codes sent via channel that induces fading. Such decoding process can be thought as a CVP. %and it's later explained in further detail.
 
 \subsection{Space--time lattice codes}
 
-Space--time lattice codes are a robust way of encoding the data on a  wireless channel that uses multiple transmit and receiver antennas, i.e. a MIMO-system. Wireless channels are usually very error prone due to interference and fading caused by the surrounding electrical devices, obstacles and environment. This method helps to improve the reliability of the data transmission on such channel, meaning we get decoding errors less likely. Codebook from a certain space--time lattice code constellation can be represented as a set of matrices, which is defined as
+Space--time lattice codes are a robust way of encoding the data on a  wireless channel that uses multiple transmit and receiver antennas, i.e. a MIMO-system. Wireless channels are usually very error prone due to interference and fading caused by the surrounding electrical devices, obstacles and environment. This method helps to improve the reliability of the data transmission on such channel, meaning one gets decoding errors less likely. Codebook from a certain space--time lattice code constellation can be represented as a set of matrices, which is defined as
 
 \begin{equation}
 \mathcal{L} = \Bigg\{\sum_{i=1}^k a_i\mathbf{X}_i \ \Big| \ \mathbf{X}_i \in \mathcal{M}_{m \times l}(\mathbb{C}), \ a_i \in S \subset \mathbb{Z} \Bigg\}.
 \label{eq:codeword}
 \end{equation}
-The $\mathbf{X}_i, i = 1,...,k$ denote the constant basis matrices of the lattice code and the coefficients $a_i, i = 1,...,k$ are integers from a finite signal set $S$ which represent the data we want to send. We call $\mathcal{L}$ our codebook as it contains all possible codewords for a certain finite signal set. In this thesis we consider the pulse amplitude modulation ($q$-PAM) signal set of size $q$. It is defined as
+The $\mathbf{X}_i, i = 1,...,k$ denote the constant basis matrices of the lattice code and the coefficients $a_i, i = 1,...,k$ are integers from a finite signal set $S$ which represent the data one wants to send. Let us call $\mathcal{L}$ our codebook as it contains all possible codewords for a certain finite signal set. In this paper the pulse amplitude modulation ($q$-PAM) signal sets of size $q$ are considered. It is defined as
 
 \begin{equation}
 S = \{a = 2u-q+1\mid u \in \mathbb{Z}_q\}
 \label{eq:pam}
 \end{equation}
-with $\mathbb{Z}_q = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,1,3\}$ i.e. all the odd integers which absolute value is smaller than 4. The size of the signal set is usually chosen to be some power of two, i.e. $q = 2^b$. This way $b$ information bits are mapped to each codeword we send. \cite{mia} 
+with $\mathbb{Z}_q = \{0,1,...,q-1\}$. So for example 4-PAM gives $S = \{-3, -1,1,3\}$ i.e. all the odd integers which absolute value is smaller than 4. The size of the signal set is usually chosen to be some power of two, i.e. $q = 2^b$. This way $b$ information bits are mapped to each codeword sent. \cite{mia} 
+%\par It is also helpful to keep in mind that using complex valued lattice codes with $q$-PAM signaling set is equivalent to using $q^2$-QAM signaling set with real valued lattice codes.
+\par It should be noted that the program always considers a $\mathbb{Z}$-basis for the lattice codes, hence $q$-PAM signaling set corresponds to $q^2$-QAM signaling whenever the code also admits a $\mathbb{Z}[i]$-basis.
+For example the signaling set in figure \ref{fig:16QAM} represents 4-PAM in the notation used by the program as it is associated with the Alamouti code, which admits a $\mathbb{Z}[i]$-basis.
 %Note that the origin i.e. the zero vector is never part of the $q$-PAM codebook $\mathcal{L}$ as it maps to origin in every lattice we choose for our lattice code.
 
 \begin{figure}[ht]
@@ -439,7 +445,7 @@ where $\mathbf{G}'$ is a $m \times (n-1)$ matrix and the last column vector can 
 \end{equation}
 
 \noindent Equation \eqref{eq:decom} basically describes a stack of $(n-1)$-dimensional translated sublattices, where $u_n$ is the index of each sublattice of an $n$-dimensional lattice $\Lambda$. The hyperplanes over which the sublattices are spanned are called \textit{layers}. For example you can think of the horizontal lines in figure \ref{fig:sphere} as one dimensional layers and the discrete points in them as sublattices of the whole two dimensional lattice.
-\par To better understand the given expression in equation \eqref{eq:decom} let's consider the sublattice in the base layer $u_n = 0$, which is just all the points in the sublattice generated by $\mathbf{G}'$. Similarly we can get all other sublattices from this base sublattice by offsetting all the points in it by linear combination $u_n\mathbf{v}_{\parallel}+u_n\mathbf{v}_{\bot}$, where $\mathbf{v}_{\parallel}$ denotes a translation of all points in that same hyperplane and $\|\mathbf{v}_{\bot}\|$ is the orthogonal distance between two adjacent layers in the $n$-th dimension. By taking the union of all these sublattices we get the whole $n$-dimensional lattice. In figure \ref{fig:sphere} for example you can think of the middle horizontal line as the base layer.
+\par To better understand the given expression in equation \eqref{eq:decom} let us consider the sublattice in the base layer $u_n = 0$, which is just all the points in the sublattice generated by $\mathbf{G}'$. Similarly we can get all other sublattices from this base sublattice by offsetting all the points in it by linear combination $u_n\mathbf{v}_{\parallel}+u_n\mathbf{v}_{\bot}$, where $\mathbf{v}_{\parallel}$ denotes a translation of all points in that same hyperplane and $\|\mathbf{v}_{\bot}\|$ is the orthogonal distance between two adjacent layers in the $n$-th dimension. By taking the union of all these sublattices we get the whole $n$-dimensional lattice. In figure \ref{fig:sphere} for example you can think of the middle horizontal line as the base layer.
 \par If $\mathbf{G}$ is an upper triangular matrix, we can easily express $\mathbf{v}_{\bot}$ as $\mathbf{v}_{\bot} = (0, 0, ..., v_{nn})^T$ and thus we can write simply $\|\mathbf{v}_{\bot}\| = |v_{nn}|$. In fact any generator matrix $\mathbf{G}$ can be rotated to upper triangular form \cite{agrell} with $v_{nn} > 0$ so we can simply denote the distance between $(k-1)$-dimensional layers with $v_{kk}$ later on.
 \par With the concept of recursive sublattice decomposition, CVP in $n$-dimensional lattice $\Lambda(\mathbf{G})$ can be done recursively with a finite number of ($n-1$)-dimensional search operations. If $\mathbf{x} \in \mathbb{R}^m$ is a vector to decode in the lattice $\Lambda(\mathbf{G})$, which is decomposed as in \eqref{eq:decom}, the orthogonal distance $y_n$ from $\mathbf{x}$ to the $(n-1)$-dimensional layer with index $u_n$ is given by the formula
 \begin{equation}
@@ -628,7 +634,7 @@ The program discussed in this paper is essentially a lattice code simulator impl
 \par One key feature of the program is the support for codebooks of spherical shape. Unlike the codebook described in \eqref{eq:codeword}, which is clearly a parallelotope shaped subset of a lattice $\Lambda(\textbf{X}_i)$ as the codeword coordinates take values from finite subset of $\mathbb{Z}$. In contrast to this, a spherical codebook only considers codewords in the lattice, that lie within certain radius of the origin. The simulations work rather differently depending on which type of codebook is used, this can also be clearly seen in flow charts \ref{fig:sphdec} and \ref{fig:program}. The idea of using a spherical codebook is to keep the maximum energy of the codebook reasonable as in skewed lattices parallelotope vertices and therefore some of the possible codewords can be rather far from the origin and require significantly more energy to send than the ones near origin. The problem however is estimating the correct radius to cover certain amount of codewords within the codebook boundary hypersphere. The program implements an option for estimating the radius automatically as seen in the program flowchart \ref{fig:program}. In the settings file user can specify the exponent $s$ and also the number or different radiuses considered around the initial radius when doing the search. The larger this variable is the better the radius estimate usually is (at the cost of increased computation time). If the estimation fails for some reason, it rolls back to user defined radius or using the parallelotope shaped codebook instead.
 \par Once this is done the program creates the codebook, either the whole thing or a random sampled part of it, which can be decided in the settings file. The last option is usually recommended as the codebooks tend to be really large and attempting to create too large codebooks can even cause your computer to freeze. Although using random sampled codewords especially with spherical shaped codebooks introduces a certain bias as codewords near the boundary of the hypersphere tend to get picked more often. The pregenererated random sampled codebook is not used in the actual simulations, instead random codewords are generated on the fly. If one chooses to generate the whole codebook then the codewords are also picked from it during simulation, which might slightly speed up the actual simulations and also eliminate any biases given that the codebook was generated correctly. 
 \par The codebook $\mathcal{L}$ is then used for calculating its average and maximum energy. The energy of a single codeword matrix $\mathbf{X}$ is its squared Frobenius norm. The codebook average energy is later used in calculating the variance for the channel matrix. After all preparations are done, the program prints out the info relevant to current simulation and asks the user to verify it before starting the actual simulations. If something is out of place (e.g. wrong signaling set or ridiculously high average energy) you can abort the simulation here and double check your input files.
-\par If user decides to continue, parallel SNR simulations (up to number of CPU cores in the machine) are started. In the settings file the SNR range and step can be defined, which ultimately decides the number of simulations to run. Each simulation can print out its current status every $n$ simulation rounds if $n$ is specified in the settings file. The each simulation continues until both error minimum and required number of rounds are reached, as seen in the figure \ref{fig:program}. These can be set in the settings file as well. As the number of errors decreases significantly with the increase of SNR, one can use a dedicated csv input file for specifying error limits for each SNR simulation explicitly (an example is given in the /settings/ folder). This way one can require more errors in lower SNR levels and only few at high SNR as with constant error limit for each simulation the high SNR simulations might take really long time to complete. If a simulation takes too long to finish it can be forcefully aborted by hitting the key combination CTRL-C.
+\par If user decides to continue, parallel SNR simulations (up to number of CPU cores in the machine) are started. In the settings file the SNR range and step can be defined, which ultimately decides the number of simulations to run. Each simulation can print out its current status every $n$ simulation rounds if $n$ is specified in the settings file. Each of the simulations continues until both error minimum and required number of rounds are reached, as seen in the figure \ref{fig:program}. These can be set in the settings file as well. As the number of errors decreases significantly with the increase of SNR, one can use a dedicated csv input file for specifying error limits for each SNR simulation explicitly (an example is given in the /settings/ folder). This way one can require more errors in lower SNR levels and only few at high SNR as with constant error limit for each simulation the high SNR simulations might take really long time to complete. If a simulation takes too long to finish it can be forcefully aborted by hitting the key combination CTRL-C.
 \par Once all simulations are finished the results are displayed in the console output and also printed in the /output/ folder into a csv file. The simulation results in the console output are in no particular order due to the parallelism involved, however the csv file is sorted in the ascending order of SNR level used in the simulation. If the plotting utility is used, plots for BLER and average search complexity are displayed immediately based on the simulation results. The csv file is also easy to import in Matlab for example for further analysis. 
 
 \begin{figure}[!ht]
@@ -697,14 +703,14 @@ The program discussed in this paper is essentially a lattice code simulator impl
 \subsection{Wiretap simulations}
 Sometimes the data sent through a wireless channel can be eavesdropped by an unwanted third party, so the motivation in these kinds of simulations is to find a way to represent the data in a such way that itö's hard to wiretap. The scenario here is that Alice sends data to Bob via wireless (directional) link and Eve wants to wiretap their communication from elsewhere. The assumptions for the simulation are that both Eve and Bob have the same channel model and Eve knows everything Bob does (e.g. the codebook Bob is using) but Eve's channel has lower SNR than Bob's channel due to Bob having better reception. The aim in code design here is to have low to none mutual information between Alice and Eve. 
 \par Having low SNR already makes Eve's job of making sense of the communication harder as she starts to get decoding errors. However in the usual 16-QAM constellation (4-PAM symboling set) for example, the codewords are arranged in a spesific manner (see figure \ref{fig:16QAM}) and the decoding errors Eve gets are usually decoding to the neighboring codeword. For example if Alice sent 1111 to Bob using the codebook in figure \ref{fig:16QAM}, Eve probably won't decode to 0000 even with low SNR. So in the end Eve gets a rough idea what was sent by analyzing the codeword distribution. The goal is to make such statistical analysis close to impossible, i.e. all Eve can do is guess. One way to achieve this is the so called coset coding. 
-\par Let's call the lattice, where the codebook $\mathcal{L}$ is carved out from, $\Lambda_b$. Then one picks a sublattice $\Lambda_e \subsetneq \Lambda_b$. In coset encoding the two codewords $\mathbf{x, y} \in \mathcal{L} \subseteq \Lambda_b$ mean the same message if, and only if
+\par Let us call the lattice, where the codebook $\mathcal{L}$ is carved out from, $\Lambda_b$. Then one picks a sublattice $\Lambda_e \subsetneq \Lambda_b$. In coset encoding the two codewords $\mathbf{x, y} \in \mathcal{L} \subseteq \Lambda_b$ mean the same message if, and only if
 \begin{equation}
 \mathbf{x - y} \in \Lambda_e
 \end{equation}
 as sublattice points form a group under addition, as one can recall from lattice theory in section \ref{sec:lattices}. 
 %One can divide the original lattice code into sublattices, which are carved out of the original one. Instead of assinging all 16 codewords in figure \ref{fig:16QAM} a different message one can assign the same message to multiple codewords. For example one can decide that the codewords in set $\{0001, 0010, 1101, 1110\}$ all mean the same message in figure \ref{fig:16QAM}. This set of codewords, which is called a \emph{coset}, lies in such a  sublattice, in this example $2\mathbb{Z}^2$. Using affine shifts for this sublattice one can obtain the three other sublattices to cover rest of the points in figure \ref{fig:16QAM}. So one ends up with four disjoint cosets that represent unique messages.
 
-As an example, let's consider figure \ref{fig:16QAM} where the codebook is carved out of lattice $\mathbb{Z}^2$, so $\Lambda_b = \mathbb{Z}^2$. An intuitive way to pick the sublattice is $\Lambda_e = 2\mathbb{Z}^2$, so now for example the red codewords $\{0001, 0010, 1101, 1110\}$ all mean the same message. The right neighbors of those codewords (affine shift) form another coset that represents a different message and so on. The cosets are color coded in figure \ref{fig:16QAM}.
+As an example, let us consider figure \ref{fig:16QAM} where the codebook is carved out of lattice $\mathbb{Z}^2$, so $\Lambda_b = \mathbb{Z}^2$. An intuitive way to pick the sublattice is $\Lambda_e = 2\mathbb{Z}^2$, so now for example the red codewords $\{0001, 0010, 1101, 1110\}$ all mean the same message. The right neighbors of those codewords (affine shift) form another coset that represents a different message and so on. The cosets are color coded in figure \ref{fig:16QAM}.
 \par The number of different cosets using this notation is defined as
 \begin{equation}
 \left[\Lambda_b : \Lambda_e\right] = \frac{\operatorname{vol}(\Lambda_e)}{\operatorname{vol}(\Lambda_b)} 
@@ -715,10 +721,10 @@ where the operator $\operatorname{vol}(\cdot)$ means the volume (or area) of the
 r_i = \log_2{\left[\Lambda_b : \Lambda_e\right]}
 \end{equation}
 so in the given example this rate is only 2-bits. But the overall code rate $r=\log_2{|\mathcal{L}|}$ is still 4-bits, so the extra 2-bits are being used for confusion. That is why the difference $r-r_i$ is called the confusion rate $r_c$. The program prints these rates in simulation information part (see figure \ref{fig:program}) when doing wiretap simulations.
-\par Using this complicated coding scheme to represent messages seems a bit unintuitive at first, but let's take a look at its obvious benefits. In earlier case Eve could eliminate with high confidence which messages were \emph{not} sent and therefore receive information. This is no longer the case. With clever choice of the cosets she could misdecode into any of those cosets, that is, get the wrong message, with close to equal probability as a member of each coset is now neighboring each codeword as seen in figure \ref{fig:16QAM}. This means that with low enough SNR she is ultimately reduced to guessing which one of the four messages was sent.
+\par Using this complicated coding scheme to represent messages seems a bit unintuitive at first, but let us take a look at its obvious benefits. In earlier case Eve could eliminate with high confidence which messages were \emph{not} sent and therefore receive information. This is no longer the case. With clever choice of the cosets she could misdecode into any of those cosets, that is, get the wrong message, with close to equal probability as a member of each coset is now neighboring each codeword as seen in figure \ref{fig:16QAM}. This means that with low enough SNR she is ultimately reduced to guessing which one of the four messages was sent.
 \par So the idea of these simulations is to see how well a certain sublattice $\Lambda_e$ performs. That is, how fast will the Eve's correct decoding probability (ECDP = 1-BLER) converge to value $1/\left[\Lambda_b : \Lambda_e\right]$, which represents pure guessing out of all possible cosets. So the criteria for a good coset code construction is \emph{the higher the SNR when this convergence happens the better}. An example of this kind of simulation is given in the following chapter.
 \par 
-\begin{figure}[h!]
+\begin{figure}[htb]
   \centering
   \includegraphics[width=0.5\linewidth]{16-QAM}
   \caption{The 16-QAM codeword constellation with Gray encoding, each point represents a codeword. In coset coding the codewords with the same color mean the same message.}
@@ -728,16 +734,44 @@ so in the given example this rate is only 2-bits. But the overall code rate $r=\
 
 \subsection{Simulation examples}
 
-To better grasp the concept of the lattice code simulations using this program, let's give a couple of common examples.
+Now let us go through a couple of common simulation examples in order to get the basic idea of running lattice code simulations with this program. The first example is a MIMO code called \emph{MIDO} represented by the matrix in \eqref{eq:mido}.
 
-\begin{figure}[ht]
+\begin{equation}
+\label{eq:mido}
+\left(
+\scalemath{0.28}
+{
+\begin{array}{cccccccccccccccc}
+ 0.022+0.59 i & 0 & 0.5-0.32 i & 0 & -0.57+0.61 i & 0 & -0.35+0.016 i & -0.41+0.0056 i & -0.53+0.97 i & 0.29-0.31 i & -0.099-0.0035 i & -0.32-0.64 i & -0.32-0.5 i & 0.5-0.32 i & 0.018+0.69 i & 0.0035-0.099 i \\
+ -0.53+0.57 i & 0.59+0.94 i & 0.76+0.17 i & 0.04+1.1 i & 0 & -1.1+0.04 i & 1.1-0.17 i & 0.92-0.19 i & -0.21-0.19 i & 2.2-0.23 i & -1.4+0.49 i & 0.064+1.1 i & 0.17-0.76 i & -0.76-0.17 i & 0.085-0.86 i & -0.49-1.4 i \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ -0.32-1.1 i & -1.6+0.044 i & -0.76+0.81 i & -1.4-0.75 i & 0 & 0.75-1.4 i & -1.7-0.012 i & 0.24-0.48 i & 0.39-0.12 i & -1.+0.18 i & -0.26-0.31 i & -0.2+0.75 i & 0.81+0.76 i & 0.76-0.81 i & -0.75+0.056 i & 0.31-0.26 i \\
+ -0.74-0.4 i & 0 & 0.024+0.84 i & 0 & -0.34-1.1 i & 0 & 0.089+0.97 i & 0.87+0.78 i & 0.46+0.21 i & 0.17+0.57 i & -1.2+0.46 i & -0.4-0.081 i & 0.84-0.024 i & 0.024+0.84 i & -0.28+0.82 i & -0.46-1.2 i \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0.72-0.44 i & 0 & 0.024+0.84 i & 0 & 1.2+0.28 i & 0 & -1.1+0.6 i & 0.12+0.076 i & -0.41+0.3 i & -0.58-0.14 i & -0.51-0.29 i & -0.73-0.54 i & 0.84-0.024 i & 0.024+0.84 i & 0.43+0.067 i & 0.29-0.51 i \\
+ 0.26-1.1 i & 0.044+1.6 i & 0.81+0.76 i & -0.82-1.3 i & 0 & 1.3-0.82 i & -0.79+0.27 i & -0.44+1.1 i & -1.5-0.35 i & 0.91+0.1 i & -0.35-1.1 i & 0.17+1.7 i & 0.76-0.81 i & -0.81-0.76 i & 0.018-0.6 i & 1.1-0.35 i \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ -0.75+0.23 i & 0.94-0.59 i & 0.17-0.76 i & -0.52+0.98 i & 0 & -0.98-0.52 i & 1.5-0.45 i & 0.62-1.4 i & 0.31+1. i & 1.6-0.42 i & -0.32+1.9 i & -0.038+0.13 i & -0.76-0.17 i & -0.17+0.76 i & -1.7+0.42 i & -1.9-0.32 i \\
+ -0.52-0.28 i & 0 & 0.5-0.32 i & 0 & -0.25-0.8 i & 0 & 0.86-0.53 i & -0.58+0.71 i & -0.57-0.95 i & 0.12+0.4 i & -0.81-0.17 i & 0.93+0.73 i & -0.32-0.5 i & 0.5-0.32 i & -0.69+0.53 i & 0.17-0.81 i \\
+\end{array}
+}
+\right)
+\end{equation}
+The entries in \eqref{eq:mido} have been truncated for readability, also the columns represent the basis vectors of the complex valued lattice.
+
+\begin{figure}[htb]
   \centering
 \includegraphics[width=\linewidth]{mido_sample_all_65k_unbiased}
   \caption{Comparing the MIDO (8-PAM, MIMO) simulation results with the old sphere decoder implementation from \cite{ranto}. The curves are roughly the same.}
   \label{fig:mido}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[htb]
   \centering
   \includegraphics[width=\linewidth]{alamouti_cosets12345_8-PAM}
   \caption{Five different sublattices for coset encoding in wiretap simulations.}
@@ -962,8 +996,8 @@ radius_search_density=100
 
 When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. 
 %Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. 
-The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program doesn't need to be recompiled for these changes to take effect, just run it again after saving the settings file.
-\par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you don't have to touch every parameter everytime you want to do a different simulation.
+The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program does not need to be recompiled for these changes to take effect, just run it again after saving the settings file.
+\par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you don not have to touch every parameter every time you want to do a different simulation.
 
 \subsection{Running the program}
 
@@ -994,6 +1028,37 @@ plot_results=1
 then a couple of graphical interfaces for plots generated from the simulation data should pop up. If there are errors check that you also have GNUPlot installed on your system. Plotting gives you a quick review on how the simulation went. For more rigorous data analysis it is recommended to import the output csv file to some numerical scientific calculation software like Matlab.
 
 \subsection{Example simulation setups}
+
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=mido.txt
+output_file=
+coset_file=
+error_file= 
+channel_model=mimo            
+x-PAM=8                         
+energy_estimation_samples=10000   
+no_of_matrices=16                
+matrix_coefficient=1.0         
+time_slots=4                    
+no_of_transmit_antennas=4      
+no_of_receiver_antennas=2    
+snr_min=10                      
+snr_max=14                    
+snr_step=1                    
+simulation_rounds=5000       
+required_errors=300              
+plot_results=-1    
+stat_display_interval=10000        
+spherical_shaping_max_power=52.003721
+codebook_size_exponent=-1     
+radius_search_density=1000
+\end{Verbatim}
+\caption{Simulation parameters for MIDO code simulation.}
+\label{fig:mido_settings}
+\end{figure}
+
+
 
 
 \subsection{General troubleshooting}
