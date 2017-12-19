@@ -131,7 +131,7 @@ int main(int argc, char** argv)
     int search_density = params["radius_search_density"]; /* Spesifies how many radiuses around the initial guess we try
                                                              to get the codebook size to 2^s */ 
     search_density = (search_density <= 0) ? 10 : search_density; /* default to 10 */
-
+    int samples = params["energy_estimation_samples"]; /* Take this many random samples from the codebook (negative number means sample all) */
     double P = dparams["spherical_shaping_max_power"]; /* User can also manually spesify the spherical shaping radius */
 
     string channel_model = sparams["channel_model"]; /* Decides how channel matrix H is generated */
@@ -313,7 +313,7 @@ int main(int argc, char** argv)
     }
 
     /* Generate the whole codebook or a random sampled subset of it. */
-    log_msg("Generating codebook...");
+    log_msg("Generating codebook for code energy calculations...");
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
 
     /* Calculate the average and maximum energy of the codewords in our lattice code */
@@ -326,7 +326,9 @@ int main(int argc, char** argv)
     log_msg("Number of basis matrices (code length): " + to_string(k));
     log_msg("Using " + to_string(q) + "-PAM symbolset: " + vec2str(symbset, q));
     log_msg("Channel model: " + channel_model);
-    log_msg("Codebook size: " + to_string(codebook.size()));
+    log_msg("Size of the whole codebook: " + to_string(params["codebook_size"]));
+    if (samples > 0)
+        log_msg("Codewords used for energy calculations: " + to_string(codebook.size()));
     log_msg("Average code energy: " + to_string(e.first));
     log_msg("Max code energy: " + to_string(e.second));
     if (P > 0) {
@@ -398,7 +400,6 @@ int main(int argc, char** argv)
         int errors = 0; 
         int visited_nodes = 0;
         int total_nodes = 0;
-        int samples = params["energy_estimation_samples"]; /* Take this many random samples from the codebook (negative number means sample all) */
 
         double sigpow = 0;
         double bler = 0;
