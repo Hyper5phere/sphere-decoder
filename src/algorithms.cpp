@@ -646,7 +646,7 @@ vector<pair<vector<int>,cx_mat>> create_codebook(const vector<cx_mat> &bases, co
     int m = params["no_of_transmit_antennas"];
     int t = params["time_slots"];
     int k = params["no_of_matrices"];
-    int cs = params["codebook_size"];
+    int cs = dparams["codebook_size"];
     int samples = params["energy_estimation_samples"];
     double P = dparams["spherical_shaping_max_power"];
 
@@ -739,7 +739,7 @@ tuple<double, double, double> code_rates(const cx_mat &Gb, const cx_mat &Ge){
     mat RGe = to_real_matrix(Ge);
     // cout << "Vol(Ge): " << sqrt(det(RGe.t()*RGe)) << endl;
     // cout << "Vol(Gb): " << sqrt(det(RGb.t()*RGb)) << endl;
-    double r = log2(params["codebook_size"]);                          // overall rate
+    double r = log2(dparams["codebook_size"]);                          // overall rate
     double rt = log2(sqrt(det(RGe.t()*RGe))/sqrt(det(RGb.t()*RGb)));   // transmission rate
     double rc = r - rt;                                                // confusion rate
     return make_tuple(r, rt, rc); 
