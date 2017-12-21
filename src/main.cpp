@@ -328,7 +328,7 @@ int main(int argc, char** argv)
     log_msg("Channel model: " + channel_model);
     log_msg("Size of the whole codebook: " + to_string((long long) dparams["codebook_size"]));
     if (samples > 0)
-        log_msg("Codewords used for energy calculations: " + to_string(codebook.size()));
+        log_msg("Number of codewords used for energy calculations: " + to_string(codebook.size()));
     log_msg("Average code energy: " + to_string(e.first));
     log_msg("Max code energy: " + to_string(e.second));
     if (P > 0) {
