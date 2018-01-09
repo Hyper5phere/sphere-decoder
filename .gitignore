@@ -9,3 +9,6 @@
 /docs/src/.*
 /docs/src/*eps-converted-to.pdf
 *.save
+pwalk
+*.conf
+*.log

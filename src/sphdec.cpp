@@ -1,11 +1,11 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Filename    : sphdec.cpp                                                                            *
- * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Project     : Planewalker - Schnorr-Euchner sphere decoder simulation for space-time lattice codes  *
  * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
  * Version     : 1.0                                                                                   *
  * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
- * Date        : 17.8.2017                                                                             *
- * Language    : C++11                                                                                 *
+ * Date        : 9.1.2017                                                                              *
+ * Language    : C++ (2011 or newer standard)                                                          *
  * Description : The core algorithm implementations for the simulation + wrapper function for them     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -164,6 +164,8 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
     vec xt(k), ksi(k), delta(k), dist(k), curr(k), ener(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros(); curr.zeros(); ener.zeros();
     counter = 0; /* counts how many search tree nodes (loop iterations) we went through */
+
+    vec distances(k, fill::zeros);
     
     double xidist = 0.0, xiener = 0.0;
     bool found = false;
@@ -179,6 +181,8 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
         counter++;
         // Step 3.
         xidist = pow(y[i]-ksi[i]-HR(i,i)*xt[i], 2);
+
+        distances[i] = dist[i] + xidist;
         
         /***** Uncomment line below to debug *****/
         // cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
@@ -233,6 +237,12 @@ vector<int> sphdec_spherical_shaping(const vec &y, const mat &HR, const mat &R, 
     if (found)
         return x;
     else {
+        log_msg("Initial squared radius used: " + to_string(radius), "Alert");
+        // mat tmp = y-HR*xt;
+        // cx_mat distasd = cx_mat(tmp, mat(tmp.n_rows, tmp.n_cols, fill::zeros));
+        // log_msg("Current squared distance: " + to_string(frob_norm_squared(distasd)), "Alert");
+        // log_msg("xidist: " + to_string(xidist), "Alert");
+        log_msg("distances considered: " + vec2str(distances, distances.size()), "Alert");
         log_msg("sphdec: point not found!", "Alert");
         return vector<int>(0);
     }

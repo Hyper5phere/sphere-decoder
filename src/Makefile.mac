@@ -1,6 +1,6 @@
 # Rename me to 'Makefile' if you are compiling on Mac, otherwise ignore this file
 
-PROGRAM=../sphdec
+PROGRAM=../pwalk
 CXX=g++-mp-6
 OBJS=main.o misc.o config.o algorithms.o sphdec.o
 FLAGS=-std=c++11 -L/usr/local/lib/ -larmadillo -llapack -Wall -fopenmp -D_GLIBCXX_USE_CXX11_ABI=0
