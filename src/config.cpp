@@ -92,12 +92,13 @@ void configure() {
     {
         istringstream iss(line);
         string key;
-
+        cout << line << endl;
         if(getline(iss, key, '=') )
         {
             if (key.find("//", 0) != string::npos)
                 continue;
             lines++;
+            // cout << lines << endl;
             string value;
             getline(iss, value);
             clean_input(value); 
