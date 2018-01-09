@@ -1,5 +1,5 @@
-C++11 Sphere decoder simulator for space-time lattice codes
-===========================================================
+Planewalker - C++ Sphere decoder simulator for space-time lattice codes
+=======================================================================
 
 Key features
 ------------
@@ -52,9 +52,9 @@ radius_search_density=100       // Defines how accurate the codebook squared rad
 - There should be a file called *alamouti.txt* in */bases/* folder that contains your basis matrices (for alamouti example code)
 - You can edit this file or create a new one to fit your simulation needs 
 - Basis matrices can be inputted in many formats, but Mathematica format (the one used in example basis files) is preferred for complex matrices (IMPORTANT: DO NOT USE WHITE SPACES AS SEPARATORS FOR MATRIX ELEMENTS)
-- Run the program with: **./sphdec** or **make run** (the latter runs with the default settings file)
+- Run the program with: **./pwalk** or **make run** (the latter runs with the default settings file)
 - If you configured the program correctly it should now run the simulation
-- You can have multiple settings files (in the */settings/* folder) and use them in the simulation by giving their name as an command line argument for the program like: **./sphdec alamouti_settings.ini**
+- You can have multiple settings files (in the */settings/* folder) and use them in the simulation by giving their name as an command line argument for the program like: **./pwalk alamouti_settings.ini**
 - Program output should be found at */output/* folder
 
 (Naturally in order for this to work you need a C++ compiler (g++) that supports C++11 standard installed on your system, should be no problem on Aalto computers)

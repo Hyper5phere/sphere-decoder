@@ -1,11 +1,11 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Filename    : main.cpp                                                                              *
- * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Project     : Planewalker - Schnorr-Euchner sphere decoder simulation for space-time lattice codes  *
  * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
  * Version     : 1.0                                                                                   *
  * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
- * Date        : 17.8.2017                                                                             *
- * Language    : C++11                                                                                 *
+ * Date        : 9.1.2017                                                                              *
+ * Language    : C++ (2011 or newer standard)                                                          *
  * Description : main program file, handles the simulation setup and main loop                         *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
  
@@ -458,7 +458,7 @@ int main(int argc, char** argv)
                 N = create_random_matrix(n, t, 0, Nvar); /* Additive complex Gaussian white noise matrix */
 
                 sigpow = frob_norm_squared(H*X);       /* Signal power */
-                noisepow = frob_norm_squared(N);       /* Noise power */
+                noisepow = pow(frob_norm_squared(N), 2);       /* Noise power */
                 C = noisepow + 1e-3;                   /* initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison) */
                 sigsum += sigpow;                      /* sum of signal powers */
                 noisesum += noisepow;                  /* sum of noise powers */

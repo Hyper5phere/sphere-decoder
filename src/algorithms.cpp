@@ -1,11 +1,11 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Filename    : algorithms.cpp                                                                        *
- * Project     : Schnorr-Euchnerr sphere decoder simulation for space-time lattice codes               *
+ * Project     : Schnorr-Euchner sphere decoder simulation for space-time lattice codes                *
  * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
  * Version     : 1.0                                                                                   *
  * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
- * Date        : 17.8.2017                                                                             *
- * Language    : C++11                                                                                 *
+ * Date        : 9.1.2017                                                                              *
+ * Language    : C++ (2011 or newer standard)                                                          *
  * Description : All custom mathematical algorithms not found in Armadillo or STL are collected here   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

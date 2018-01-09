@@ -8,6 +8,7 @@ echo "Starting sphere decoder simulation..."
 echo "Loading module Armadillo/7.800.2-iomkl-triton-2017a-Python-2.7.13"
 module restore arma-env
 
-g++ sphdec.cpp -o sphdec -O2 -larmadillo -llapack -lblas -std=c++14
-
-srun sphdec
+# g++ sphdec.cpp -o sphdec -O2 -larmadillo -llapack -lblas -std=c++14
+cd ..
+make
+srun pwalk
