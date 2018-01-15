@@ -36,19 +36,19 @@
 - Compare [Krus_7](https://ecse.monash.edu/staff/eviterbo/rotations/rotations.html) to Z^7 (SISO)
 - run two simulations, plot and compare results
 - Graphs for MIMO and Wiretap (no comparison)
-- Wiretap: Bob's (base) lattice Z^4, index 16 (determinant of sublattice), integer entries.
-- Use the three existing wiretap plots..?
+- Wiretap: Bob's (base) lattice Z^4, index 16 (determinant of sublattice), integer entries. ✔
+- Use the five existing wiretap plots..? ✔
 - Describe lattices and channel model
 
 ### Conclusion
-- repeat yourself
-- this program implements efficient sphdec
-- written in C++, is fast, uses linear algebra library
-- general importantness for lattice code research
-- what could it be used for
-- easy to modify and implement new channel models
-- test new lattice codes and compare with old ones
-- facilitates threoretical simulations to evaluate new code constructions
+- repeat yourself ✔
+- this program implements efficient sphdec ✔
+- written in C++, is fast, uses linear algebra library ✔
+- general importantness for lattice code research ✔
+- what could it be used for ✔
+- easy to modify and implement new channel models ✔
+- test new lattice codes and compare with old ones ✔ 
+- facilitates threoretical simulations to evaluate new code constructions ✔
 
 ### Program User Guide
 - leave LLL reduction documentation out (doesn't work properly) ✔
