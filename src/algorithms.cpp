@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Filename    : algorithms.cpp                                                                        *
- * Project     : Schnorr-Euchner sphere decoder simulation for space-time lattice codes                *
+ * Project     : Planewalker - Schnorr-Euchner sphere decoder simulation for space-time lattice codes  *
  * Authors     : Pasi Pyrrö, Oliver Gnilke                                                             *
  * Version     : 1.0                                                                                   *
  * Copyright   : Aalto University ~ School of Science ~ Department of Mathematics and Systems Analysis *
@@ -488,6 +488,8 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
     double lb = 0.0; // lower bound
     double ub = 0.0; // upper bound
 
+    // radius = sqrt(radius);
+
     /* Randomly pick each component of the codeword and check if it's still within the energy bound in each dimension */
     while (i >= 0){
         lb = -(sqrt(radius - ener[i]) + curr[i])/R(i,i);
@@ -507,10 +509,10 @@ pair<vector<int>, cx_mat> create_random_spherical_codeword(const vector<cx_mat> 
         // if (i > 0)
         //     xt[i] = unbiased_random_select(R, subset, xt, ener, curr, radius, i);
         // else
-            xt[i] = pick_uniform(subset);
+        xt[i] = pick_uniform(subset);
 
         if (xt[i] == 0) {
-            cout << "something went wrong" << endl;
+            // cout << "something went wrong" << endl;
             i = k-1;
             xt.zeros(); curr.zeros(); ener.zeros();
             continue;

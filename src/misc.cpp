@@ -151,8 +151,8 @@ void output_data(parallel_vector<string> &output){
         #ifdef PLOTTING /* Draw plots with Gnuplot if plotting is enabled */
         if (params["plot_results"] > 0){
             log_msg("Drawing plots...");
-            plot_csv(1, 4, "SNR (dB)", "BLER (%)", true);
-            plot_csv(1, 5, "SNR (dB)", "Average Complexity (# visited points)", false);
+            plot_csv(2, 7, "SNR (dB)", "BLER (%)", true);
+            plot_csv(2, 3, "SNR (dB)", "Average Complexity (# visited points)", false);
         }
         #endif
     }

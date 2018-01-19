@@ -84,6 +84,8 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     vec xt(k), ksi(k), delta(k), dist(k);
     xt.zeros(); ksi.zeros(); delta.zeros(); dist.zeros();
     counter = 0; /* counts how many search tree nodes (loop iterations) we went through */
+
+    vec distances(k, fill::zeros);
     
     double xidist = 0.0;
     bool found = false;
@@ -99,6 +101,8 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
         counter++;
         /* Step 3. */
         xidist = pow(y[i]-ksi[i]-R(i,i)*xt[i], 2);
+
+        distances[i] = dist[i] + xidist;
         
         /***** Uncomment line below to debug *****/
         // cout << i << ": " << vec2str(xt, k) << ", xidist = " << xidist + dist[i] << ", C = " << radius << endl;
@@ -146,6 +150,8 @@ vector<int> sphdec(const vec &y, const mat &R, const vector<int> &S, int &counte
     if (found)
         return x;
     else {
+        log_msg("Initial squared radius used: " + to_string(radius), "Alert");
+        log_msg("distances considered: " + vec2str(distances, distances.size()), "Alert");
         log_msg("sphdec: point not found!", "Alert");
         return vector<int>(0);
     }

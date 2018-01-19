@@ -312,6 +312,8 @@ int main(int argc, char** argv)
         }
     }
 
+    // P = sqrt(P);
+
     /* Generate the whole codebook or a random sampled subset of it. */
     log_msg("Generating codebook for code energy calculations...");
     vector<pair<vector<int>,cx_mat>> codebook = create_codebook(bases, Rorig, symbset);
@@ -458,7 +460,7 @@ int main(int argc, char** argv)
                 N = create_random_matrix(n, t, 0, Nvar); /* Additive complex Gaussian white noise matrix */
 
                 sigpow = frob_norm_squared(H*X);       /* Signal power */
-                noisepow = pow(frob_norm_squared(N), 2);       /* Noise power */
+                noisepow = frob_norm_squared(N);       /* Noise power */
                 C = noisepow + 1e-3;                   /* initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison) */
                 sigsum += sigpow;                      /* sum of signal powers */
                 noisesum += noisepow;                  /* sum of noise powers */
@@ -466,6 +468,9 @@ int main(int argc, char** argv)
                 /* wrapper function for the sphere decoder algorithm, see details in sphdec.cpp 
                    x is the decoded output vector */
                 x = sphdec_wrapper(bases, Rorig, H, X, N, symbset, visited_nodes, C);
+
+                if (x.empty())
+                	log_msg("C = " + to_string(C), "Alert");
 
                 /* Check if the decoded vector is the same as what we sent in the simulation. 
                    If we're doing 'wiretap' simulation the checking is done in a different manner */
