@@ -844,7 +844,7 @@ Journal of Open Source Software, Vol. 1, pp. 26, 2016.
 %\end{tabular}
 
 \subsection{Preface}
-The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. Its implementation heavily depends on C++ linear algebra template library called Armadillo \cite{arma}. This program is a console application (i.e. it is operated from command line) that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). If there are compatibility issues optional parts of the program can be left uncompiled intentionally. 
+The purpose of this program is to simulate the performance of different lattice codes under different levels of SNR. Its implementation heavily depends on C++ linear algebra template library called Armadillo \cite{arma}. This program is a console application (i.e. it is operated from command line) that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primarily intended to be used on Linux based operating systems but should be portable to other platforms as well. There are some slight differences in the required compiler instructions and used libraries on other platforms though. If there are compatibility issues optional parts of the program can be left out intentionally when compiling. 
 \par This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here, but references to additional documentation are given. In the following chapters we will go through the installation and usage of the program in detail. 
 
 \subsection{System requirements}
@@ -864,14 +864,15 @@ If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGC
 \item ARPACK library: \url{http://www.caam.rice.edu/software/ARPACK}
 \item Armadillo C++ Linear algebra library: \url{http://arma.sourceforge.net/download.html} 
 \item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
+\item Gnuplot (optional, for plotting only): \url{http://www.gnuplot.info}
 %\item MPFR 2.3.0 or higher (optional, for LLL reduction only) \url{http://www.mpfr.org/}
 %\item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}.
 \end{enumerate}
 % (libarmadillo-dev)
 %Please note that the fplll library used for LLL reduction seems to only support reduction of integer matrices, which is not very reasonable assumption for communications applications like this, so \textbf{it is recommended for most users not to bother with the LLL reduction related functionality and simply leave it out (ie. not install packages 6 ja 7).} 
-You can follow the links in the packege list for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of installing them is by opening a terminal (in Linux CTRL+ALT+T) and using a package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link in the package list. 
-\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}. %, \textit{libmpfr-dev} and \textit{libgmp-dev}. 
-Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compatibility reasons. If all the install processes succeed you are now all set up to install the program itself.
+You can follow the links in the package list for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of installing them is by opening a terminal (in Linux CTRL+ALT+T) and using a package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packages in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link in the package list. 
+\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}, \textit{gnuplot5}. %, \textit{libmpfr-dev} and \textit{libgmp-dev}. 
+Note that there might be some version number before the first dash in those names. The Boost library and Gnuplot can safely be omitted for compatibility reasons. If all the install processes succeed you are now all set up to install the program itself.
 
 \subsection{Installing the program}
 
@@ -879,7 +880,8 @@ Open terminal (CTRL+ALT+T) and create a folder for the program
 \begin{verbatim}
 $ mkdir sphere-decoder
 $ cd sphere-decoder
-\end{verbatim}Once you are in that folder copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. This requires you to have Aalto University login credentials. If you have trouble accessing the repository contact your supervisor who instructed you to use this program, they should have a copy of it. The copying from the repository can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command in the terminal (requires git to be installed on the system):
+\end{verbatim}Once you are in that folder, copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. %This requires you to have Aalto University login credentials. If you have trouble accessing the repository contact your supervisor who instructed you to use this program, they should have a copy of it. 
+The copying from the repository can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command in the terminal (requires git to be installed on the system):
 \begin{verbatim}
 $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \end{verbatim}
@@ -903,7 +905,7 @@ $ make with=plotting
 \end{verbatim} 
 but keep in mind the requirements for them:
 \begin{enumerate}
-\item \textbf{plotting}: C++ Boost library
+\item \textbf{plotting}: C++ Boost library and Gnuplot
 %\item \textbf{lll}: GMP, MPFR and you probably need to compile the fplll library \cite{fplll} in {/src/fplll} from source, see \url{https://github.com/fplll/fplll/#compilation} for help. Also remember to run the configure command like so
 %\begin{verbatim}
 %$ ./configure --prefix=$(pwd)/src/fplll/
@@ -941,7 +943,7 @@ If there are no errors regarding missing libraries or such then you have just co
 
 \subsection{Setup and Input}
 
-Now that the program is installed it is time to take a look at the simulation parameters and the program input files in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. Note that the program supports complex matrices as input, which are the preferred way of inputting your basis matrices. You can (and should) add your own basis matrix text files there. The program should not be too picky about the input format but do make sure you have something other than white spaces separating the matrix entries. The most tested input format is the \href{http://reference.wolfram.com/language/tutorial/LinearAlgebraMatrixTypes.html#77896732}{Wolfram Mathematica matrix format}, which should work in all cases. This format is also used in the example basis matrix files provided with the program, like the one in figure \ref{fig:alamouti_basis}, which you can also use as a reference.
+Now that the program is installed, it is time to take a look at the simulation parameters and the program input files in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. Note that the program supports complex matrices as input, which are the preferred way of inputting your basis matrices. You can (and should) add your own basis matrix text files there. The program should not be too picky about the input format but do make sure you have something other than white spaces separating the matrix entries. The most tested input format is the \href{http://reference.wolfram.com/language/tutorial/LinearAlgebraMatrixTypes.html#77896732}{Wolfram Mathematica matrix format}, which should work in all cases. This format is also used in the example basis matrix files provided with the program, like the one in figure \ref{fig:alamouti_basis}, which you can also use as a reference.
 %The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single]
@@ -1000,10 +1002,10 @@ radius_search_density=100
 \label{fig:settings}
 \end{figure}
 
-When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. 
+When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. To generate a new default settings file, simply delete the \textit{settings.ini} file and run the program.
 %Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. 
 The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program does not need to be recompiled for these changes to take effect, just run it again after saving the settings file.
-\par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you don not have to touch every parameter every time you want to do a different simulation.
+\par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you do not have to touch every parameter every time you want to do a different simulation.
 
 \subsection{Running the program}
 
@@ -1013,25 +1015,36 @@ $ make run
 \end{verbatim}
 or
 \begin{verbatim}
-$ ./sphdec [settings_file.ini*]
+$ ./pwalk [settings_file.ini*]
 \end{verbatim}
 %or 
 %\begin{verbatim}
 %$ sh sphdec.sh [settings_file.ini*]
 %\end{verbatim}
 
-\noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. %The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
+\noindent The first command uses the default settings file and in the second one can optionally specify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. %The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
 \par Once the program has started it prints useful data related to the current actions it is taking to the terminal as well as in the log.txt file located in the /logs/ folder. Visiting the log.txt file can be useful for reviewing previous program behaviour in the future. In the log file each program runtime should be separated by an empty line.
 \par If the program gets stuck somewhere or takes too long to finish a large simulation, pressing CTRL+C in the terminal will terminate the execution of the program almost instantly. The program attempts to output the current simulation data even in this situation but it is not quaranteed to succeed so keep that in mind when doing that. For large simulations one needs to be patient as the simulation complexity grows exponentially with the lattice code dimension. It might be required to hit this key combination several times if the program does not terminate within five seconds or so.
 
 \subsection{Output and Plots}
 
-If the program exits without errors its output should be found from /output/ folder in csv format. This standard data format is easy to import into Matlab and other programs you might need. The filenames are by default named so that they are in chronological order so the latest simulation output should be the last one in the file listing. The csv format is easy to import in other programs like Matlab.
-\par If the program was compiled successfully with the plotting make option and the following settings variable is set to
+If the program exits without errors its output should be found from /output/ folder in comma separated values (csv) format. This standard data format is easy to import into Matlab and other programs you might need. The file names are by default named so that they are in chronological order so the latest simulation output should be the last one in the file listing.
+\par If the program was compiled successfully with the \emph{plotting} make option and the following settings variable is set to
 \begin{verbatim}
 plot_results=1 
 \end{verbatim}
-then a couple of graphical interfaces for plots generated from the simulation data should pop up. If there are errors check that you also have GNUPlot installed on your system. Plotting gives you a quick review on how the simulation went. For more rigorous data analysis it is recommended to import the output csv file to some numerical scientific calculation software like Matlab.
+then a couple of graphical interfaces for plots generated from the simulation data should pop up when the simulation ends. This is illustrated in figure \ref{fig:output}. If there are errors check that you also have Gnuplot installed on your system. Plotting the output data gives you a quick review on how the simulation went. For more rigorous data analysis it is recommended to import the output csv file to some numerical scientific calculation software like Matlab.
+
+\begin{figure}[htb]
+  \centering
+\includegraphics[width=\linewidth]{pwalk_output}
+  \caption{Example output of the Planewalker program with the plotting option turned on.}
+  \label{fig:output}
+\end{figure}
+
+The basic interpretation of the program output in figure \ref{fig:output} should go as follows. Each (green) line indicates a finished SNR simulation and the output data related to it. The first column \emph{SNR simulation} just states which SNR simulation the data is related to, i.e. the index of the simulation. The simulations are not sorted by their index because of the nature of parallel computing and different computation times. However, in the output csv file they are, and the data columns are identical to the ones in console output. The second column is a kind of a sanity check and should be as close to the simulation index as possible when sufficient number of simulation rounds is done. It represents how correctly the simulated codewords that were randomly generated represent that particular SNR level. The SNR level is used to generate the variance for the channel matrix coefficients. If \emph{Real SNR} is off by more than one unit one should assume something is wrong with the simulation. It's likely caused by either incorrect input parameters or program behaviour (a bug). 
+\par The next columns about complexity indicate how many steps (tree traversals) the sphere decoder algorithm had to take in order to decode the received codewords. The average complexity is also (optionally) plotted against SNR level and not surprisingly decreases with growing signal to noise ratio as seen in figure \ref{fig:output}. This just means the closer one is to the original sent codeword in the receiving end, the less work the sphere decoder algorithm has to do. Of course if this is not the case one should be alarmed. Also if the complexity rises ridiculously high one should consider altering  their code or simulation setup. The average complexity can be used as a measure of the code performance as it directly correlates with decoding time.
+\par The last three columns are about the block error rate (BLER), which is the most important factor when evaluating code performance. A logarithmic scale plot is automatically drawn from BLER and SNR level as seen in figure \ref{fig:output}. The BLER should be close to zero with higher SNR levels or something is clearly wrong with the code tested or the simulation setup. The last column is probably the most important one regarding further data analysis and code evaluation. Also the plotting is encouraged to be done against the \emph{Real SNR} values because that way one can spot if the simulated codeword distribution clearly deviates from the intended one by checking if the x-values of data points correspond to the ones used in simulation settings. The default Gnuplots are done this way.
 
 \subsection{Example simulation setups}
 
