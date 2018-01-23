@@ -81,6 +81,7 @@
 
 %% Use this if you write hard core mathematics, these are usually needed
 \usepackage{amsfonts,amssymb,amsbsy,amsmath}
+% \usepackage[table]{xcolor}
 
 %% Use the macros in this package to change how the hyperref package below 
 %% typesets its hypertext -- hyperlink colour, font, etc. See the package
@@ -964,14 +965,20 @@ Now that the program is installed, it is time to take a look at the simulation p
 \end{figure}
 
 \par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The key contents of the file are displayed in figure \ref{fig:settings}. There are usually also comments in those settings files that start after the character sequence '//' and end in the line end but these are left out of the figures for clarity reasons. The comments are of course ignored by the program and only hold meaning for the user. Make sure not to remove any of the 22 options or the program will complain you about missing options. If you want to disable an option, it is done by either leaving the option value empty (string options) or setting it to -1 (number options) as seen in the figure \ref{fig:settings}. In case you end up messing up the settings file in some way, easy way to reset it is to just delete the file and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}. 
+\par Now let us consider what each simulation parameter and setting actually does. Their usages are explained in the following table.
 
-%\begin{figure}[htb]
-%\begin{center}
-  %\includegraphics[width=\linewidth]{settings}
-  %\caption{The default settings file for the sphere decoder program.}
-  %\label{fig:settings}
-%\end{center}
-%\end{figure}
+\begin{center}
+  \begin{tabular}{ | l | p{12cm} | }
+    \hline
+    setting & usage  \\ \hline
+    basis\_file & The text file storing the lattice code to be tested in the form of basis matrices. See the examples in /bases/ folder and the figure \ref{fig:alamouti_basis} to grasp the input format. Supports complex matrices. \\ \hline
+    output\_file & Give a custom name for the output csv file. Warning, using this will likely override earlier simulation results as the file name is not changed, unless done manually after each simulation. \\ \hline
+    coset\_file & Similar to basis\_file, a text file that contains basis matrices of a sublattice, which represents the coset coding in wiretap simulations. Place these also in /bases/ folder. \\ \hline
+    error\_file & A two line csv file to be placed in the /settings/ folder. First line contains SNR levels separated by commas and the second line contains custom error limits for each SNR level, also separated by commas. Note that if the SNR levels don't match the ones specified in the settings file, an error is thrown. Use this if you want to explicitly state the error limit for each simulation. Error limit is another stopping criteria for the simulation along with the number of simulation rounds, see figure \ref{fig:program} for more information. \\
+    \hline
+  \end{tabular}
+\end{center}
+
 
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single, numbers=left]
@@ -1047,7 +1054,11 @@ The basic interpretation of the program output in figure \ref{fig:output} should
 \par The last three columns are about the block error rate (BLER), which is the most important factor when evaluating code performance. A logarithmic scale plot is automatically drawn from BLER and SNR level as seen in figure \ref{fig:output}. The BLER should be close to zero with higher SNR levels or something is clearly wrong with the code tested or the simulation setup. The last column is probably the most important one regarding further data analysis and code evaluation. Also the plotting is encouraged to be done against the \emph{Real SNR} values because that way one can spot if the simulated codeword distribution clearly deviates from the intended one by checking if the x-values of data points correspond to the ones used in simulation settings. The default Gnuplots are done this way.
 
 \subsection{Example simulation setups}
-
+The settings file for the MIDO-simulation example given in chapter \ref{sec:sims} is illustrated in figure \ref{fig:mido_settings}. It also comes with the Planewalker program as an example settings file called \emph{mido.ini} in the /settings/ folder. To run this simulation type command
+\begin{verbatim}
+$ ./pwalk mido.ini
+\end{verbatim}
+in the main program folder.
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single, numbers=left]
 basis_file=mido.txt
@@ -1078,7 +1089,7 @@ radius_search_density=1000
 \end{figure}
 
 
-
+\newpage
 
 \subsection{General troubleshooting}
 Some general miscellaneous tips are listed here to help you troubleshoot errors while using the program:
