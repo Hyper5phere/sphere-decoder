@@ -629,6 +629,7 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 \section{Lattice code simulations}
 \label{sec:sims}
 \subsection{Program implementation}
+\label{sec:implement}
 The program discussed in this paper is essentially a lattice code simulator implemented as a command line application which the aforementioned sphere decoder algorithm is also part of. In this section a rough outline of the implementation is presented, which is most concisely presented in figure \ref{fig:program}. With this insight one ought to create better simulations, especially when experimenting simulations outside the normal parameter range.
 \par What the program actually simulates is the block error rate (BLER) of the lattice code under different levels of signal-to-noise ratios (SNR). Block error occurs when the decoded codeword is not exactly the same as the one we sent and the program counts these. Then BLER is simply the number of block errors divided by the number of simulation runs. The program can run multiple simulations in parallel, all of which simulate one SNR level each. The SNR is used to calculate the variance of the Rayleigh channel matrix coefficients in figure \ref{fig:mimo}. The channel noise matrix variance was chosen to be fixed one during all simulations. Note that the channel model is not limited to MIMO like in figure \ref{fig:mimo} but can also be chosen to be SISO system which simulates one transmit and one receiver antenna.
 \par The program requires at least two input files: the settings file and a basis matrix file, both located in their dedicated folders. Depending on the type of simulation one can also specify two additional input files for the sublattice basis matrices (for wiretap simulations) and simulation error limits (i.e. how many errors per SNR). To put it simply, the basis matrices are \textit{the lattice code} this program is used to test and the other two input files are just parameters for the simulation. There are many possible combinations of parameters to use, we'll go through some of them in the next section with example simulation setups.
@@ -964,17 +965,56 @@ Now that the program is installed, it is time to take a look at the simulation p
 \label{fig:alamouti_basis}
 \end{figure}
 
-\par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The key contents of the file are displayed in figure \ref{fig:settings}. There are usually also comments in those settings files that start after the character sequence '//' and end in the line end but these are left out of the figures for clarity reasons. The comments are of course ignored by the program and only hold meaning for the user. Make sure not to remove any of the 22 options or the program will complain you about missing options. If you want to disable an option, it is done by either leaving the option value empty (string options) or setting it to -1 (number options) as seen in the figure \ref{fig:settings}. In case you end up messing up the settings file in some way, easy way to reset it is to just delete the file and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}. 
-\par Now let us consider what each simulation parameter and setting actually does. Their usages are explained in the following table.
+\par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The key contents of the file are displayed in figure \ref{fig:settings}. There are usually also comments in those settings files that start after the character sequence '//' and end in the line end but these are left out of the figures for clarity reasons. The comments are of course ignored by the program and only hold meaning for the user. Make sure not to remove any of the 22 options or the program will complain you about missing options. If you want to disable an option, it is done by either leaving the option value empty (string options) or setting it to -1 (number options) as seen in the figure \ref{fig:settings}. In case you end up messing up the settings file in some way, easy way to reset it is to just delete the file and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}.
+\par When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. 
+%To generate a new default settings file, simply delete the \textit{settings.ini} file and run the program.
+%Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. 
+The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program does not need to be recompiled for these changes to take effect, just run it again after saving the settings file.
+\par Now let us go through what each simulation parameter and setting actually does. Their usages are explained in the following table.
 
 \begin{center}
-  \begin{tabular}{ | l | p{12cm} | }
+  \begin{tabular}{ | l | p{9cm} | }
     \hline
     setting & usage  \\ \hline
     basis\_file & The text file storing the lattice code to be tested in the form of basis matrices. See the examples in /bases/ folder and the figure \ref{fig:alamouti_basis} to grasp the input format. Supports complex matrices. \\ \hline
-    output\_file & Give a custom name for the output csv file. Warning, using this will likely override earlier simulation results as the file name is not changed, unless done manually after each simulation. \\ \hline
-    coset\_file & Similar to basis\_file, a text file that contains basis matrices of a sublattice, which represents the coset coding in wiretap simulations. Place these also in /bases/ folder. \\ \hline
-    error\_file & A two line csv file to be placed in the /settings/ folder. First line contains SNR levels separated by commas and the second line contains custom error limits for each SNR level, also separated by commas. Note that if the SNR levels don't match the ones specified in the settings file, an error is thrown. Use this if you want to explicitly state the error limit for each simulation. Error limit is another stopping criteria for the simulation along with the number of simulation rounds, see figure \ref{fig:program} for more information. \\
+    output\_file & Give a custom name for the output csv file. Warning, using this will likely override earlier simulation results as the file name is not changed, unless done manually after each simulation. Can be left blank.\\ \hline
+    coset\_file & Similar to basis\_file, a text file that contains basis matrices of a sublattice, which represents the coset coding in wiretap simulations. Place these also in /bases/ folder. Can be left blank.\\ \hline
+    error\_file & A two line csv file to be placed in the /settings/ folder. First line contains SNR levels separated by commas and the second line contains custom error limits for each SNR level, also separated by commas. Note that if the SNR levels don't match the ones specified in the settings file, an error is thrown. Use this if you want to explicitly state the error limit for each simulation. Error limit is another stopping criteria for the simulation along with the number of simulation rounds, see figure \ref{fig:program} for more information. Can be left blank.\\ \hline
+    channel\_model & Choose the channel model for the simulation, either 'mimo' or 'siso' (without quotes). Affects how the channel matrix $\mathbf{H}$ is generated. Note that the wiretap channel model is independent from this option. It is choosed by specifying a coset\_file. \\ \hline
+    x-PAM & Defines the size of PAM signaling set (see \eqref{eq:pam}), must be positive even integer. \\ \hline
+    energy\_estimation\_samples & Planewalker takes this many random samples from the whole codebook and estimates code energy from those samples. Useful with very large codebooks like the one in MIDO simulation. Negative or zero value will result in calculating all possible codewords in the codebook, use this option only with reasonably sized codebooks. If this value is non-zero and positive, also the random codewords used in the simulation are generated on the fly, otherwise they would be randomly selected from a list of all possible codewords. This variable has a considerable impact on the speed of the whole simulation. Also using too few samples can result in incorrect channel matrix generation, can probably be spotted from the Real SNR values. \\
+    
+    \hline
+  \end{tabular}
+\end{center}
+\pagebreak
+\begin{center}
+  \begin{tabular}{ | l | p{9cm} | }
+    \hline
+    setting & usage  \\ \hline
+    no\_of\_matrices & The number of basis matrices (or vectors, if you like) in the basis\_file. Essential for correct parsing and handling of the basis matrices. This number can be thought as the dimension (rank) of the lattice the codewords lie in, the variable $k$ in equation \eqref{eq:codeword}.\\ \hline
+    matrix\_coefficient & Simple scaling factor. The program multiplies all basis matrices by this constant. \\ \hline
+    time\_slots & The number of time slots (channel uses) required to send the lattice code, the variable $l$ in figure \ref{fig:mimo}. \\ \hline
+    no\_of\_transmit\_antennas & The number of transmit antennas required to send the lattice code, the variable $m$ in figure \ref{fig:mimo}. \\ \hline
+    no\_of\_receiver\_antennas & The number of receiver antennas required to send the lattice code, the variable $n$ in figure \ref{fig:mimo}. \\
+    snr\_min & The minimum value for signal-to-noise ratio i.e. the lower bound for simulation indices. Must be an integer. \\ \hline
+    snr\_max & The maximum value for signal-to-noise ratio i.e. the upper bound for simulation indices. Must be an integer. \\ \hline
+    snr\_step & The simulation indices start from snr\_min and are incremented by this constant until snr\_max is reached. This generates a list of SNR values, which each represent their own simulation that considers that particular SNR value. These simulations are then run in parallel. Must be an integer. \\ \hline
+    simulation\_rounds & The number of simulation rounds to run for each SNR simulation if no other stopping criteria is given. Should usually be set larger than, say a hundred, in order for the simulation to provide reliable information about the code error rates. Also keep in mind that this variable can have a large impact on how long the the simulation takes overall. \\ \hline
+    required\_errors & This variable specifies a fixed error limit for all SNR simulations, once its exceeded that simulation ends. \\ \hline
+    plot\_results & Boolean flag, which decides whether the program should draw plots out of the simulation output. Positive value means 'yes'. \\ \hline
+    stat\_display\_interval & Used to keep track of long simulations. You can decide with this option how often Planewalker will print out intermediate simulation results, which are also saved in the log file. Data is outputted each stat\_display\_interval rounds for each simulation. Warning, setting this to low positive number can significantly slow down the simulation and flood the console with text! \\  
+    \hline
+  \end{tabular}
+\end{center}
+\pagebreak
+\begin{center}
+  \begin{tabular}{ | l | p{8.5cm} | }
+    \hline
+    setting & usage  \\ \hline
+    spherical\_shaping\_max\_power & If specified, the codebook is considered spherically shaped and this variable defines the squared radius for the origin centered sphere in which all codewords will lie. It sets an upper bound for the power required to send codewords. Spherical shaping is discussed in chapter \ref{sec:implement}. \\ \hline
+    codebook\_size\_exponent & If specified, the codebook is considered spherically shaped and spherical\_shaping\_max\_power option is ignored. This variable defines the power of two, which will be the size of the spherically shaped codebook. The power limit is approximated automatically. \\ \hline
+    radius\_search\_density & Fine tuning option for the spherical codebook squared radius estimation algorithm, which defines its accuracy. The trade-off is increased computation time. It has no effect if codebook\_size\_exponent parameter is not specified. \\
     \hline
   \end{tabular}
 \end{center}
@@ -1008,10 +1048,7 @@ radius_search_density=100
 \caption{The default settings file (settings.ini) for the sphere decoder program.}
 \label{fig:settings}
 \end{figure}
-
-When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. To generate a new default settings file, simply delete the \textit{settings.ini} file and run the program.
-%Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. 
-The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program does not need to be recompiled for these changes to take effect, just run it again after saving the settings file.
+A good way to get the hang of these settings is to change every setting in the default settings file and see what it does with the help of the previous table.
 \par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you do not have to touch every parameter every time you want to do a different simulation.
 
 \subsection{Running the program}
