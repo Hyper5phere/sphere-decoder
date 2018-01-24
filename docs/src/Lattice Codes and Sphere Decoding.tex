@@ -1091,11 +1091,25 @@ The basic interpretation of the program output in figure \ref{fig:output} should
 \par The last three columns are about the block error rate (BLER), which is the most important factor when evaluating code performance. A logarithmic scale plot is automatically drawn from BLER and SNR level as seen in figure \ref{fig:output}. The BLER should be close to zero with higher SNR levels or something is clearly wrong with the code tested or the simulation setup. The last column is probably the most important one regarding further data analysis and code evaluation. Also the plotting is encouraged to be done against the \emph{Real SNR} values because that way one can spot if the simulated codeword distribution clearly deviates from the intended one by checking if the x-values of data points correspond to the ones used in simulation settings. The default Gnuplots are done this way.
 
 \subsection{Example simulation setups}
-The settings file for the MIDO-simulation example given in chapter \ref{sec:sims} is illustrated in figure \ref{fig:mido_settings}. It also comes with the Planewalker program as an example settings file called \emph{mido.ini} in the /settings/ folder. To run this simulation type command
+The settings files used in simulations examples described in chapter \ref{sec:sims} are gathered here, they also come with the Planewalker program and are found in /settings/ folder.
+The settings file for the MIDO simulation example is illustrated in figure \ref{fig:mido_settings}. To run this simulation yourself just type the command
 \begin{verbatim}
 $ ./pwalk mido.ini
 \end{verbatim}
-in the main program folder.
+The Krus 7 simulation is in figure \ref{fig:krus7_settings}. You can run it with
+\begin{verbatim}
+$ ./pwalk krus_7.ini
+\end{verbatim}
+The Golden code simulation is in figure \ref{fig:golden_settings}. You can run it with
+\begin{verbatim}
+$ ./pwalk goldencode.ini
+\end{verbatim}
+The Alamouti wiretap simulation is in figure \ref{fig:wiretap_settings}. You can run it with
+\begin{verbatim}
+$ ./pwalk wiretap.ini
+\end{verbatim}
+Note that you might want to test different sublattices in the wiretap simulation so altering the coset\_file option there is recommended. Six different sublattices come with the Planewalker program.
+
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single, numbers=left]
 basis_file=mido.txt
@@ -1125,14 +1139,101 @@ radius_search_density=1000
 \label{fig:mido_settings}
 \end{figure}
 
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=krus_7.txt           
+output_file=                    
+coset_file=                     
+error_file=                     
+channel_model=siso              
+x-PAM=4                         
+energy_estimation_samples=-1    
+no_of_matrices=7                
+matrix_coefficient=1.0          
+time_slots=7                    
+no_of_transmit_antennas=1       
+no_of_receiver_antennas=1       
+snr_min=0                       
+snr_max=30                      
+snr_step=2                      
+simulation_rounds=10000         
+required_errors=-1              
+plot_results=-1                 
+stat_display_interval=-1        
+spherical_shaping_max_power=-1  
+codebook_size_exponent=-1       
+radius_search_density=100
+\end{Verbatim}
+\caption{Simulation parameters for Krus 7 code simulation.}
+\label{fig:krus7_settings}
+\end{figure}
 
-\newpage
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=goldencode.txt       
+output_file=                    
+coset_file=                     
+error_file=golden_errors.csv    
+channel_model=mimo              
+x-PAM=4                         
+energy_estimation_samples=-1    
+no_of_matrices=8                
+matrix_coefficient=1.0          
+time_slots=2		        
+no_of_transmit_antennas=2       
+no_of_receiver_antennas=2       
+snr_min=9                       
+snr_max=17                      
+snr_step=1		        
+simulation_rounds=10000         
+required_errors=1000            
+plot_results=1                  
+stat_display_interval=100000    
+spherical_shaping_max_power=-1  
+codebook_size_exponent=8        
+radius_search_density=-1        
+\end{Verbatim}
+\caption{Simulation parameters for Golden code simulation.}
+\label{fig:golden_settings}
+\end{figure}
 
-\subsection{General troubleshooting}
-Some general miscellaneous tips are listed here to help you troubleshoot errors while using the program:
-\begin{enumerate}
-\item Do not include the dollar sign in terminal commands. It's just there to indicate terminal input.
-\end{enumerate}
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=alamouti.txt         
+output_file=                    
+coset_file=alamouti_L1.txt      
+error_file=                     
+channel_model=mimo              
+x-PAM=8                         
+energy_estimation_samples=-1    
+no_of_matrices=4                
+matrix_coefficient=1.0          
+time_slots=2                    
+no_of_transmit_antennas=2       
+no_of_receiver_antennas=2       
+snr_min=-40                     
+snr_max=20                      
+snr_step=2                      
+simulation_rounds=100000        
+required_errors=-1              
+plot_results=-1                 
+stat_display_interval=-1        
+spherical_shaping_max_power=-1  
+codebook_size_exponent=-1       
+radius_search_density=100       
+\end{Verbatim}
+\caption{Simulation parameters for Alamouti wiretap code simulation.}
+\label{fig:wiretap_settings}
+\end{figure}
+
+%%%% This section is probably not needed... %%%%
+%\newpage
+
+%\subsection{General troubleshooting}
+%Some general miscellaneous tips are listed here to help you troubleshoot errors while using the program:
+%\begin{enumerate}
+%\item Do not include the dollar sign in terminal commands. It's just there to indicate terminal input.
+%\end{enumerate}
 
 
 \end{document}
