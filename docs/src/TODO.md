@@ -53,7 +53,7 @@
 ### Program User Guide
 - leave LLL reduction documentation out (doesn't work properly) ✔
 - include settings examples with basis matrix file embedded as TEXT 
-- leave comments out of settings file and explain them in detail (refer to line numbers?) 
+- leave comments out of settings file and explain them in detail (refer to line numbers?) ✔
 - input examples: *Alamouti, SISO, Wiretap, Spherical shaping*
 
 
