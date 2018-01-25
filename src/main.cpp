@@ -371,8 +371,7 @@ int main(int argc, char** argv)
     else
         required_errors = read_error_requirements(filenames["error"]);
 
-    int snr_to_errorbound = 0;
-
+    
     /* If user has not spesified output filename, generate one automatically */
     if (filenames.count("output") == 0)
         create_output_filename(); /* see misc.cpp for details */
@@ -386,7 +385,7 @@ int main(int argc, char** argv)
 
     auto start = chrono::high_resolution_clock::now();
     
-    #pragma omp parallel /* parallelize SNR simulations */
+    #pragma omp parallel  /* parallelize SNR simulations */
     {
         double Hvar = 1, Nvar = 1;
  
@@ -402,6 +401,7 @@ int main(int argc, char** argv)
         int errors = 0; 
         int visited_nodes = 0;
         int total_nodes = 0;
+        int snr_to_errorbound = 0;
 
         double sigpow = 0;
         double bler = 0;
@@ -439,14 +439,14 @@ int main(int argc, char** argv)
                 if (samples <= 0) {
                     codeword = codebook_instance[dist(mersenne_twister)];
                 } else {
-                    if (P <= 0){
+                    if (P <= 0) {
                         codeword = create_random_codeword(bases, symbset); 
                     }
                     else {
                         codeword = create_random_spherical_codeword(bases, Rorig, symbset, P);
                     }
                 }
-
+	               
                 orig = codeword.first;  /* coefficients from the signal set (i.e. data vector) */
                 X = codeword.second;    /* Code block we want to send */
 
@@ -455,19 +455,18 @@ int main(int argc, char** argv)
                     H = create_random_matrix(n, m, 0, Hvar);
                 else
                     H = create_random_diag_matrix(t, 0, Hvar);
-                
-
-                N = create_random_matrix(n, t, 0, Nvar); /* Additive complex Gaussian white noise matrix */
-
+            
+            	N = create_random_matrix(n, t, 0, Nvar); /* Additive complex Gaussian white noise matrix */
+	            
                 sigpow = frob_norm_squared(H*X);       /* Signal power */
                 noisepow = frob_norm_squared(N);       /* Noise power */
                 C = noisepow + 1e-3;                   /* initial radius for the sphere decoder (added small "epsilon" to avoid equality comparison) */
                 sigsum += sigpow;                      /* sum of signal powers */
                 noisesum += noisepow;                  /* sum of noise powers */
-
+                
                 /* wrapper function for the sphere decoder algorithm, see details in sphdec.cpp 
                    x is the decoded output vector */
-                x = sphdec_wrapper(bases, Rorig, H, X, N, symbset, visited_nodes, C);
+            	x = sphdec_wrapper(bases, Rorig, H, X, N, symbset, visited_nodes, C);
 
                 if (x.empty())
                 	log_msg("C = " + to_string(C), "Alert");

@@ -92,7 +92,6 @@ void configure() {
     {
         istringstream iss(line);
         string key;
-        cout << line << endl;
         if(getline(iss, key, '=') )
         {
             if (key.find("//", 0) != string::npos)
