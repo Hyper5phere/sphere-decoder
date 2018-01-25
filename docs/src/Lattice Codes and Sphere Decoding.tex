@@ -81,6 +81,7 @@
 
 %% Use this if you write hard core mathematics, these are usually needed
 \usepackage{amsfonts,amssymb,amsbsy,amsmath}
+% \usepackage[table]{xcolor}
 
 %% Use the macros in this package to change how the hyperref package below 
 %% typesets its hypertext -- hyperlink colour, font, etc. See the package
@@ -187,11 +188,11 @@
 %% niin kuin se on yllä määritelty.
 %% Avainsanat
 %%
-\keywords{sphere decoding, space--time lattice codes, wireless communications, spherical codebook, wiretap}
+\keywords{Planewalker, sphere decoding, space--time lattice codes, wireless communications, spherical codebook, wiretap}
 %% Abstract text
 \begin{abstractpage}[english]
 Space--time block codes are widely used in wireless MIMO antenna systems because they enable transmission of multiple copies of a data stream, which  improves the reliability of data-transfer. Even though this adds some redundancy to channel uses, it's still a small price to pay for reliability, which is crucial in modern information systems. Because of the known wireless channel problems such as fading and thermal noise, sending only one copy of the data may not be enough, but the clever design of a space--time block code and the use of multiple antenna system might be more than sufficient to negate these issues. Clearly, the design of optimal codes, i.e the way to represent the data to the wireless link, plays a crucial role for future wireless communications, MIMO systems just being one example of their applications. \\ \\
-This paper is especially for information theorists and researchers of codes for Rayleigh fading SISO and MIMO channels. This paper introduces an efficient and relatively easy to use simulation program for testing code designs in wireless communications. It uses a smart implementation of the Schnorr-Euchner Sphere decoder algorithm for decoding, which offers a lot of flexibility to support various code constructions. The special features of the program include support for spherically shaped codebooks, complex matrix input and coset coding for wiretap simulations. Also SISO codes can be simulated with this program. This paper covers most of the theoretical background needed to use the program as well as gives practical instructions and examples for its usage.
+This paper is especially for information theorists and researchers of codes for Rayleigh fading SISO and MIMO channels. This paper introduces an efficient and relatively easy to use simulation program for testing code designs in wireless communications called \emph{Planewalker}. It uses a smart implementation of the Schnorr-Euchner Sphere decoder algorithm for decoding, which offers a lot of flexibility to support various code constructions. The special features of the program include support for spherically shaped codebooks, complex matrix input and coset coding for wiretap simulations. Also SISO codes can be simulated with Planewalker. This paper covers most of the theoretical background needed to use the program as well as gives practical instructions and examples for its usage.
 \end{abstractpage}
 
 %% Force a new page so that the possible English abstract starts on a new page
@@ -287,8 +288,8 @@ ECDP & Eve's correct decoding probability \\
 %% Leave first page empty
 Wireless communication has been a crucial part of modern information technology for a couple of decades now. It is facing a lot of practical everyday problems which motivate the ongoing extensive research on the field. One of these problems is the noise and fading that occurs on wireless channels due to obstacles and radiation from the surroundings. To avoid data loss during transmission via wireless link one has to encode the data to be sent in such a robust way that it can still be recovered at the receiving end even in the presence of noise and fading of reasonable scale. 
 \par One way to tackle this problem, and the method this thesis focuses on, is the use of space--time lattice codes and sphere decoding. From a mathematical point of view the process of decoding can then be viewed as a problem of finding the closest lattice point to a given input vector, that is, the possibly noisy vector containing the data received from the wireless channel. This problem in its general form is known to be NP-hard, but for communications applications, where the dimensionality and the shape of the lattice are kept reasonable, there exist algorithms, like the sphere decoder, that offer polynomial expected complexity with respect to the size of the codeword constellation \cite{mia}.
-\par This paper serves as a documentation for the lattice code simulator program. It should work as a stand alone reference for researchers who want to use it to test their lattice code designs in different simulations. This paper gives brief mathematical background about lattice theory, closest vector problem and space--time lattice codes in section \ref{sec:lattices}. After that the core algorithm of the program, namely \emph{the sphere decoder}, is discussed in chapter \ref{sec:sphdec}. Explicit pseudocodes are given for both algorithms used in the program as well as some mathematical background to help understand their workings. In section \ref{sec:sims} the principles of the simulations are explained i.e. the program model. Examples of common simulations are given.
-\par In addition to theoretical explanation about the simulations this program runs, a practical program user guide is included in the appendix of this paper. It explains how to install and setup the program, as well as offers examples of simulation setups for quick reference.
+\par This paper serves as a documentation for the Planewalker lattice code simulator program. It should work as a stand alone reference for researchers who want to use it to test their lattice code designs in different simulations. This paper gives brief mathematical background about lattice theory, closest vector problem and space--time lattice codes in section \ref{sec:lattices}. After that the core algorithm of the program, namely \emph{the sphere decoder}, is discussed in chapter \ref{sec:sphdec}. Explicit pseudocodes are given for both algorithms used in the program as well as some mathematical background to help understand their workings. In section \ref{sec:sims} the principles of the simulations are explained i.e. the program model. Examples of common simulations are given.
+\par In addition to theoretical explanation about the simulations Planewalker runs, a practical program user guide is included in the appendix of this paper. It explains how to install and setup the program, as well as offers examples of simulation setups for quick reference.
 
 
 %% In a thesis, every section starts a new page, hence \clearpage
@@ -517,7 +518,8 @@ Considering only this option in each dimension yields the Babai nearest plane al
 \par To ensure one indeed finds the closest lattice point, which in decoding applications like the sphere decoder is crucial, one needs to be a bit more throughout than this. Indeed Schnorr-Euchnerr sphere decoder does not stop here but instead climbs up the search tree and enumerates through all feasible points that are closer than the first point found also known as the \emph{Babai point}. This what the sphere decoder using Pohst strategy would also do. What's different in Schnorr-Euchner strategy from Pohst apart from not requiring initial radius thanks to the Babai nearest plane algorithm is the way of enumerating sublattice indices in equation \eqref{eq:dist}. While Pohst method would just go through the layers in ascending order within the distance upper bound (sphere radius), Schnorr-Euchnerr starts from the midpoint i.e. $u_n = \left\lceil\hat{u}_n\right\rfloor$ and zigzags around it until it hits the upper bound (see figure \ref{fig:sublattice}). In other words the Schnorr-Euchner enumeration goes through the layers in ascending order of the orthogonal distances $y_n$. The benefit of doing this is quite obvious: if one finds a layer $u_n$ that is outside the current sphere radius one can stop the search in that sublattice early, as clearly there are no longer points within radius in that sublattice, thanks to the ascending distance ordering. This significantly reduces the search tree complexity depicted in figure \ref{fig:tree} and thus makes the algorithm more efficient \cite{mia}\cite{agrell}.
 
 \subsection{Sphere decoder implementation}
-The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithms introduced in \cite{mia} and \cite{ranto}, but there are a couple of key differences. The new implementation natively handles $q$-PAM signal sets defined in equation \eqref{eq:pam}, so the signal set does not need to be mapped to interval $[0,q-1]$ first like in previous algorithms, which was confusing when comparing the input and output vectors. The program also uses the dedicated and efficient linear algebra library called \emph{Armadillo} \cite{arma}. The library also has intuitive syntax, which makes the code rather easy to read for those who wish to understand every detail of it. While the original algorithm in \cite{ranto} also handled spherically shaped codebooks, this program introduces two separate algorithms: one for parallelotope and one for spherically shaped codebooks. Pseudocodes for both algorithms are given in this paper. This division saves a lot of unnecessary comparisons when using the program with a normal pallelotope shaped codebook, which not surpricingly requires a much simpler algorithm. 
+\label{sec:sphdec}
+The sphere decoder algorithm used by the program is a modification of the Schnorr-Euchner strategy described earlier which also accounts for finite signal set boundaries with some optimizations. It is based on the algorithms introduced in \cite{mia} and \cite{ranto}, but there are a couple of key differences. The new implementation natively handles $q$-PAM signal sets defined in equation \eqref{eq:pam}, so the signal set does not need to be mapped to interval $[0,q-1]$ first like in previous algorithms, which was confusing when comparing the input and output vectors. The program also uses the dedicated and efficient linear algebra library called \emph{Armadillo} \cite{arma}. The library also has intuitive syntax, which makes the code rather easy to read for those who wish to understand every detail of it. While the original algorithm in \cite{ranto} also handled spherically shaped codebooks, Planewalker introduces two separate algorithms: one for parallelotope and one for spherically shaped codebooks. Pseudocodes for both algorithms are given in this paper. This division saves a lot of unnecessary comparisons when using the program with a normal pallelotope shaped codebook, which not surpricingly requires a much simpler algorithm. 
 \par The way the algorithms in the program are structured, provides a lot of modularity. This gives the experienced user with programming background an option to program his or her own custom simulations using this application programming interface within the main program source file.
 \par The sphere decoder consist of two parts: \emph{input preprocessing} and \emph{decoding} as can be seen in figure \ref{fig:sphdec}. Preprocessing converts the input complex matricies into their real representation using equation \eqref{eq:complex} and rotates the faded channel lattice generator matrix into upper triangular form with QR decomposion in order to use the sphere decoder. The received vectorised codeword $\textbf{y}$ also has be mapped to same coordinates as $\textbf{R}$ by multiplying it with inverse of the rotation matrix $\textbf{Q}$. In other words, instead of solving $\mathbf{B\hat{x}}=\mathbf{y}$ one can solve the equivalent problem $\mathbf{R\hat{x}}=\mathbf{y'}$. Doing this conversion is essential in order for the sphere decoder to work, as upper triangular form enables simple backsubstitution for partial radius calculations in each dimension. 
 \par The decoding process is divided into two algorithms, first one for normal codebooks (Algorithm 1) and the second one for spherical codebooks (Algorithm 2). The algorithms are very similar, so the differences in algorithm 2 to algorithm 1 are framed to emphasize them. Both algorithms are based on the ones introduced in \cite{mia}, \cite{ranto} and \cite{damen}. They both output, if successful, a vector $\mathbf{\hat{x}}$ that is closest lattice point to $\mathbf{y}'$ in a lattice generated by $\mathbf{R}$. According to maximum likehood principle and the good behavior of the lattice codes under fading and noise, this should also very likely be the correct codeword that was sent through the wireless channel \cite{mia}. Then the program goes back to flowchart \ref{fig:program}, compares the result and checks if this is actually the case.
@@ -628,6 +630,7 @@ The sphere decoder algorithm used by the program is a modification of the Schnor
 \section{Lattice code simulations}
 \label{sec:sims}
 \subsection{Program implementation}
+\label{sec:implement}
 The program discussed in this paper is essentially a lattice code simulator implemented as a command line application which the aforementioned sphere decoder algorithm is also part of. In this section a rough outline of the implementation is presented, which is most concisely presented in figure \ref{fig:program}. With this insight one ought to create better simulations, especially when experimenting simulations outside the normal parameter range.
 \par What the program actually simulates is the block error rate (BLER) of the lattice code under different levels of signal-to-noise ratios (SNR). Block error occurs when the decoded codeword is not exactly the same as the one we sent and the program counts these. Then BLER is simply the number of block errors divided by the number of simulation runs. The program can run multiple simulations in parallel, all of which simulate one SNR level each. The SNR is used to calculate the variance of the Rayleigh channel matrix coefficients in figure \ref{fig:mimo}. The channel noise matrix variance was chosen to be fixed one during all simulations. Note that the channel model is not limited to MIMO like in figure \ref{fig:mimo} but can also be chosen to be SISO system which simulates one transmit and one receiver antenna.
 \par The program requires at least two input files: the settings file and a basis matrix file, both located in their dedicated folders. Depending on the type of simulation one can also specify two additional input files for the sublattice basis matrices (for wiretap simulations) and simulation error limits (i.e. how many errors per SNR). To put it simply, the basis matrices are \textit{the lattice code} this program is used to test and the other two input files are just parameters for the simulation. There are many possible combinations of parameters to use, we'll go through some of them in the next section with example simulation setups.
@@ -735,7 +738,7 @@ so in the given example this rate is only 2-bits. But the overall code rate $r=\
 
 \subsection{Simulation examples}
 
-Now let us go through a couple of common simulation examples in order to get the basic idea of running lattice code simulations with this program. The first example is a MIMO code called \emph{MIDO} represented by the matrix in \eqref{eq:mido}.
+Now let us go through a couple of common simulation examples in order to get the basic idea of running lattice code simulations with Planewalker. The first example is a rank 16 MIMO code called \emph{MIDO} represented by the matrix in \eqref{eq:mido}.
 
 \begin{equation}
 \label{eq:mido}
@@ -763,16 +766,18 @@ Now let us go through a couple of common simulation examples in order to get the
 }
 \right)
 \end{equation}
-The entries in \eqref{eq:mido} have been truncated for readability. The columns represent the basis vectors of the complex valued lattice. 
+The entries in \eqref{eq:mido} have been truncated for readability. The columns represent the basis vectors of the complex valued lattice. The settings file for this simulation is in figure \ref{fig:mido_settings}. The codeword constellation consisting of all the combinations of the 8-PAM signaling set and a rank 16 lattice is very large, so spherical constellation is used with custom squared radius found in the settings file. This reduces the number of different codewords to 65536. 
+\par This simulation was used as a benchmark to validate the functioning of the new implementation of the sphere decoder algorithm described in chapter \ref{sec:sphdec} and the results are plotted in figure \ref{fig:mido}. As can be seen the curves are almost equal, which strongly indicates the new sphere decoder algorithm is correctly implemented.
+\par It should be noted that the figure \ref{fig:mido} uses logarithmic scales (SNR values are always logarithmic to begin with) so the BLER decreases very rapidly as SNR grows with the lattice code, which is a clear sign of good code construction. The SNR values ($10-14 $dB) tested in this simulation are very low for any real world application, so the code performance looks very promising.
 
 \begin{figure}[htb]
   \centering
 \includegraphics[width=\linewidth]{mido_sample_all_65k_unbiased}
-  \caption{Comparing the MIDO (8-PAM, MIMO) simulation results with the old sphere decoder implementation from \cite{ranto}. The curves are roughly the same.}
+  \caption{Comparing of the two MIDO simulation results. The old sphere decoder implementation is from \cite{ranto}.}
   \label{fig:mido}
 \end{figure}
 
-In this example of a wiretap channel simulation the well known Alamouti code, which is a rank 4 and rate-1 code for MIMO system of two transmit antennas and two receiver antennas, is used as the base lattice $\Lambda_b$ and five different sublattices are tested. The first three coset codes have index of 32 and the last two have index of 256. Following the criteria given in \ref{sec:wiretap}, it can be clearly seen from figure \ref{fig:ecdp} that sublattices $\Lambda_2$ and $\Lambda_5$ perform the best in the sense that they converge fastest to pure guessing rate. 
+The next example is a wiretap channel simulation with the well known Alamouti code, which is a rank 4 and rate-1 code for MIMO system of two transmit antennas and two receiver antennas, is used as the base lattice $\Lambda_b$ and five different sublattices are tested. The first three coset codes have index of 32 and the last two have index of 256. Following the criteria given in \ref{sec:wiretap}, it can be clearly seen from figure \ref{fig:ecdp} that sublattices $\Lambda_2$ and $\Lambda_5$ perform the best in the sense that they converge fastest to pure guessing rate. 
 \par At SNR levels higher than 10 there is hardly any difference in the performance but this is to be expected as Eve is assumed to have low SNR in the first place. It should also be noted that the index of the coset code plays a significant role in reducing ECDP as the SNR drops. However the trade-off is that one has to use higher overall code rate, which basically means more antennas or channel uses are required from the wireless link. The sublattices used in this simulation are given as examples with the Planewalker program and found in /bases/ folder.
 \begin{figure}[htb]
   \centering
@@ -844,7 +849,7 @@ Journal of Open Source Software, Vol. 1, pp. 26, 2016.
 %\end{tabular}
 
 \subsection{Preface}
-The purpose of this program is to simulate the performance of different space--time lattice codes under different levels of SNR. Its implementation heavily depends on C++ linear algebra template library called Armadillo \cite{arma}. This program is a console application (i.e. it is operated from command line) that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primalily intented to be used on Linux based operating systems but should be portable to other platforms as well (there are some slight differences in the required compiler instructions and used libraries though). If there are compatibility issues optional parts of the program can be left uncompiled intentionally. 
+The purpose of Planewalker is to simulate the performance of different lattice codes under different levels of SNR. Its implementation heavily depends on C++ linear algebra template library called Armadillo \cite{arma}. This program is a console application (i.e. it is operated from command line) that uses simple text based files for input and output. It also has a optional plotting utility which provides graphical interface for the simulation results. The program is primarily intended to be used on Linux based operating systems but should be portable to other platforms as well. There are some slight differences in the required compiler instructions and used libraries on other platforms though. If there are compatibility issues optional parts of the program can be left out intentionally when compiling. 
 \par This guide assumes Linux based operating system, the steps described here might differ slightly when the program is used on other operating systems. The details regarding to those differences are not discussed here, but references to additional documentation are given. In the following chapters we will go through the installation and usage of the program in detail. 
 
 \subsection{System requirements}
@@ -864,14 +869,15 @@ If this does not work please refer to \url{https://gcc.gnu.org/wiki/InstallingGC
 \item ARPACK library: \url{http://www.caam.rice.edu/software/ARPACK}
 \item Armadillo C++ Linear algebra library: \url{http://arma.sourceforge.net/download.html} 
 \item Boost C++ library (optional, for plotting only): \url{http://www.boost.org}
+\item Gnuplot (optional, for plotting only): \url{http://www.gnuplot.info}
 %\item MPFR 2.3.0 or higher (optional, for LLL reduction only) \url{http://www.mpfr.org/}
 %\item GNU MP 4.2.0 or higher (optional, for LLL reduction only) \url{http://www.gmplib.org/}.
 \end{enumerate}
 % (libarmadillo-dev)
 %Please note that the fplll library used for LLL reduction seems to only support reduction of integer matrices, which is not very reasonable assumption for communications applications like this, so \textbf{it is recommended for most users not to bother with the LLL reduction related functionality and simply leave it out (ie. not install packages 6 ja 7).} 
-You can follow the links in the packege list for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of installing them is by opening a terminal (in Linux CTRL+ALT+T) and using a package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packeges in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link in the package list. 
-\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}. %, \textit{libmpfr-dev} and \textit{libgmp-dev}. 
-Note that there might be some version number before the first dash in those names. The Boost library can safely be omitted for compatibility reasons. If all the install processes succeed you are now all set up to install the program itself.
+You can follow the links in the package list for detailed instructions on how install those packages if you're facing problems (e.g. you're not installing the program on Linux) but the most straightforward way of installing them is by opening a terminal (in Linux CTRL+ALT+T) and using a package manager utility (e.g. apt-get in Ubuntu) to install those packages. The first three packages are required by the Armadillo library so you should install the packages in the given order. Also note that not Linux based operating systems might require different libraries for Armadillo to work, in this case please refer to the Armadillo documentation by following the given link in the package list. 
+\par In the Linux package manager the libraries listed should go by names: \textit{libopenblas-dev}, \textit{liblapack-dev}, \textit{libarpack-dev}, \textit{libarmadillo-dev}, \textit{libboost-all-dev}, \textit{gnuplot5}. %, \textit{libmpfr-dev} and \textit{libgmp-dev}. 
+Note that there might be some version number before the first dash in those names. The Boost library and Gnuplot can safely be omitted for compatibility reasons. If all the install processes succeed you are now all set up to install the program itself.
 
 \subsection{Installing the program}
 
@@ -879,7 +885,8 @@ Open terminal (CTRL+ALT+T) and create a folder for the program
 \begin{verbatim}
 $ mkdir sphere-decoder
 $ cd sphere-decoder
-\end{verbatim}Once you are in that folder copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. This requires you to have Aalto University login credentials. If you have trouble accessing the repository contact your supervisor who instructed you to use this program, they should have a copy of it. The copying from the repository can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command in the terminal (requires git to be installed on the system):
+\end{verbatim}Once you are in that folder, copy the contents of this Gitlab repository there: \url{https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder}. %This requires you to have Aalto University login credentials. If you have trouble accessing the repository contact your supervisor who instructed you to use this program, they should have a copy of it. 
+The copying from the repository can be done by either downloading the repository as a compressed folder (e.g. zip) and extracting it into the folder created earlier or by using the following command in the terminal (requires git to be installed on the system):
 \begin{verbatim}
 $ git clone git@version.aalto.fi:pasi.pyrro/sphere-decoder.git
 \end{verbatim}
@@ -903,7 +910,7 @@ $ make with=plotting
 \end{verbatim} 
 but keep in mind the requirements for them:
 \begin{enumerate}
-\item \textbf{plotting}: C++ Boost library
+\item \textbf{plotting}: C++ Boost library and Gnuplot
 %\item \textbf{lll}: GMP, MPFR and you probably need to compile the fplll library \cite{fplll} in {/src/fplll} from source, see \url{https://github.com/fplll/fplll/#compilation} for help. Also remember to run the configure command like so
 %\begin{verbatim}
 %$ ./configure --prefix=$(pwd)/src/fplll/
@@ -941,7 +948,7 @@ If there are no errors regarding missing libraries or such then you have just co
 
 \subsection{Setup and Input}
 
-Now that the program is installed it is time to take a look at the simulation parameters and the program input files in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. Note that the program supports complex matrices as input, which are the preferred way of inputting your basis matrices. You can (and should) add your own basis matrix text files there. The program should not be too picky about the input format but do make sure you have something other than white spaces separating the matrix entries. The most tested input format is the \href{http://reference.wolfram.com/language/tutorial/LinearAlgebraMatrixTypes.html#77896732}{Wolfram Mathematica matrix format}, which should work in all cases. This format is also used in the example basis matrix files provided with the program, like the one in figure \ref{fig:alamouti_basis}, which you can also use as a reference.
+Now that the program is installed, it is time to take a look at the simulation parameters and the program input files in order to run successful simulations. In the /bases/ folder there are text files containing the lattice code basis matrices for the simulation. These files are really important as they contain the lattice code itself, the performance of which you want to simulate. Note that the program supports complex matrices as input, which are the preferred way of inputting your basis matrices. You can (and should) add your own basis matrix text files there. The program should not be too picky about the input format but do make sure you have something other than white spaces separating the matrix entries. The most tested input format is the \href{http://reference.wolfram.com/language/tutorial/LinearAlgebraMatrixTypes.html#77896732}{Wolfram Mathematica matrix format}, which should work in all cases. This format is also used in the example basis matrix files provided with the program, like the one in figure \ref{fig:alamouti_basis}, which you can also use as a reference.
 %The basis file for the Alamouti code should already be there and is used as the default. When creating a new basis file, one should stick to either Mathematica or Matlab syntax for complex matrices to ensure correct interpretation of the input. 
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single]
@@ -961,15 +968,60 @@ Now that the program is installed it is time to take a look at the simulation pa
 \label{fig:alamouti_basis}
 \end{figure}
 
-\par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The key contents of the file are displayed in figure \ref{fig:settings}. There are usually also comments in those settings files that start after the character sequence '//' and end in the line end but these are left out of the figures for clarity reasons. The comments are of course ignored by the program and only hold meaning for the user. Make sure not to remove any of the 22 options or the program will complain you about missing options. If you want to disable an option, it is done by either leaving the option value empty (string options) or setting it to -1 (number options) as seen in the figure \ref{fig:settings}. In case you end up messing up the settings file in some way, easy way to reset it is to just delete the file and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}. 
+\par For simulation parameters and other options one should navigate to /settings/ folder and open the default settings file called \textit{settings.ini}. The key contents of the file are displayed in figure \ref{fig:settings}. There are usually also comments in those settings files that start after the character sequence '//' and end in the line end but these are left out of the figures for clarity reasons. The comments are of course ignored by the program and only hold meaning for the user. Make sure not to remove any of the 22 options or the program will complain you about missing options. If you want to disable an option, it is done by either leaving the option value empty (string options) or setting it to -1 (number options) as seen in the figure \ref{fig:settings}. In case you end up messing up the settings file in some way, easy way to reset it is to just delete the file and run the program normally. This will generate a new default settings file for you, like the one in figure \ref{fig:settings}.
+\par When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. 
+%To generate a new default settings file, simply delete the \textit{settings.ini} file and run the program.
+%Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. 
+The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program does not need to be recompiled for these changes to take effect, just run it again after saving the settings file.
+\par Now let us go through what each simulation parameter and setting actually does. Their usages are explained in the following table.
 
-%\begin{figure}[htb]
-%\begin{center}
-  %\includegraphics[width=\linewidth]{settings}
-  %\caption{The default settings file for the sphere decoder program.}
-  %\label{fig:settings}
-%\end{center}
-%\end{figure}
+\begin{center}
+  \begin{tabular}{ | l | p{9cm} | }
+    \hline
+    setting & usage  \\ \hline
+    basis\_file & The text file storing the lattice code to be tested in the form of basis matrices. See the examples in /bases/ folder and the figure \ref{fig:alamouti_basis} to grasp the input format. Supports complex matrices. \\ \hline
+    output\_file & Give a custom name for the output csv file. Warning, using this will likely override earlier simulation results as the file name is not changed, unless done manually after each simulation. Can be left blank.\\ \hline
+    coset\_file & Similar to basis\_file, a text file that contains basis matrices of a sublattice, which represents the coset coding in wiretap simulations. Place these also in /bases/ folder. Can be left blank.\\ \hline
+    error\_file & A two line csv file to be placed in the /settings/ folder. First line contains SNR levels separated by commas and the second line contains custom error limits for each SNR level, also separated by commas. Note that if the SNR levels don't match the ones specified in the settings file, an error is thrown. Use this if you want to explicitly state the error limit for each simulation. Error limit is another stopping criteria for the simulation along with the number of simulation rounds, see figure \ref{fig:program} for more information. Can be left blank.\\ \hline
+    channel\_model & Choose the channel model for the simulation, either 'mimo' or 'siso' (without quotes). Affects how the channel matrix $\mathbf{H}$ is generated. Note that the wiretap channel model is independent from this option. It is choosed by specifying a coset\_file. \\ \hline
+    x-PAM & Defines the size of PAM signaling set (see \eqref{eq:pam}), must be positive even integer. \\ \hline
+    energy\_estimation\_samples & Planewalker takes this many random samples from the whole codebook and estimates code energy from those samples. Useful with very large codebooks like the one in MIDO simulation. Negative or zero value will result in calculating all possible codewords in the codebook, use this option only with reasonably sized codebooks. If this value is non-zero and positive, also the random codewords used in the simulation are generated on the fly, otherwise they would be randomly selected from a list of all possible codewords. This variable has a considerable impact on the speed of the whole simulation. Also using too few samples can result in incorrect channel matrix generation, can probably be spotted from the Real SNR values. \\
+    
+    \hline
+  \end{tabular}
+\end{center}
+\pagebreak
+\begin{center}
+  \begin{tabular}{ | l | p{9cm} | }
+    \hline
+    setting & usage  \\ \hline
+    no\_of\_matrices & The number of basis matrices (or vectors, if you like) in the basis\_file. Essential for correct parsing and handling of the basis matrices. This number can be thought as the dimension (rank) of the lattice the codewords lie in, the variable $k$ in equation \eqref{eq:codeword}.\\ \hline
+    matrix\_coefficient & Simple scaling factor. The program multiplies all basis matrices by this constant. \\ \hline
+    time\_slots & The number of time slots (channel uses) required to send the lattice code, the variable $l$ in figure \ref{fig:mimo}. \\ \hline
+    no\_of\_transmit\_antennas & The number of transmit antennas required to send the lattice code, the variable $m$ in figure \ref{fig:mimo}. \\ \hline
+    no\_of\_receiver\_antennas & The number of receiver antennas required to send the lattice code, the variable $n$ in figure \ref{fig:mimo}. \\
+    snr\_min & The minimum value for signal-to-noise ratio i.e. the lower bound for simulation indices. Must be an integer. \\ \hline
+    snr\_max & The maximum value for signal-to-noise ratio i.e. the upper bound for simulation indices. Must be an integer. \\ \hline
+    snr\_step & The simulation indices start from snr\_min and are incremented by this constant until snr\_max is reached. This generates a list of SNR values, which each represent their own simulation that considers that particular SNR value. These simulations are then run in parallel. Must be an integer. \\ \hline
+    simulation\_rounds & The number of simulation rounds to run for each SNR simulation if no other stopping criteria is given. Should usually be set larger than, say a hundred, in order for the simulation to provide reliable information about the code error rates. Also keep in mind that this variable can have a large impact on how long the the simulation takes overall. \\ \hline
+    required\_errors & This variable specifies a fixed error limit for all SNR simulations, once its exceeded that simulation ends. \\ \hline
+    plot\_results & Boolean flag, which decides whether the program should draw plots out of the simulation output. Positive value means 'yes'. \\ \hline
+    stat\_display\_interval & Used to keep track of long simulations. You can decide with this option how often Planewalker will print out intermediate simulation results, which are also saved in the log file. Data is outputted each stat\_display\_interval rounds for each simulation. Warning, setting this to low positive number can significantly slow down the simulation and flood the console with text! \\  
+    \hline
+  \end{tabular}
+\end{center}
+\pagebreak
+\begin{center}
+  \begin{tabular}{ | l | p{8.5cm} | }
+    \hline
+    setting & usage  \\ \hline
+    spherical\_shaping\_max\_power & If specified, the codebook is considered spherically shaped and this variable defines the squared radius for the origin centered sphere in which all codewords will lie. It sets an upper bound for the power required to send codewords. Spherical shaping is discussed in chapter \ref{sec:implement}. \\ \hline
+    codebook\_size\_exponent & If specified, the codebook is considered spherically shaped and spherical\_shaping\_max\_power option is ignored. This variable defines the power of two, which will be the size of the spherically shaped codebook. The power limit is approximated automatically. \\ \hline
+    radius\_search\_density & Fine tuning option for the spherical codebook squared radius estimation algorithm, which defines its accuracy. The trade-off is increased computation time. It has no effect if codebook\_size\_exponent parameter is not specified. \\
+    \hline
+  \end{tabular}
+\end{center}
+
 
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single, numbers=left]
@@ -999,11 +1051,8 @@ radius_search_density=100
 \caption{The default settings file (settings.ini) for the sphere decoder program.}
 \label{fig:settings}
 \end{figure}
-
-When editing the settings, only modify the right hand side of the equality sign. If you change the option variable names, the program will not recognise them. You can always check the correct variable names from figure \ref{fig:settings} or just generate a new default settings file if you happen to change them accidentally. 
-%Another rule of the thumb is that if you want to use default behaviour for some feature, use -1 value for that variable. 
-The order of the setting variables does not matter, just make sure they're all on their own separate line. Remember to save the changes you make to that file. The program does not need to be recompiled for these changes to take effect, just run it again after saving the settings file.
-\par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you don not have to touch every parameter every time you want to do a different simulation.
+A good way to get the hang of these settings is to change every setting in the default settings file and see what it does with the help of the previous table.
+\par One can also create multiple settings files in that folder. To use a different settings file one just needs to give its name as a command line argument for the program. This will be explained in the next chapter. Using multiple settings files is really useful for organizing different simulations so you do not have to touch every parameter every time you want to do a different simulation.
 
 \subsection{Running the program}
 
@@ -1013,27 +1062,56 @@ $ make run
 \end{verbatim}
 or
 \begin{verbatim}
-$ ./sphdec [settings_file.ini*]
+$ ./pwalk [settings_file.ini*]
 \end{verbatim}
 %or 
 %\begin{verbatim}
 %$ sh sphdec.sh [settings_file.ini*]
 %\end{verbatim}
 
-\noindent The first command uses the default settings file and in the second one can optionally spesify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. %The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
+\noindent The first command uses the default settings file and in the second one can optionally specify the name of the settings file to be used (do not give the whole file path, just the name of a file in /settings/ folder). If no command line argument is given the first two commands are equal. %The last one is the same as the second one but it runs a shell script that sets an environment variable required to link the program with fplll library during runtime. Use this only if you compiled the program with LLL reduction support.
 \par Once the program has started it prints useful data related to the current actions it is taking to the terminal as well as in the log.txt file located in the /logs/ folder. Visiting the log.txt file can be useful for reviewing previous program behaviour in the future. In the log file each program runtime should be separated by an empty line.
 \par If the program gets stuck somewhere or takes too long to finish a large simulation, pressing CTRL+C in the terminal will terminate the execution of the program almost instantly. The program attempts to output the current simulation data even in this situation but it is not quaranteed to succeed so keep that in mind when doing that. For large simulations one needs to be patient as the simulation complexity grows exponentially with the lattice code dimension. It might be required to hit this key combination several times if the program does not terminate within five seconds or so.
 
 \subsection{Output and Plots}
 
-If the program exits without errors its output should be found from /output/ folder in csv format. This standard data format is easy to import into Matlab and other programs you might need. The filenames are by default named so that they are in chronological order so the latest simulation output should be the last one in the file listing. The csv format is easy to import in other programs like Matlab.
-\par If the program was compiled successfully with the plotting make option and the following settings variable is set to
+If the program exits without errors its output should be found from /output/ folder in comma separated values (csv) format. This standard data format is easy to import into Matlab and other programs you might need. The file names are by default named so that they are in chronological order so the latest simulation output should be the last one in the file listing.
+\par If the program was compiled successfully with the \emph{plotting} make option and the following settings variable is set to
 \begin{verbatim}
 plot_results=1 
 \end{verbatim}
-then a couple of graphical interfaces for plots generated from the simulation data should pop up. If there are errors check that you also have GNUPlot installed on your system. Plotting gives you a quick review on how the simulation went. For more rigorous data analysis it is recommended to import the output csv file to some numerical scientific calculation software like Matlab.
+then a couple of graphical interfaces for plots generated from the simulation data should pop up when the simulation ends. This is illustrated in figure \ref{fig:output}. If there are errors check that you also have Gnuplot installed on your system. Plotting the output data gives you a quick review on how the simulation went. For more rigorous data analysis it is recommended to import the output csv file to some numerical scientific calculation software like Matlab.
+
+\begin{figure}[htb]
+  \centering
+\includegraphics[width=\linewidth]{pwalk_output}
+  \caption{Example output of the Planewalker program with the plotting option turned on.}
+  \label{fig:output}
+\end{figure}
+
+The basic interpretation of the program output in figure \ref{fig:output} should go as follows. Each (green) line indicates a finished SNR simulation and the output data related to it. The first column \emph{SNR simulation} just states which SNR simulation the data is related to, i.e. the index of the simulation. The simulations are not sorted by their index because of the nature of parallel computing and different computation times. However, in the output csv file they are, and the data columns are identical to the ones in console output. The second column is a kind of a sanity check and should be as close to the simulation index as possible when sufficient number of simulation rounds is done. It represents how correctly the simulated codewords that were randomly generated represent that particular SNR level. The SNR level is used to generate the variance for the channel matrix coefficients. If \emph{Real SNR} is off by more than one unit one should assume something is wrong with the simulation. It's likely caused by either incorrect input parameters or program behaviour (a bug). 
+\par The next columns about complexity indicate how many steps (tree traversals) the sphere decoder algorithm had to take in order to decode the received codewords. The average complexity is also (optionally) plotted against SNR level and not surprisingly decreases with growing signal to noise ratio as seen in figure \ref{fig:output}. This just means the closer one is to the original sent codeword in the receiving end, the less work the sphere decoder algorithm has to do. Of course if this is not the case one should be alarmed. Also if the complexity rises ridiculously high one should consider altering  their code or simulation setup. The average complexity can be used as a measure of the code performance as it directly correlates with decoding time.
+\par The last three columns are about the block error rate (BLER), which is the most important factor when evaluating code performance. A logarithmic scale plot is automatically drawn from BLER and SNR level as seen in figure \ref{fig:output}. The BLER should be close to zero with higher SNR levels or something is clearly wrong with the code tested or the simulation setup. The last column is probably the most important one regarding further data analysis and code evaluation. Also the plotting is encouraged to be done against the \emph{Real SNR} values because that way one can spot if the simulated codeword distribution clearly deviates from the intended one by checking if the x-values of data points correspond to the ones used in simulation settings. The default Gnuplots are done this way.
 
 \subsection{Example simulation setups}
+The settings files used in simulations examples described in chapter \ref{sec:sims} are gathered here, they also come with the Planewalker program and are found in /settings/ folder.
+The settings file for the MIDO simulation example is illustrated in figure \ref{fig:mido_settings}. To run this simulation yourself just type the command
+\begin{verbatim}
+$ ./pwalk mido.ini
+\end{verbatim}
+The Krus 7 simulation is in figure \ref{fig:krus7_settings}. You can run it with
+\begin{verbatim}
+$ ./pwalk krus_7.ini
+\end{verbatim}
+The Golden code simulation is in figure \ref{fig:golden_settings}. You can run it with
+\begin{verbatim}
+$ ./pwalk goldencode.ini
+\end{verbatim}
+The Alamouti wiretap simulation is in figure \ref{fig:wiretap_settings}. You can run it with
+\begin{verbatim}
+$ ./pwalk wiretap.ini
+\end{verbatim}
+Note that you might want to test different sublattices in the wiretap simulation so altering the coset\_file option there is recommended. Six different sublattices come with the Planewalker program.
 
 \begin{figure}[htb]
 \begin{Verbatim}[frame=single, numbers=left]
@@ -1064,14 +1142,101 @@ radius_search_density=1000
 \label{fig:mido_settings}
 \end{figure}
 
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=krus_7.txt           
+output_file=                    
+coset_file=                     
+error_file=                     
+channel_model=siso              
+x-PAM=4                         
+energy_estimation_samples=-1    
+no_of_matrices=7                
+matrix_coefficient=1.0          
+time_slots=7                    
+no_of_transmit_antennas=1       
+no_of_receiver_antennas=1       
+snr_min=0                       
+snr_max=30                      
+snr_step=2                      
+simulation_rounds=10000         
+required_errors=-1              
+plot_results=-1                 
+stat_display_interval=-1        
+spherical_shaping_max_power=-1  
+codebook_size_exponent=-1       
+radius_search_density=100
+\end{Verbatim}
+\caption{Simulation parameters for Krus 7 code simulation.}
+\label{fig:krus7_settings}
+\end{figure}
 
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=goldencode.txt       
+output_file=                    
+coset_file=                     
+error_file=golden_errors.csv    
+channel_model=mimo              
+x-PAM=4                         
+energy_estimation_samples=-1    
+no_of_matrices=8                
+matrix_coefficient=1.0          
+time_slots=2		        
+no_of_transmit_antennas=2       
+no_of_receiver_antennas=2       
+snr_min=9                       
+snr_max=17                      
+snr_step=1		        
+simulation_rounds=10000         
+required_errors=1000            
+plot_results=1                  
+stat_display_interval=100000    
+spherical_shaping_max_power=-1  
+codebook_size_exponent=8        
+radius_search_density=-1        
+\end{Verbatim}
+\caption{Simulation parameters for Golden code simulation.}
+\label{fig:golden_settings}
+\end{figure}
 
+\begin{figure}[htb]
+\begin{Verbatim}[frame=single, numbers=left]
+basis_file=alamouti.txt         
+output_file=                    
+coset_file=alamouti_L1.txt      
+error_file=                     
+channel_model=mimo              
+x-PAM=8                         
+energy_estimation_samples=-1    
+no_of_matrices=4                
+matrix_coefficient=1.0          
+time_slots=2                    
+no_of_transmit_antennas=2       
+no_of_receiver_antennas=2       
+snr_min=-40                     
+snr_max=20                      
+snr_step=2                      
+simulation_rounds=100000        
+required_errors=-1              
+plot_results=-1                 
+stat_display_interval=-1        
+spherical_shaping_max_power=-1  
+codebook_size_exponent=-1       
+radius_search_density=100       
+\end{Verbatim}
+\caption{Simulation parameters for Alamouti wiretap code simulation.}
+\label{fig:wiretap_settings}
+\end{figure}
 
-\subsection{General troubleshooting}
-Some general miscellaneous tips are listed here to help you troubleshoot errors while using the program:
-\begin{enumerate}
-\item Do not include the dollar sign in terminal commands. It's just there to indicate terminal input.
-\end{enumerate}
+%%%% This section is probably not needed... %%%%
+%\newpage
+
+%\subsection{General troubleshooting}
+%Some general miscellaneous tips are listed here to help you troubleshoot errors while using the program:
+%\begin{enumerate}
+%\item Do not include the dollar sign in terminal commands. It's just there to indicate terminal input.
+%\end{enumerate}
 
 
 \end{document}
