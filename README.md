@@ -1,12 +1,17 @@
 Planewalker - C++ Sphere decoder simulator for space-time lattice codes
 =======================================================================
 
+Description
+-----------
+Planewalker is a sphere decoder implementation with diverse lattice code simulation capabilitites built around it. Its implementation was carried out as a special assignment by Pasi Pyrrö, advised by Oliver Gnilke, Marcus Greferath, and Camilla Hollanti, Department of Mathematics and Systems Analysis, Aalto University, Finland. 
+![example simulation results](https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder/raw/master/docs/src/alamouti_cosets12345_8-PAM.png "example simulation results")
+
 Key features
 ------------
-- Comprehensive basis matrix and simulation parameters input (using text based configuration files)
+- Comprehensive generator matrix and simulation parameters input (using text based configuration files)
 - Complex matrix support
 - Spherical constellation (codebook shaping) support with radius estimator for desired codebook size
-- Schnorr-Euchner smart implementation of the sphere decoder algorithm with additional optimizations
+- [Schnorr-Euchner smart implementation of the sphere decoder algorithm](https://doi.org/10.1109/TIT.2003.817444) with additional optimizations
 - Native handling of q-PAM signaling sets
 - Supports wiretap simulations (coset encoding)
 - Comprehensive console (stdout), log.txt and csv simulation output
@@ -58,3 +63,31 @@ radius_search_density=100       // Defines how accurate the codebook squared rad
 - Program output should be found at */output/* folder
 
 (Naturally in order for this to work you need a C++ compiler (g++) that supports C++11 standard installed on your system, should be no problem on Aalto computers)
+
+Known issues
+------------
+- Random generation of spherical codewords seems to have some selection bias, that shifts the average energy of the codebook slightly
+- Spherical shaping radius estimation does not work 100% of the time (used with *codebook_size_exponent* parameter)
+- There is a weird issue with openmp parallel computing library that causes the initial radius for the sphere decoder sometimes to be too small when using spherical shaping (quick workarounds: either disable parallelism or use infinite initial radius)
+
+License
+-------
+Copyright (c) 2018 Pasi Pyrrö
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
