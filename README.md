@@ -7,11 +7,11 @@ Planewalker is a sphere decoder implementation with diverse lattice code simulat
 
 How to cite
 -----------
-If you use or adapt this software in your research, please cite it as follows:
----
+##### If you use or adapt this software in your research, please cite it as follows:
+
 P. Pyrrö, O. Gnilke, C. Hollanti, and M. Greferath, “*Planewalker* sphere decoder implementation,” 2018. [Online]. Available: https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder/
----
-Or with Bibtex:
+
+##### Or with Bibtex:
 ```tex
 @misc{PGHG18,
     Author = {P. Pyrr\"o and O. Gnilke and C. Hollanti and M. Greferath},
