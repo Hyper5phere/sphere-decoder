@@ -4,6 +4,22 @@ Planewalker - C++ Sphere decoder simulator for space-time lattice codes
 Description
 -----------
 Planewalker is a sphere decoder implementation with diverse lattice code simulation capabilitites built around it. Its implementation was carried out as a special assignment by Pasi Pyrrö, advised by Oliver Gnilke, Marcus Greferath, and Camilla Hollanti, Department of Mathematics and Systems Analysis, Aalto University, Finland. 
+
+How to cite
+-----------
+If you use or adapt this software in your research, please cite it as follows:
+---
+P. Pyrrö, O. Gnilke, C. Hollanti, and M. Greferath, “*Planewalker* sphere decoder implementation,” 2018. [Online]. Available: https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder/
+---
+Or with Bibtex:
+```tex
+@misc{PGHG18,
+    Author = {P. Pyrr\"o and O. Gnilke and C. Hollanti and M. Greferath},
+    Title = {\emph{Planewalker} sphere decoder implementation},
+    Url = {https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder/},
+    Year = {2018}
+}
+```
 ![example simulation results](https://version.aalto.fi/gitlab/pasi.pyrro/sphere-decoder/raw/master/docs/src/alamouti_cosets12345_8-PAM.png "example simulation results")
 
 Key features
